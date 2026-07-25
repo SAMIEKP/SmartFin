@@ -5,13 +5,15 @@ import { USER_PROFILE_KWESI, PROVIDER_PROFILE_PHIRI } from '../data/mockData';
 interface LoginViewProps {
   onNavigate: (view: ViewMode) => void;
   onLoginSuccess: (userProfile: UserProfile, role: Role) => void;
+  defaultRole?: Role;
 }
 
 export const LoginView: React.FC<LoginViewProps> = ({
   onNavigate,
   onLoginSuccess,
+  defaultRole = 'user',
 }) => {
-  const [selectedRole, setSelectedRole] = useState<Role>('user');
+  const [selectedRole, setSelectedRole] = useState<Role>(defaultRole);
   
   // Individual login fields
   const [email, setEmail] = useState('');

@@ -27,6 +27,7 @@ import { MyApplicationsView } from './views/MyApplicationsView';
 import { CreditScoreView } from './views/CreditScoreView';
 import { SettingsView } from './views/SettingsView';
 import { UserProfileView } from './views/UserProfileView';
+import { LoginView } from './views/LoginView';
 
 export function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('landing');
@@ -43,6 +44,15 @@ export function App() {
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+
+  // Login default role (pre-select Member or Provider tab)
+  const [loginDefaultRole, setLoginDefaultRole] = useState<Role>('user');
+
+  // Navigate to login with a pre-selected role
+  const handleNavigateLogin = (defaultRole: Role) => {
+    setLoginDefaultRole(defaultRole);
+    setCurrentView('login');
+  };
 
   // Switch role handler
   const handleSwitchRole = (newRole: Role) => {
@@ -101,7 +111,14 @@ export function App() {
   };
 
   // Determine if full-screen layout (without sidebar)
-  const isFullScreenLayout = currentView === 'landing' || currentView === 'register';
+  const isFullScreenLayout = currentView === 'landing' || currentView === 'register' || currentView === 'login';
+
+  // Handle login success
+  const handleLoginSuccess = (profile: UserProfile, newRole: Role) => {
+    setUserProfile(profile);
+    setRole(newRole);
+    setCurrentView(newRole === 'provider' ? 'provider-dashboard' : 'user-dashboard');
+  };
 
   return (
     <div className="min-h-screen bg-[#f8f9ff] text-[#0b1c30] flex flex-col font-sans selection:bg-[#008378] selection:text-[#f4fffc]">
@@ -127,6 +144,7 @@ export function App() {
           userProfile={userProfile}
           onOpenApplyModal={() => setIsApplyModalOpen(true)}
           onSwitchRole={handleSwitchRole}
+          onNavigateLogin={handleNavigateLogin}
         />
 
         {/* View Content Renderer */}
@@ -137,6 +155,14 @@ export function App() {
               products={products}
               onSelectProduct={setSelectedProduct}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
+            />
+          )}
+
+          {currentView === 'login' && (
+            <LoginView
+              onNavigate={setCurrentView}
+              onLoginSuccess={handleLoginSuccess}
+              defaultRole={loginDefaultRole}
             />
           )}
 

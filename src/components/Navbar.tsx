@@ -8,6 +8,7 @@ interface NavbarProps {
   userProfile: UserProfile;
   onOpenApplyModal: () => void;
   onSwitchRole?: (role: Role) => void;
+  onNavigateLogin?: (defaultRole: Role) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -17,6 +18,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   userProfile,
   onOpenApplyModal,
   onSwitchRole,
+  onNavigateLogin,
 }) => {
   return (
     <header className="sticky top-0 z-40 bg-[#eff4ff]/90 backdrop-blur-md border-b border-[#bcc9c6]/20 px-4 py-3 flex items-center justify-between gap-4">
@@ -51,35 +53,33 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Right Controls */}
       <div className="flex items-center gap-3">
-        {/* Role toggle badge if available */}
-        {onSwitchRole && (
-          <div className="hidden sm:flex bg-[#e5eeff] p-1 rounded-full text-xs font-semibold">
-            <button
-              onClick={() => onSwitchRole('user')}
-              className={`px-3 py-1 rounded-full transition-all ${
-                role === 'user'
-                  ? 'bg-[#00685f] text-white shadow-xs'
-                  : 'text-[#3d4947] hover:text-[#00685f]'
-              }`}
-            >
-              Member
-            </button>
-            <button
-              onClick={() => onSwitchRole('provider')}
-              className={`px-3 py-1 rounded-full transition-all ${
-                role === 'provider'
-                  ? 'bg-[#00685f] text-white shadow-xs'
-                  : 'text-[#3d4947] hover:text-[#00685f]'
-              }`}
-            >
-              Provider
-            </button>
-          </div>
-        )}
+        {/* Role toggle badge - Navigate to Login */}
+        <div className="hidden sm:flex bg-[#e5eeff] p-1 rounded-full text-xs font-semibold">
+          <button
+            onClick={() => onNavigateLogin ? onNavigateLogin('user') : onNavigate('login')}
+            className={`px-3 py-1 rounded-full transition-all ${
+              role === 'user'
+                ? 'bg-[#00685f] text-white shadow-xs'
+                : 'text-[#3d4947] hover:text-[#00685f]'
+            }`}
+          >
+            Member
+          </button>
+          <button
+            onClick={() => onNavigateLogin ? onNavigateLogin('provider') : onNavigate('login')}
+            className={`px-3 py-1 rounded-full transition-all ${
+              role === 'provider'
+                ? 'bg-[#00685f] text-white shadow-xs'
+                : 'text-[#3d4947] hover:text-[#00685f]'
+            }`}
+          >
+            Provider
+          </button>
+        </div>
 
 {/* Login Primary CTA */}
         <button
-          onClick={onOpenApplyModal}
+          onClick={() => onNavigate('login')}
           className="flex items-center gap-1.5 px-4 py-2 bg-[#00685f] hover:bg-[#008378] text-white text-xs font-bold rounded-lg shadow-xs transition-all active:scale-95 cursor-pointer"
         >
           <span className="material-symbols-outlined text-base">login</span>
