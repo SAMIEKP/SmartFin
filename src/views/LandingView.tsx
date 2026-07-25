@@ -115,29 +115,6 @@ export const LandingView: React.FC<LandingViewProps> = ({
         </div>
       </section>
 
-      {/* Trust Strip – Credibility Signals */}
-      <section className="py-14 px-4 md:px-8 bg-[#eff4ff] border-y border-[#bcc9c6]/20">
-        <div className="max-w-5xl mx-auto text-center">
-          <div className="flex flex-wrap items-center justify-center gap-8 mb-6">
-            <div className="flex items-center gap-2 text-[#6d7a77]">
-              <span className="material-symbols-outlined text-[#00685f] text-xl">verified</span>
-              <span className="text-sm font-medium">Trusted by local financial institutions</span>
-            </div>
-            <div className="flex items-center gap-2 text-[#6d7a77]">
-              <span className="material-symbols-outlined text-[#00685f] text-xl">diversity_3</span>
-              <span className="text-sm font-medium">Community organizations across Malawi</span>
-            </div>
-            <div className="flex items-center gap-2 text-[#6d7a77]">
-              <span className="material-symbols-outlined text-[#00685f] text-xl">security</span>
-              <span className="text-sm font-medium">Built with secure technology & clear privacy standards</span>
-            </div>
-          </div>
-          <p className="text-xs text-[#6d7a77] max-w-2xl mx-auto">
-            Trusted by local financial institutions and community organizations. We are committed to transparent information, clear privacy standards, and guided steps for every application.
-          </p>
-        </div>
-      </section>
-
       {/* About Section */}
       <section className="py-20 px-4 md:px-8 max-w-6xl mx-auto w-full">
         {/* Heading */}
@@ -634,24 +611,15 @@ export const LandingView: React.FC<LandingViewProps> = ({
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
                   <span className="material-symbols-outlined text-[#00685f] text-base mt-0.5 shrink-0">visibility</span>
-                  <div>
-                    <p className="text-sm font-semibold text-[#0b1c30]">Understand loans before you apply, not after.</p>
-                    <p className="text-xs text-[#3d4947] mt-0.5">Clear terms, rates and requirements shown upfront so there are no surprises.</p>
-                  </div>
+                  <p className="text-sm text-[#3d4947]"><strong className="text-[#0b1c30]">Understand loans before you apply, not after.</strong> See repayment expectations and risks in one clear view.</p>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="material-symbols-outlined text-[#00685f] text-base mt-0.5 shrink-0">summarize</span>
-                  <div>
-                    <p className="text-sm font-semibold text-[#0b1c30]">See repayment expectations and risks in one clear view.</p>
-                    <p className="text-xs text-[#3d4947] mt-0.5">Compare offers side by side before making a decision.</p>
-                  </div>
+                  <p className="text-sm text-[#3d4947]"><strong className="text-[#0b1c30]">See repayment expectations and risks in one clear view.</strong> Compare offers side by side before making a decision.</p>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="material-symbols-outlined text-[#00685f] text-base mt-0.5 shrink-0">settings_account</span>
-                  <div>
-                    <p className="text-sm font-semibold text-[#0b1c30]">Keep your profile and language preference consistent across visits.</p>
-                    <p className="text-xs text-[#3d4947] mt-0.5">Your settings stay the same every time you come back.</p>
-                  </div>
+                  <span className="material-symbols-outlined text-[#00685f] text-base mt-0.5 shrink-0">settings</span>
+                  <p className="text-sm text-[#3d4947]"><strong className="text-[#0b1c30]">Keep your profile and language preference consistent across visits.</strong> Your settings stay the same every time you come back.</p>
                 </li>
               </ul>
             </div>
