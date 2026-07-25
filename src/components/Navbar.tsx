@@ -70,7 +70,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             Loan Calculator
           </button>
           <button 
-            onClick={() => onNavigate('user-dashboard')} 
+            onClick={() => onNavigate('login')} 
             className="hover:text-[#00685f] transition-colors"
           >
             Member Portal

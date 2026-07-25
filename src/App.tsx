@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { ViewMode, Role, LoanProduct, ApplicationItem, UserProfile } from './types';
 import {
   INITIAL_PRODUCTS,
@@ -16,6 +16,7 @@ import { AddProductModal } from './components/AddProductModal';
 import { SupportModal } from './components/SupportModal';
 
 import { LandingView } from './views/LandingView';
+import { LoginView } from './views/LoginView';
 import { RegisterView } from './views/RegisterView';
 import { UserDashboardView } from './views/UserDashboardView';
 import { ProviderDashboardView } from './views/ProviderDashboardView';
@@ -66,6 +67,12 @@ export function App() {
     setProviderApplications((prev) => [newApp, ...prev]);
   };
 
+  const handleLoginSuccess = (loggedInUser: UserProfile, nextRole: Role) => {
+    setUserProfile(loggedInUser);
+    setRole(nextRole);
+    setCurrentView(nextRole === 'provider' ? 'provider-dashboard' : 'user-dashboard');
+  };
+
   // Add new provider product
   const handleAddProduct = (newProd: LoanProduct) => {
     setProducts((prev) => [newProd, ...prev]);
@@ -101,7 +108,7 @@ export function App() {
   };
 
   // Determine if full-screen layout (without sidebar)
-  const isFullScreenLayout = currentView === 'landing' || currentView === 'register';
+  const isFullScreenLayout = currentView === 'landing' || currentView === 'login' || currentView === 'register';
 
   return (
     <div className="min-h-screen bg-[#f8f9ff] text-[#0b1c30] flex flex-col font-sans selection:bg-[#008378] selection:text-[#f4fffc]">
@@ -137,6 +144,13 @@ export function App() {
               products={products}
               onSelectProduct={setSelectedProduct}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
+            />
+          )}
+
+          {currentView === 'login' && (
+            <LoginView
+              onNavigate={setCurrentView}
+              onLoginSuccess={handleLoginSuccess}
             />
           )}
 
