@@ -20,76 +20,94 @@ export const LandingView: React.FC<LandingViewProps> = ({
   return (
     <div className="min-h-screen flex flex-col bg-[#f8f9ff]">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-[#eff4ff] via-[#e5eeff] to-[#f8f9ff] pt-12 pb-20 px-4 md:px-8 border-b border-[#bcc9c6]/20">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <section className="relative bg-gradient-to-br from-[#eff4ff] via-[#e5eeff] to-[#f8f9ff] pt-16 pb-24 px-4 md:px-8 border-b border-[#bcc9c6]/20 overflow-hidden">
+        {/* Decorative background elements */}
+        <div className="absolute top-20 right-0 w-96 h-96 bg-[#89f5e7]/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-20 w-72 h-72 bg-[#00685f]/5 rounded-full blur-3xl"></div>
+
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16 items-center relative z-10">
           {/* Left Column Text */}
-          <div className="lg:col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#89f5e7]/40 text-[#005049] rounded-full text-xs font-bold border border-[#008378]/20">
+          <div className="lg:col-span-7 space-y-7">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/80 text-[#00685f] rounded-full text-xs font-bold border border-[#008378]/20 shadow-xs">
               <span className="w-2 h-2 rounded-full bg-[#00685f] animate-pulse"></span>
-              <span>Malawi's Premier Financial Portal</span>
+              <span>Connecting Borrowers & Lenders</span>
             </div>
 
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#0b1c30] tracking-tight leading-tight">
-              Access Verified <span className="text-[#00685f]">Loans & Credit</span> Products in Malawi.
-            </h1>
+            <div className="space-y-3">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#0b1c30] tracking-tight leading-tight">
+                Find and understand the <span className="text-[#00685f]">right loans</span> in one place.
+              </h1>
 
-            <p className="text-base md:text-lg text-[#3d4947] leading-relaxed max-w-2xl font-normal">
-              Connect directly with verified Malawian banks, microfinance sacco institutions, and licensed credit providers. Compare rates, calculate repayments, and submit instant applications with transparent terms.
+              <p className="text-lg md:text-xl text-[#3d4947]/80 leading-relaxed font-medium">
+                Connect individuals and trusted loan providers on one simple platform.
+              </p>
+            </div>
+
+            <p className="text-base md:text-[15px] text-[#3d4947] leading-relaxed max-w-2xl">
+              FinAccess Connect helps students, farmers, households and small businesses compare loan offers, understand repayment terms, and apply online — while providers manage services and applications on a dedicated dashboard.
             </p>
 
             {/* CTAs */}
             <div className="flex flex-wrap items-center gap-4 pt-2">
               <button
-                onClick={() => onNavigate('loan-products')}
-                className="px-6 py-3.5 bg-[#00685f] hover:bg-[#008378] text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+                onClick={() => onNavigate('register')}
+                className="px-7 py-3.5 bg-[#00685f] hover:bg-[#008378] text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer active:scale-95"
               >
-                <span>Explore Loan Products</span>
+                <span>Get started</span>
                 <span className="material-symbols-outlined text-lg">arrow_forward</span>
               </button>
 
               <button
-                onClick={() => onNavigate('calculator')}
-                className="px-6 py-3.5 bg-white border border-[#00685f] text-[#00685f] hover:bg-[#f4fffc] font-bold text-sm rounded-xl transition-all flex items-center gap-2 cursor-pointer"
+                onClick={() => {
+                  document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="px-7 py-3.5 bg-white border-2 border-[#bcc9c6]/60 text-[#0b1c30] hover:border-[#00685f] hover:text-[#00685f] font-bold text-sm rounded-xl transition-all flex items-center gap-2 cursor-pointer"
               >
-                <span className="material-symbols-outlined text-lg">calculate</span>
-                <span>Loan Calculator</span>
+                <span className="material-symbols-outlined text-lg">play_circle</span>
+                <span>Explore how it works</span>
               </button>
             </div>
 
-            {/* Quick Stats Grid */}
-            <div className="grid grid-cols-3 gap-4 pt-6 border-t border-[#bcc9c6]/30">
-              <div>
-                <span className="block text-2xl font-extrabold text-[#00685f]">MWK 1.2B+</span>
-                <span className="text-xs text-[#3d4947]">Capital Applied</span>
-              </div>
-              <div>
-                <span className="block text-2xl font-extrabold text-[#00685f]">14+</span>
-                <span className="text-xs text-[#3d4947]">Verified Partners</span>
-              </div>
-              <div>
-                <span className="block text-2xl font-extrabold text-[#00685f]">98.4%</span>
-                <span className="text-xs text-[#3d4947]">Match Accuracy</span>
-              </div>
+            {/* Trust Line */}
+            <div className="flex items-center gap-2 pt-2 text-xs text-[#6d7a77]">
+              <span className="material-symbols-outlined text-base text-[#00685f]">verified</span>
+              <span>Built for Malawi's communities and institutions, with transparent information and guided steps for every application.</span>
             </div>
           </div>
 
-          {/* Right Column Visual Image */}
+          {/* Right Column Visual – Connection / Platform Concept */}
           <div className="lg:col-span-5 relative">
-            <div className="relative mx-auto max-w-md rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-white">
-              <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRncdrmA6bC0uISCtdq_8wI0YixkVQVx1TK-GHaR_Dw2LJim9E3vG8Keo9GG-prB61-wW9kEffNX3fIMQ_QqLxzT1pJBRI_KoqVcvLwclnt70hnur23DcGcSTFPm8d5FuDMDGY7g2HwBqjkYsVBG9wohl83D1nfuZ2VrkTaPPNR2IZC0Aw3c9ToQVXT8XLF9EeeRjjtURgW9ETcFkE71nZ7ngZpzd-7cymkzNG_A4BXcTaUjpGTtq1br4VCtkWfnNsZKrfM1MlWfY"
-                alt="FinAccess Malawi Member"
-                className="w-full h-96 object-cover"
-              />
+            <div className="relative mx-auto max-w-md">
+              {/* Main visual card */}
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-white">
+                <img
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRncdrmA6bC0uISCtdq_8wI0YixkVQVx1TK-GHaR_Dw2LJim9E3vG8Keo9GG-prB61-wW9kEffNX3fIMQ_QqLxzT1pJBRI_KoqVcvLwclnt70hnur23DcGcSTFPm8d5FuDMDGY7g2HwBqjkYsVBG9wohl83D1nfuZ2VrkTaPPNR2IZC0Aw3c9ToQVXT8XLF9EeeRjjtURgW9ETcFkE71nZ7ngZpzd-7cymkzNG_A4BXcTaUjpGTtq1br4VCtkWfnNsZKrfM1MlWfY"
+                  alt="FinAccess Connect Platform"
+                  className="w-full h-96 object-cover"
+                />
 
-              {/* Floating Verified Badge */}
-              <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-md p-4 rounded-xl shadow-lg border border-[#bcc9c6]/30 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#89f5e7] text-[#00201d] flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-xl">verified</span>
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-[#0b1c30]">Reserve Bank Approved Standards</h4>
-                  <p className="text-[11px] text-[#3d4947]">Licensed credit bureau & encryption security</p>
+                {/* Floating "Two Sides" Badge */}
+                <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-md p-4 rounded-xl shadow-lg border border-[#bcc9c6]/30">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-[#00685f] text-white flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-sm">person</span>
+                      </div>
+                      <span className="text-xs font-bold text-[#0b1c30]">Individuals</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[#00685f]">
+                      <span className="material-symbols-outlined text-lg">sync_alt</span>
+                    </div>
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-xs font-bold text-[#0b1c30]">Providers</span>
+                      <div className="w-8 h-8 rounded-full bg-[#855300] text-white flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-sm">account_balance</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-[#3d4947] text-center mt-2 border-t border-[#bcc9c6]/20 pt-2">
+                    One platform — two experiences
+                  </p>
                 </div>
               </div>
             </div>
@@ -97,212 +115,132 @@ export const LandingView: React.FC<LandingViewProps> = ({
         </div>
       </section>
 
-      {/* Dual Role Selector Cards */}
-      <section className="py-16 px-4 md:px-8 max-w-7xl mx-auto w-full">
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-xs font-bold text-[#00685f] uppercase tracking-wider bg-[#89f5e7]/30 px-3 py-1 rounded-full">
-            Tailored Experiences
+      {/* About Section */}
+      <section className="py-20 px-4 md:px-8 max-w-6xl mx-auto w-full">
+        {/* Heading */}
+        <div className="text-center max-w-2xl mx-auto mb-6">
+          <span className="text-xs font-bold text-[#00685f] uppercase tracking-wider bg-[#89f5e7]/30 px-4 py-1.5 rounded-full">
+            About Us
           </span>
-          <h2 className="text-3xl font-extrabold text-[#0b1c30] mt-3">
-            Built for Individuals & Financial Institutions
+          <h2 className="text-3xl md:text-4xl font-extrabold text-[#0b1c30] mt-4 mb-4">
+            About FinAccess Connect
           </h2>
-          <p className="text-sm text-[#3d4947] mt-2">
-            Select your account pathway to access customized tools and loan management dashboards.
+          <div className="w-16 h-1 bg-[#00685f] rounded-full mx-auto"></div>
+        </div>
+
+        {/* Intro paragraph */}
+        <div className="max-w-4xl mx-auto mb-16 text-center">
+          <p className="text-base text-[#3d4947] leading-relaxed">
+            FinAccess Connect is a web platform that helps individuals and communities find, understand and access the right financial services, while giving loan providers a simple way to reach the people they serve. We focus on clarity, trust and guided steps instead of confusing paperwork and hidden terms.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Individual Card */}
-          <div className="bg-white p-8 rounded-2xl border border-[#bcc9c6]/40 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-6">
-            <div className="space-y-4">
-              <div className="w-12 h-12 rounded-xl bg-[#e5eeff] text-[#00685f] flex items-center justify-center">
-                <span className="material-symbols-outlined text-2xl">person</span>
-              </div>
-              <h3 className="text-2xl font-bold text-[#0b1c30]">For Individuals & Small Businesses</h3>
-              <p className="text-xs text-[#3d4947] leading-relaxed">
-                Discover competitive rates for personal loans, agricultural expansion, mortgages, or SME working capital. Calculate exact monthly repayments and submit applications online.
-              </p>
-              <ul className="space-y-2 text-xs text-[#0b1c30]">
-                <li className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#00685f] text-base">check_circle</span>
-                  <span>Compare rates from top Malawian banks</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#00685f] text-base">check_circle</span>
-                  <span>Free credit score assessment & history tracking</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#00685f] text-base">check_circle</span>
-                  <span>Direct application status updates</span>
-                </li>
-              </ul>
-            </div>
-
-            <button
-              onClick={() => onNavigate('user-dashboard')}
-              className="w-full py-3 bg-[#00685f] hover:bg-[#008378] text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>Enter Member Dashboard</span>
-              <span className="material-symbols-outlined text-sm">arrow_forward</span>
-            </button>
+        {/* 4-Column Layout: Our Mission | Who We Serve | Our Values | What's Next */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-0 md:divide-x md:divide-[#bcc9c6]/40">
+          {/* Column 1: Our Mission */}
+          <div className="px-5 py-8">
+            <h3 className="text-base font-bold text-[#00685f] mb-4 flex items-center gap-2">
+              <span className="material-symbols-outlined text-[#00685f]">rocket_launch</span>
+              Our mission
+            </h3>
+            <p className="text-sm text-[#3d4947] leading-relaxed">
+              Our mission is to make loan and financial information clear and accessible for everyone – from students and farmers to households and small businesses – and to help responsible loan providers connect with them through transparent, digital-first experiences. <a href="https://rupeeq.com/our-mission" target="_blank" rel="noopener noreferrer" className="text-[#00685f] hover:underline font-medium">rupeeq →</a>
+            </p>
           </div>
 
-          {/* Provider Card */}
-          <div className="bg-white p-8 rounded-2xl border border-[#bcc9c6]/40 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-6">
-            <div className="space-y-4">
-              <div className="w-12 h-12 rounded-xl bg-[#ffddb8] text-[#855300] flex items-center justify-center">
-                <span className="material-symbols-outlined text-2xl">account_balance</span>
-              </div>
-              <h3 className="text-2xl font-bold text-[#0b1c30]">For Financial Institutions & Lenders</h3>
-              <p className="text-xs text-[#3d4947] leading-relaxed">
-                List loan products, receive pre-verified applicants, manage loan catalogs, and streamline credit decisioning with automated compliance verification.
-              </p>
-              <ul className="space-y-2 text-xs text-[#0b1c30]">
-                <li className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#855300] text-base">check_circle</span>
-                  <span>Publish and manage custom financial product catalogs</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#855300] text-base">check_circle</span>
-                  <span>Automated biometric & tax PIN risk checks</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#855300] text-base">check_circle</span>
-                  <span>Real-time loan decision analytics & approval volume</span>
-                </li>
-              </ul>
-            </div>
+          {/* Column 2: Who We Serve */}
+          <div className="px-5 py-8">
+            <h3 className="text-base font-bold text-[#855300] mb-4 flex items-center gap-2">
+              <span className="material-symbols-outlined text-[#855300]">diversity_3</span>
+              Who we serve
+            </h3>
+            <p className="text-sm text-[#3d4947] leading-relaxed mb-4">
+              We are built for people who often face limited information about finance: students trying to pay for school, farmers planning for the next season, households managing daily needs, and small businesses looking for working capital. We are also built for loan providers and institutions who want a better way to present their services, share their policies, and manage applications in one place.
+            </p>
+            <ul className="space-y-2 text-sm text-[#3d4947]">
+              <li className="flex items-start gap-2">
+                <span className="material-symbols-outlined text-[#00685f] text-base mt-0.5">check_circle</span>
+                <span><strong>Individuals:</strong> discover loan categories that fit your situation and see repayment details before you apply.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="material-symbols-outlined text-[#855300] text-base mt-0.5">check_circle</span>
+                <span><strong>Loan providers:</strong> configure services, share your policies, and review applications with all data and documents together.</span>
+              </li>
+            </ul>
+          </div>
 
-            <button
-              onClick={() => onNavigate('provider-dashboard')}
-              className="w-full py-3 bg-[#855300] hover:bg-[#653e00] text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>Enter Provider Portal</span>
-              <span className="material-symbols-outlined text-sm">arrow_forward</span>
-            </button>
+          {/* Column 3: Our Values */}
+          <div className="px-5 py-8">
+            <h3 className="text-base font-bold text-[#00685f] mb-4 flex items-center gap-2">
+              <span className="material-symbols-outlined text-[#00685f]">favorite</span>
+              Our values
+            </h3>
+            <p className="text-sm text-[#3d4947] leading-relaxed mb-4">
+              We design every part of FinAccess Connect around a few simple values: clarity, fairness, and respect. That means explaining financial terms in plain language, showing important details up front, keeping roles separate so there's no confusion, and giving users control over their profile, notifications and language.
+            </p>
+            <ul className="space-y-2 text-sm text-[#3d4947]">
+              <li className="flex items-start gap-2">
+                <span className="material-symbols-outlined text-[#00685f] text-base mt-0.5">lightbulb</span>
+                <span><strong>Clarity:</strong> Explain interest, repayment and eligibility in ways anyone can understand.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="material-symbols-outlined text-[#00685f] text-base mt-0.5">balance</span>
+                <span><strong>Fairness:</strong> Show information side by side so users can compare offers and make informed choices.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="material-symbols-outlined text-[#00685f] text-base mt-0.5">verified_user</span>
+                <span><strong>Respect:</strong> Treat personal and business data carefully, with secure handling and transparent policies. <a href="https://bardglobal.com/fintech-documentation-best-practices/" target="_blank" rel="noopener noreferrer" className="text-[#00685f] hover:underline font-medium">bardglobal →</a></span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 4: What's Next */}
+          <div className="px-5 py-8">
+            <h3 className="text-base font-bold text-[#00685f] mb-4 flex items-center gap-2">
+              <span className="material-symbols-outlined text-[#00685f]">trending_up</span>
+              What's next
+            </h3>
+            <p className="text-sm text-[#3d4947] leading-relaxed mb-4">
+              FinAccess Connect will keep improving as we learn from the communities and institutions that use it. Over time, we aim to add more financial products, stronger verification, and better insights – always keeping the experience simple and useful for the people on both sides of every loan.
+            </p>
+            <div className="bg-[#eff4ff] border border-[#bcc9c6]/30 rounded-xl p-4">
+              <p className="text-sm text-[#3d4947] leading-relaxed">
+                <strong className="text-[#0b1c30]">Call to action:</strong> If you're an individual, you can start by answering a few questions and exploring your loan options. If you're a loan provider, you can verify your institution, set up your services and see how digital applications can streamline your work.
+              </p>
+            </div>
           </div>
         </div>
-      </section>
 
-      {/* Featured Products Bento Grid */}
-      <section className="py-12 px-4 md:px-8 bg-[#eff4ff] border-y border-[#bcc9c6]/20">
-        <div className="max-w-7xl mx-auto space-y-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-            <div>
-              <span className="text-xs font-bold text-[#00685f] uppercase tracking-wider">
-                Top Rated Products
-              </span>
-              <h2 className="text-2xl md:text-3xl font-extrabold text-[#0b1c30] mt-1">
-                Featured Malawian Loan Opportunities
-              </h2>
-            </div>
-            <button
-              onClick={() => onNavigate('loan-products')}
-              className="text-xs font-bold text-[#00685f] hover:underline flex items-center gap-1"
-            >
-              <span>View All Products</span>
-              <span className="material-symbols-outlined text-sm">chevron_right</span>
-            </button>
-          </div>
+        {/* Separator */}
+        <hr className="border-[#bcc9c6]/40 my-12 max-w-4xl mx-auto" />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {featuredProducts.map((p) => (
-              <div
-                key={p.id}
-                className="bg-white rounded-2xl p-6 border border-[#bcc9c6]/30 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-[#89f5e7] text-[#00201d] px-2 py-0.5 rounded-full">
-                      {p.categoryLabel}
-                    </span>
-                    <span className="text-xs font-bold text-amber-600 flex items-center gap-0.5">
-                      ★ {p.rating} ({p.reviewsCount})
-                    </span>
-                  </div>
-
-                  <h3 className="font-bold text-lg text-[#0b1c30]">{p.name}</h3>
-                  <p className="text-xs text-[#3d4947] mt-1 font-medium">{p.provider}</p>
-
-                  <div className="grid grid-cols-2 gap-2 mt-4 p-3 bg-[#eff4ff] rounded-xl text-xs">
-                    <div>
-                      <span className="text-[10px] text-gray-500 block">Interest Rate</span>
-                      <span className="font-bold text-[#00685f]">{p.rateDisplay}</span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-gray-500 block">Max Term</span>
-                      <span className="font-bold text-[#0b1c30]">{p.termDisplay}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-2 flex gap-2">
-                  <button
-                    onClick={() => {
-                      onSelectProduct(p);
-                      onNavigate('product-details');
-                    }}
-                    className="flex-1 py-2 bg-[#eff4ff] hover:bg-[#d3e4fe] text-[#00685f] font-bold text-xs rounded-xl transition-colors cursor-pointer"
-                  >
-                    View Details
-                  </button>
-                  <button
-                    onClick={() => {
-                      onSelectProduct(p);
-                      onOpenApplyModal();
-                    }}
-                    className="flex-1 py-2 bg-[#00685f] hover:bg-[#008378] text-white font-bold text-xs rounded-xl transition-colors cursor-pointer"
-                  >
-                    Apply Now
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 4-Step How It Works Journey */}
-      <section className="py-16 px-4 md:px-8 max-w-7xl mx-auto w-full">
-        <div className="text-center max-w-xl mx-auto mb-12">
-          <h2 className="text-3xl font-extrabold text-[#0b1c30]">How FinAccess Works</h2>
-          <p className="text-xs text-[#3d4947] mt-2">
-            A seamless, transparent 4-step process designed for fast, reliable credit access.
+        {/* How FinAccess Connect Helps */}
+        <div className="max-w-4xl mx-auto">
+          <h3 className="text-lg font-bold text-[#00685f] mb-4 flex items-center gap-2">
+            <span className="material-symbols-outlined text-[#00685f]">handshake</span>
+            How FinAccess Connect helps
+          </h3>
+          <p className="text-sm text-[#3d4947] leading-relaxed mb-4">
+            FinAccess Connect sits in the middle – it does not approve loans itself, but gives both sides the information and tools they need. Individuals get guided questions, clear explanations of interest and repayment, and a dashboard to track applications and approved loans. Providers get a verified profile, service configuration, analytics, and an applications workspace so decisions are faster and better informed. <a href="https://www.nimbleappgenie.com/blogs/how-to-build-a-loan-app/" target="_blank" rel="noopener noreferrer" className="text-[#00685f] hover:underline font-medium">nimbleappgenie →</a>
           </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="p-6 bg-white rounded-2xl border border-[#bcc9c6]/30 text-center space-y-3">
-            <div className="w-10 h-10 rounded-full bg-[#00685f] text-white font-bold flex items-center justify-center mx-auto text-sm">
-              1
-            </div>
-            <h3 className="font-bold text-base text-[#0b1c30]">Create Account</h3>
-            <p className="text-xs text-[#3d4947]">Register as an individual or verified institution.</p>
-          </div>
-
-          <div className="p-6 bg-white rounded-2xl border border-[#bcc9c6]/30 text-center space-y-3">
-            <div className="w-10 h-10 rounded-full bg-[#00685f] text-white font-bold flex items-center justify-center mx-auto text-sm">
-              2
-            </div>
-            <h3 className="font-bold text-base text-[#0b1c30]">Explore & Compare</h3>
-            <p className="text-xs text-[#3d4947]">Filter loan products by interest rate, terms, and location.</p>
-          </div>
-
-          <div className="p-6 bg-white rounded-2xl border border-[#bcc9c6]/30 text-center space-y-3">
-            <div className="w-10 h-10 rounded-full bg-[#00685f] text-white font-bold flex items-center justify-center mx-auto text-sm">
-              3
-            </div>
-            <h3 className="font-bold text-base text-[#0b1c30]">Instant Submission</h3>
-            <p className="text-xs text-[#3d4947]">Submit applications directly with encrypted National ID check.</p>
-          </div>
-
-          <div className="p-6 bg-white rounded-2xl border border-[#bcc9c6]/30 text-center space-y-3">
-            <div className="w-10 h-10 rounded-full bg-[#00685f] text-white font-bold flex items-center justify-center mx-auto text-sm">
-              4
-            </div>
-            <h3 className="font-bold text-base text-[#0b1c30]">Receive Capital</h3>
-            <p className="text-xs text-[#3d4947]">Get approved funds directly into your bank or mobile money.</p>
-          </div>
+          <ul className="space-y-2 text-sm text-[#3d4947]">
+            <li className="flex items-start gap-2">
+              <span className="material-symbols-outlined text-[#00685f] text-base mt-0.5">check_circle</span>
+              <span>Guided onboarding and clear loan comparisons instead of guesswork.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="material-symbols-outlined text-[#00685f] text-base mt-0.5">check_circle</span>
+              <span>Multi-step applications that collect exactly the data providers need.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="material-symbols-outlined text-[#00685f] text-base mt-0.5">check_circle</span>
+              <span>Separate dashboards for users and providers, each with their own tools and analytics.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="material-symbols-outlined text-[#00685f] text-base mt-0.5">check_circle</span>
+              <span>Language preferences that stay the same when you log out and come back, so the app always feels familiar. <a href="https://merge.rocks/blog/ux-design-best-practices-for-fintech-apps" target="_blank" rel="noopener noreferrer" className="text-[#00685f] hover:underline font-medium">merge →</a></span>
+            </li>
+          </ul>
         </div>
       </section>
 
