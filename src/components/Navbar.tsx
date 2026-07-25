@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ViewMode, Role, UserProfile } from '../types';
 
 interface NavbarProps {
@@ -8,7 +8,6 @@ interface NavbarProps {
   userProfile: UserProfile;
   onOpenApplyModal: () => void;
   onSwitchRole?: (role: Role) => void;
-  unreadNotificationsCount?: number;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -18,23 +17,17 @@ export const Navbar: React.FC<NavbarProps> = ({
   userProfile,
   onOpenApplyModal,
   onSwitchRole,
-  unreadNotificationsCount = 2,
 }) => {
-  const [showNotifications, setShowNotifications] = useState(false);
-
   return (
     <header className="sticky top-0 z-40 bg-[#eff4ff]/90 backdrop-blur-md border-b border-[#bcc9c6]/20 px-4 py-3 flex items-center justify-between gap-4">
       {/* Brand or Search */}
       <div className="flex items-center gap-6">
-        <button 
+<button 
           onClick={() => onNavigate('landing')} 
           className="flex items-center gap-2 text-left group"
         >
           <span className="font-bold text-xl text-[#00685f] tracking-tight group-hover:text-[#008378] transition-colors">
-            FinAccess
-          </span>
-          <span className="bg-[#89f5e7] text-[#00201d] text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
-            Malawi
+            SmartFin Connect
           </span>
         </button>
 
@@ -84,50 +77,13 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         )}
 
-        {/* Notifications Icon Dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => setShowNotifications(!showNotifications)}
-            className="p-2 rounded-full hover:bg-[#d3e4fe] transition-colors relative text-[#3d4947]"
-            title="Notifications"
-          >
-            <span className="material-symbols-outlined text-xl">notifications</span>
-            {unreadNotificationsCount > 0 && (
-              <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#ba1a1a] rounded-full ring-2 ring-white"></span>
-            )}
-          </button>
-
-          {showNotifications && (
-            <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-[#bcc9c6]/30 p-3 z-50 animate-in fade-in slide-in-from-top-2">
-              <div className="flex items-center justify-between pb-2 mb-2 border-b border-gray-100">
-                <span className="font-bold text-sm text-[#0b1c30]">Notifications</span>
-                <span className="text-[10px] text-[#00685f] bg-[#89f5e7]/40 px-2 py-0.5 rounded-full font-bold">
-                  {unreadNotificationsCount} New
-                </span>
-              </div>
-              <div className="space-y-2 max-h-60 overflow-y-auto text-xs">
-                <div className="p-2 bg-[#eff4ff] rounded-lg border-l-2 border-[#00685f]">
-                  <p className="font-semibold text-[#0b1c30]">Application Update</p>
-                  <p className="text-[#3d4947]">EcoBank requested utility bill for APP-8950.</p>
-                  <span className="text-[10px] text-gray-400 mt-1 block">10 mins ago</span>
-                </div>
-                <div className="p-2 bg-gray-50 rounded-lg">
-                  <p className="font-semibold text-[#0b1c30]">Loan Pre-Approved</p>
-                  <p className="text-[#3d4947]">Your Auto Loan Pro application was pre-approved!</p>
-                  <span className="text-[10px] text-gray-400 mt-1 block">2 hours ago</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Apply Now Primary CTA */}
+{/* Login Primary CTA */}
         <button
           onClick={onOpenApplyModal}
           className="flex items-center gap-1.5 px-4 py-2 bg-[#00685f] hover:bg-[#008378] text-white text-xs font-bold rounded-lg shadow-xs transition-all active:scale-95 cursor-pointer"
         >
-          <span className="material-symbols-outlined text-base">add_circle</span>
-          <span>Apply Now</span>
+          <span className="material-symbols-outlined text-base">login</span>
+          <span>Login</span>
         </button>
 
         {/* Profile Avatar / Login CTA */}
