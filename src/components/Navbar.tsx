@@ -54,35 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Center Nav Links for Landing */}
-      {currentView === 'landing' && (
-        <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-[#3d4947]">
-          <button 
-            onClick={() => onNavigate('loan-products')} 
-            className="hover:text-[#00685f] transition-colors"
-          >
-            Loan Products
-          </button>
-          <button 
-            onClick={() => onNavigate('calculator')} 
-            className="hover:text-[#00685f] transition-colors"
-          >
-            Loan Calculator
-          </button>
-          <button 
-            onClick={() => onNavigate('user-dashboard')} 
-            className="hover:text-[#00685f] transition-colors"
-          >
-            Member Portal
-          </button>
-          <button 
-            onClick={() => onNavigate('provider-dashboard')} 
-            className="hover:text-[#00685f] transition-colors"
-          >
-            Provider Portal
-          </button>
-        </nav>
-      )}
+      {/* Center Nav Links for Landing - Removed per requirements */}
 
       {/* Right Controls */}
       <div className="flex items-center gap-3">
