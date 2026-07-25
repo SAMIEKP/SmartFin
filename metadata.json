@@ -1,0 +1,6 @@
+{
+  "name": "FinAccess Malawi",
+  "description": "Comprehensive Malawian financial portal connecting individuals and financial institutions with verified loan products, loan management, calculators, and applications.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
