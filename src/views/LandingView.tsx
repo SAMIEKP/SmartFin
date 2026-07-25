@@ -44,7 +44,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
             </div>
 
             <p className="text-base md:text-[15px] text-[#3d4947] leading-relaxed max-w-2xl">
-              FinAccess Connect helps students, farmers, households and small businesses compare loan offers, understand repayment terms, and apply online — while providers manage services and applications on a dedicated dashboard.
+              SmartFin Access Connect helps students, farmers, households and small businesses compare loan offers, understand repayment terms, and apply online while providers manage services and applications on a dedicated dashboard.
             </p>
 
             {/* CTAs */}
@@ -82,7 +82,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
               <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-white">
                 <img
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRncdrmA6bC0uISCtdq_8wI0YixkVQVx1TK-GHaR_Dw2LJim9E3vG8Keo9GG-prB61-wW9kEffNX3fIMQ_QqLxzT1pJBRI_KoqVcvLwclnt70hnur23DcGcSTFPm8d5FuDMDGY7g2HwBqjkYsVBG9wohl83D1nfuZ2VrkTaPPNR2IZC0Aw3c9ToQVXT8XLF9EeeRjjtURgW9ETcFkE71nZ7ngZpzd-7cymkzNG_A4BXcTaUjpGTtq1br4VCtkWfnNsZKrfM1MlWfY"
-                  alt="FinAccess Connect Platform"
+                  alt="SmartFin Access Connect Platform"
                   className="w-full h-96 object-cover"
                 />
 
@@ -123,7 +123,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
             About Us
           </span>
           <h2 className="text-3xl md:text-4xl font-extrabold text-[#0b1c30] mt-4 mb-4">
-            About FinAccess Connect
+            About SmartFin Access Connect
           </h2>
           <div className="w-16 h-1 bg-[#00685f] rounded-full mx-auto"></div>
         </div>
@@ -131,7 +131,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
         {/* Intro paragraph */}
         <div className="max-w-4xl mx-auto mb-16 text-center">
           <p className="text-base text-[#3d4947] leading-relaxed">
-            FinAccess Connect is a web platform that helps individuals and communities find, understand and access the right financial services, while giving loan providers a simple way to reach the people they serve. We focus on clarity, trust and guided steps instead of confusing paperwork and hidden terms.
+            SmartFin Access Connect is a web platform that helps individuals and communities find, understand and access the right financial services, while giving loan providers a simple way to reach the people they serve. We focus on clarity, trust and guided steps instead of confusing paperwork and hidden terms.
           </p>
         </div>
 
@@ -176,7 +176,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
               Our values
             </h3>
             <p className="text-sm text-[#3d4947] leading-relaxed mb-4">
-              We design every part of FinAccess Connect around a few simple values: clarity, fairness, and respect. That means explaining financial terms in plain language, showing important details up front, keeping roles separate so there's no confusion, and giving users control over their profile, notifications and language.
+              We design every part of SmartFin Access Connect around a few simple values: clarity, fairness, and respect. That means explaining financial terms in plain language, showing important details up front, keeping roles separate so there's no confusion, and giving users control over their profile, notifications and language.
             </p>
             <ul className="space-y-2 text-sm text-[#3d4947]">
               <li className="flex items-start gap-2">
@@ -201,7 +201,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
               What's next
             </h3>
             <p className="text-sm text-[#3d4947] leading-relaxed mb-4">
-              FinAccess Connect will keep improving as we learn from the communities and institutions that use it. Over time, we aim to add more financial products, stronger verification, and better insights – always keeping the experience simple and useful for the people on both sides of every loan.
+              SmartFin Access Connect will keep improving as we learn from the communities and institutions that use it. Over time, we aim to add more financial products, stronger verification, and better insights – always keeping the experience simple and useful for the people on both sides of every loan.
             </p>
             <div className="bg-[#eff4ff] border border-[#bcc9c6]/30 rounded-xl p-4">
               <p className="text-sm text-[#3d4947] leading-relaxed">
@@ -214,14 +214,14 @@ export const LandingView: React.FC<LandingViewProps> = ({
         {/* Separator */}
         <hr className="border-[#bcc9c6]/40 my-12 max-w-4xl mx-auto" />
 
-        {/* How FinAccess Connect Helps */}
+        {/* How SmartFin Access Connect Helps */}
         <div className="max-w-4xl mx-auto">
           <h3 className="text-lg font-bold text-[#00685f] mb-4 flex items-center gap-2">
             <span className="material-symbols-outlined text-[#00685f]">handshake</span>
-            How FinAccess Connect helps
+            How SmartFin Access Connect helps
           </h3>
           <p className="text-sm text-[#3d4947] leading-relaxed mb-4">
-            FinAccess Connect sits in the middle – it does not approve loans itself, but gives both sides the information and tools they need. Individuals get guided questions, clear explanations of interest and repayment, and a dashboard to track applications and approved loans. Providers get a verified profile, service configuration, analytics, and an applications workspace so decisions are faster and better informed. <a href="https://www.nimbleappgenie.com/blogs/how-to-build-a-loan-app/" target="_blank" rel="noopener noreferrer" className="text-[#00685f] hover:underline font-medium">nimbleappgenie →</a>
+            SmartFin Access Connect sits in the middle – it does not approve loans itself, but gives both sides the information and tools they need. Individuals get guided questions, clear explanations of interest and repayment, and a dashboard to track applications and approved loans. Providers get a verified profile, service configuration, analytics, and an applications workspace so decisions are faster and better informed. <a href="https://www.nimbleappgenie.com/blogs/how-to-build-a-loan-app/" target="_blank" rel="noopener noreferrer" className="text-[#00685f] hover:underline font-medium">nimbleappgenie →</a>
           </p>
           <ul className="space-y-2 text-sm text-[#3d4947]">
             <li className="flex items-start gap-2">
@@ -347,7 +347,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
               For individuals: see your options clearly
             </h2>
             <p className="text-base text-[#3d4947] leading-relaxed">
-              Whether you are a student, farmer, household or small business owner, FinAccess Connect lets you discover loan categories that fit your situation, compare offers side by side, and understand exactly how repayment will work before you apply.
+              Whether you are a student, farmer, household or small business owner, SmartFin Access Connect lets you discover loan categories that fit your situation, compare offers side by side, and understand exactly how repayment will work before you apply.
             </p>
             <ul className="space-y-3 pt-2">
               <li className="flex items-start gap-3">
@@ -461,7 +461,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                 For loan providers: one place to manage services and applications
               </h2>
               <p className="text-base text-[#3d4947] leading-relaxed">
-                FinAccess Connect gives loan providers a dedicated dashboard to verify their institution, configure loan products by category, see monthly analytics, and review applications with all the information and documents in one view.
+                SmartFin Access Connect gives loan providers a dedicated dashboard to verify their institution, configure loan products by category, see monthly analytics, and review applications with all the information and documents in one view.
               </p>
               <ul className="space-y-3 pt-2">
                 <li className="flex items-start gap-3">
@@ -500,7 +500,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
             How It Works
           </span>
           <h2 className="text-3xl md:text-4xl font-extrabold text-[#0b1c30] mt-4 mb-3">
-            How FinAccess Connect works
+            How SmartFin Access Connect works
           </h2>
           <p className="text-sm text-[#3d4947] max-w-xl mx-auto">
             Two simple flows designed for individuals and loan providers. Each path is built around the steps that matter most to you.
@@ -584,7 +584,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
         </div>
       </section>
 
-      {/* Why FinAccess Connect / Benefits Section */}
+      {/* Why SmartFin Access Connect / Benefits Section */}
       <section className="py-20 px-4 md:px-8 bg-gradient-to-br from-[#eff4ff] via-[#e5eeff] to-[#f8f9ff] border-y border-[#bcc9c6]/20">
         <div className="max-w-6xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-14">
@@ -592,7 +592,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
               Benefits
             </span>
             <h2 className="text-3xl md:text-4xl font-extrabold text-[#0b1c30] mt-4 mb-3">
-              Why use FinAccess Connect?
+              Why use SmartFin Access Connect?
             </h2>
             <p className="text-sm text-[#3d4947] max-w-xl mx-auto">
               We focus on clarity and fairness for individuals, and control and visibility for loan providers. That means fewer surprises, better information, and smoother decisions on both sides.
@@ -669,7 +669,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
           Ready to get started?
         </h2>
         <p className="text-base text-[#3d4947] leading-relaxed max-w-2xl mx-auto mb-10">
-          Choose how you want to use FinAccess Connect. You can sign up as an individual looking for financial services or as a loan provider offering services to communities.
+          Choose how you want to use SmartFin Access Connect. You can sign up as an individual looking for financial services or as a loan provider offering services to communities.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-4 mb-6">
           <button
