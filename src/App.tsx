@@ -27,11 +27,13 @@ import { MyApplicationsView } from './views/MyApplicationsView';
 import { CreditScoreView } from './views/CreditScoreView';
 import { SettingsView } from './views/SettingsView';
 import { UserProfileView } from './views/UserProfileView';
+import { LoginView } from './views/LoginView';
 
 export function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('landing');
   const [role, setRole] = useState<Role>('user');
   const [userProfile, setUserProfile] = useState<UserProfile>(USER_PROFILE_KWESI);
+  const [loginRedirectTarget, setLoginRedirectTarget] = useState<ViewMode | null>(null);
 
   // App Data State
   const [products, setProducts] = useState<LoanProduct[]>(INITIAL_PRODUCTS);
@@ -58,6 +60,27 @@ export function App() {
         setCurrentView('user-dashboard');
       }
     }
+  };
+
+  const handleNavigate = (view: ViewMode) => {
+    if (view === 'provider-dashboard' && role !== 'provider') {
+      setLoginRedirectTarget('provider-dashboard');
+      setCurrentView('login');
+      return;
+    }
+
+    setCurrentView(view);
+  };
+
+  const handleLoginSuccess = (profile: UserProfile, roleType: Role) => {
+    setUserProfile(profile);
+    setRole(roleType);
+    let nextView: ViewMode = loginRedirectTarget ?? (roleType === 'provider' ? 'provider-dashboard' : 'user-dashboard');
+    if (nextView === 'provider-dashboard' && roleType !== 'provider') {
+      nextView = 'user-dashboard';
+    }
+    setCurrentView(nextView);
+    setLoginRedirectTarget(null);
   };
 
   // Submit new application
@@ -101,7 +124,7 @@ export function App() {
   };
 
   // Determine if full-screen layout (without sidebar)
-  const isFullScreenLayout = currentView === 'landing' || currentView === 'register';
+  const isFullScreenLayout = currentView === 'landing' || currentView === 'register' || currentView === 'login';
 
   return (
     <div className="min-h-screen bg-[#f8f9ff] text-[#0b1c30] flex flex-col font-sans selection:bg-[#008378] selection:text-[#f4fffc]">
@@ -122,7 +145,7 @@ export function App() {
         {/* Top Navbar */}
         <Navbar
           currentView={currentView}
-          onNavigate={setCurrentView}
+          onNavigate={handleNavigate}
           role={role}
           userProfile={userProfile}
           onOpenApplyModal={() => setIsApplyModalOpen(true)}
@@ -133,16 +156,23 @@ export function App() {
         <main className={`flex-1 ${!isFullScreenLayout ? 'p-4 md:p-8 max-w-7xl mx-auto w-full' : ''}`}>
           {currentView === 'landing' && (
             <LandingView
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
               products={products}
               onSelectProduct={setSelectedProduct}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
             />
           )}
 
+          {currentView === 'login' && (
+            <LoginView
+              onNavigate={handleNavigate}
+              onLoginSuccess={handleLoginSuccess}
+            />
+          )}
+
           {currentView === 'register' && (
             <RegisterView
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
               onSelectUser={(u) => {
                 setUserProfile(u);
                 setRole(u.role);
