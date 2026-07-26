@@ -58,6 +58,10 @@ export const ProviderDashboardView: React.FC<ProviderDashboardViewProps> = ({
     return matchesStatus && matchesQuery;
   });
 
+  const newApplicationMessagesCount = applications.filter(
+    (a) => a.status === "Pending",
+  ).length;
+
   const handleStatusChange = (newStatus: ApplicationStatus) => {
     if (!reviewingApp) return;
     onUpdateAppStatus(reviewingApp.id, newStatus, newNote || undefined);
@@ -105,6 +109,30 @@ export const ProviderDashboardView: React.FC<ProviderDashboardViewProps> = ({
             check_circle
           </span>
           <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Notification bar for new application messages */}
+      {newApplicationMessagesCount > 0 && (
+        <div className="bg-[#fff4e6] border-l-4 border-[#ffb547] p-4 rounded-xl mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-[#a85d00]">notifications</span>
+            <div className="text-xs text-[#3d4947]">
+              <div className="font-bold text-sm text-[#855300]">{newApplicationMessagesCount} new application message{newApplicationMessagesCount > 1 ? 's' : ''}</div>
+              <div className="mt-0.5">New applications are waiting for review in the triage queue.</div>
+            </div>
+          </div>
+          <div>
+            <button
+              onClick={() => {
+                setSelectedStatus('Pending');
+                showToast('Filtered to Pending applications');
+              }}
+              className="px-3 py-2 bg-[#855300] text-white rounded-xl text-xs font-bold hover:bg-[#653e00]"
+            >
+              View Triage
+            </button>
+          </div>
         </div>
       )}
 
