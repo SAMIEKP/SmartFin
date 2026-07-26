@@ -22,9 +22,9 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
   return (
     <div className="space-y-6 pb-16">
       {/* Header Profile Hero Card */}
-      <div className="bg-white p-6 md:p-8 rounded-2xl border border-[#bcc9c6]/30 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div className="bg-white p-6 md:p-8 rounded-2xl border border-outline-variant/30 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
-          <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-[#00685f] shadow-md shrink-0 bg-white">
+          <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-primary shadow-md shrink-0 bg-white">
             {userProfile.avatarUrl ? (
               <img
                 src={userProfile.avatarUrl}
@@ -32,7 +32,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-[#00685f] bg-[#e5eeff]">
+              <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-primary bg-surface-container">
                 {userProfile.name.charAt(0)}
               </div>
             )}
@@ -40,29 +40,29 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
 
           <div className="space-y-2 text-center sm:text-left">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-              <h1 className="text-2xl font-extrabold text-[#0b1c30]">{userProfile.name}</h1>
-              <span className="bg-[#89f5e7] text-[#00201d] text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+              <h1 className="text-2xl font-extrabold text-on-surface">{userProfile.name}</h1>
+              <span className="bg-primary-fixed text-on-primary-fixed text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                 {userProfile.memberStatus}
               </span>
-              <span className="bg-[#e5eeff] text-[#00685f] text-[10px] font-bold px-2.5 py-0.5 rounded-full capitalize">
+              <span className="bg-surface-container text-primary text-[10px] font-bold px-2.5 py-0.5 rounded-full capitalize">
                 {role === 'provider' ? 'Lender Representative' : 'Individual Borrower'}
               </span>
             </div>
 
-            <p className="text-xs text-[#3d4947] flex items-center justify-center sm:justify-start gap-1 font-medium">
-              <span className="material-symbols-outlined text-sm text-[#00685f]">location_on</span>
+            <p className="text-xs text-on-surface-variant flex items-center justify-center sm:justify-start gap-1 font-medium">
+              <span className="material-symbols-outlined text-sm text-primary">location_on</span>
               <span>{userProfile.location}</span>
             </p>
 
             {userProfile.bio && (
-              <p className="text-xs text-[#3d4947] max-w-xl leading-relaxed">{userProfile.bio}</p>
+              <p className="text-xs text-on-surface-variant max-w-xl leading-relaxed">{userProfile.bio}</p>
             )}
           </div>
         </div>
 
         <button
           onClick={() => onNavigate('settings')}
-          className="w-full md:w-auto px-5 py-2.5 bg-[#00685f] hover:bg-[#008378] text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+          className="w-full md:w-auto px-5 py-2.5 bg-primary hover:bg-primary-container text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
         >
           <span className="material-symbols-outlined text-base">edit</span>
           <span>Edit Profile in Settings</span>
@@ -74,28 +74,28 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
         {/* Left Column: Account Details & Financial Preferences */}
         <div className="lg:col-span-7 space-y-6">
           {/* Contact & Verification Card */}
-          <div className="bg-white p-6 rounded-2xl border border-[#bcc9c6]/30 shadow-xs space-y-4 text-xs">
-            <h2 className="font-extrabold text-base text-[#0b1c30] flex items-center gap-2 border-b border-gray-100 pb-2">
-              <span className="material-symbols-outlined text-[#00685f]">badge</span>
+          <div className="bg-white p-6 rounded-2xl border border-outline-variant/30 shadow-xs space-y-4 text-xs">
+            <h2 className="font-extrabold text-base text-on-surface flex items-center gap-2 border-b border-gray-100 pb-2">
+              <span className="material-symbols-outlined text-primary">badge</span>
               <span>Contact & Identity Verification</span>
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-3 bg-[#eff4ff] rounded-xl">
+              <div className="p-3 bg-surface-container-low rounded-xl">
                 <span className="text-[10px] text-gray-500 block uppercase font-bold">Email Address</span>
-                <span className="font-bold text-[#0b1c30] text-sm truncate block mt-0.5">
+                <span className="font-bold text-on-surface text-sm truncate block mt-0.5">
                   {userProfile.email}
                 </span>
               </div>
 
-              <div className="p-3 bg-[#eff4ff] rounded-xl">
+              <div className="p-3 bg-surface-container-low rounded-xl">
                 <span className="text-[10px] text-gray-500 block uppercase font-bold">Phone Number</span>
-                <span className="font-bold text-[#0b1c30] text-sm block mt-0.5">
+                <span className="font-bold text-on-surface text-sm block mt-0.5">
                   {userProfile.phone}
                 </span>
               </div>
 
-              <div className="p-3 bg-[#eff4ff] rounded-xl">
+              <div className="p-3 bg-surface-container-low rounded-xl">
                 <span className="text-[10px] text-gray-500 block uppercase font-bold">NRIS Identity Check</span>
                 <span className="font-bold text-emerald-600 text-xs flex items-center gap-1 mt-0.5">
                   <span className="material-symbols-outlined text-sm">verified</span>
@@ -103,9 +103,9 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                 </span>
               </div>
 
-              <div className="p-3 bg-[#eff4ff] rounded-xl">
+              <div className="p-3 bg-surface-container-low rounded-xl">
                 <span className="text-[10px] text-gray-500 block uppercase font-bold">Credit Reference Score</span>
-                <span className="font-bold text-[#4648d4] text-sm flex items-center gap-1 mt-0.5">
+                <span className="font-bold text-tertiary text-sm flex items-center gap-1 mt-0.5">
                   <span className="material-symbols-outlined text-sm">speed</span>
                   <span>{userProfile.creditScore} (Good)</span>
                 </span>
@@ -114,9 +114,9 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
           </div>
 
           {/* Financial Preferences Card */}
-          <div className="bg-white p-6 rounded-2xl border border-[#bcc9c6]/30 shadow-xs space-y-4 text-xs">
-            <h2 className="font-extrabold text-base text-[#0b1c30] flex items-center gap-2 border-b border-gray-100 pb-2">
-              <span className="material-symbols-outlined text-[#00685f]">savings</span>
+          <div className="bg-white p-6 rounded-2xl border border-outline-variant/30 shadow-xs space-y-4 text-xs">
+            <h2 className="font-extrabold text-base text-on-surface flex items-center gap-2 border-b border-gray-100 pb-2">
+              <span className="material-symbols-outlined text-primary">savings</span>
               <span>Financial Profile & Preferences</span>
             </h2>
 
@@ -126,7 +126,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                   <span className="text-[11px] font-bold text-gray-400 block uppercase">
                     Primary Financial Goal
                   </span>
-                  <p className="font-semibold text-[#0b1c30] text-sm mt-0.5">
+                  <p className="font-semibold text-on-surface text-sm mt-0.5">
                     {userProfile.financialGoal || 'Agri-Business & Housing Credit Line'}
                   </p>
                 </div>
@@ -139,7 +139,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                     {(userProfile.preferredCategories || ['agriculture', 'business', 'mortgage']).map((cat) => (
                       <span
                         key={cat}
-                        className="px-3 py-1 bg-[#e5eeff] text-[#00685f] rounded-lg font-bold text-xs uppercase"
+                        className="px-3 py-1 bg-surface-container text-primary rounded-lg font-bold text-xs uppercase"
                       >
                         {cat}
                       </span>
@@ -151,7 +151,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                   <span className="text-[11px] font-bold text-gray-400 block uppercase">
                     Preferred Payout Channels
                   </span>
-                  <p className="font-semibold text-[#0b1c30] text-xs mt-0.5">
+                  <p className="font-semibold text-on-surface text-xs mt-0.5">
                     Airtel Money, TNM Mpamba, Direct Bank Wire
                   </p>
                 </div>
@@ -162,7 +162,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                   <span className="text-[11px] font-bold text-gray-400 block uppercase">
                     Institution Name & Category
                   </span>
-                  <p className="font-semibold text-[#0b1c30] text-sm mt-0.5">
+                  <p className="font-semibold text-on-surface text-sm mt-0.5">
                     {userProfile.institutionName || 'FinAccess Institution'} ({userProfile.institutionType || 'MFI'})
                   </p>
                 </div>
@@ -171,7 +171,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                   <span className="text-[11px] font-bold text-gray-400 block uppercase">
                     Reserve Bank Registration License
                   </span>
-                  <p className="font-mono text-xs font-bold text-[#00685f] mt-0.5">
+                  <p className="font-mono text-xs font-bold text-primary mt-0.5">
                     {userProfile.registrationNumber || 'RBM/MFI/2019/088'}
                   </p>
                 </div>
@@ -184,26 +184,26 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
         <div className="lg:col-span-5 space-y-6">
           {/* Quick Stats Grid */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white p-5 rounded-2xl border border-[#bcc9c6]/30 shadow-xs space-y-1">
+            <div className="bg-white p-5 rounded-2xl border border-outline-variant/30 shadow-xs space-y-1">
               <span className="text-xs text-gray-500 font-semibold block">Approved Loans</span>
               <span className="text-2xl font-extrabold text-emerald-600 block">{approvedAppsCount}</span>
               <span className="text-[10px] text-emerald-700 font-bold">100% On-Time Record</span>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-[#bcc9c6]/30 shadow-xs space-y-1">
+            <div className="bg-white p-5 rounded-2xl border border-outline-variant/30 shadow-xs space-y-1">
               <span className="text-xs text-gray-500 font-semibold block">In Progress</span>
-              <span className="text-2xl font-extrabold text-[#00685f] block">{pendingAppsCount}</span>
+              <span className="text-2xl font-extrabold text-primary block">{pendingAppsCount}</span>
               <span className="text-[10px] text-gray-400">Awaiting Decision</span>
             </div>
           </div>
 
           {/* Activity Timeline Card */}
-          <div className="bg-white p-6 rounded-2xl border border-[#bcc9c6]/30 shadow-xs space-y-4 text-xs">
+          <div className="bg-white p-6 rounded-2xl border border-outline-variant/30 shadow-xs space-y-4 text-xs">
             <div className="flex justify-between items-center pb-2 border-b border-gray-100">
-              <h3 className="font-extrabold text-sm text-[#0b1c30]">Recent Activity History</h3>
+              <h3 className="font-extrabold text-sm text-on-surface">Recent Activity History</h3>
               <button
                 onClick={() => onNavigate('my-applications')}
-                className="text-[11px] font-bold text-[#00685f] hover:underline"
+                className="text-[11px] font-bold text-primary hover:underline"
               >
                 View Applications
               </button>
@@ -213,12 +213,12 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
               {applications.slice(0, 3).map((app) => (
                 <div key={app.id} className="p-3 bg-gray-50 rounded-xl space-y-1">
                   <div className="flex justify-between font-bold">
-                    <span className="text-[#0b1c30]">{app.productName}</span>
+                    <span className="text-on-surface">{app.productName}</span>
                     <span
                       className={`px-2 py-0.5 rounded-full text-[10px] ${
                         app.status === 'Approved'
                           ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-[#e5eeff] text-[#00685f]'
+                          : 'bg-surface-container text-primary'
                       }`}
                     >
                       {app.status}
@@ -226,7 +226,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                   </div>
                   <div className="flex justify-between text-gray-500 text-[11px]">
                     <span>{app.providerName}</span>
-                    <span className="font-bold text-[#00685f]">MWK {app.amount.toLocaleString()}</span>
+                    <span className="font-bold text-primary">MWK {app.amount.toLocaleString()}</span>
                   </div>
                 </div>
               ))}

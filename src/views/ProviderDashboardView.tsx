@@ -12,6 +12,7 @@ interface ProviderDashboardViewProps {
   applications: ApplicationItem[];
   criticalVerifications: CriticalVerification[];
   onNavigate: (view: ViewMode) => void;
+  onBack?: () => void;
   onOpenAddProductModal: () => void;
   onUpdateAppStatus: (
     appId: string,
@@ -25,6 +26,7 @@ export const ProviderDashboardView: React.FC<ProviderDashboardViewProps> = ({
   applications,
   criticalVerifications,
   onNavigate,
+  onBack,
   onOpenAddProductModal,
   onUpdateAppStatus,
 }) => {
@@ -57,10 +59,6 @@ export const ProviderDashboardView: React.FC<ProviderDashboardViewProps> = ({
 
     return matchesStatus && matchesQuery;
   });
-
-  const newApplicationMessagesCount = applications.filter(
-    (a) => a.status === "Pending",
-  ).length;
 
   const handleStatusChange = (newStatus: ApplicationStatus) => {
     if (!reviewingApp) return;
@@ -147,14 +145,39 @@ export const ProviderDashboardView: React.FC<ProviderDashboardViewProps> = ({
               {userProfile?.institutionType || "Licensed Lender Portal"}
             </span>
           </div>
+          <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-[#3d4947]">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-base text-[#00685f]">
+                business
+              </span>
+              <span className="font-semibold text-[#0b1c30]">
+                {userProfile?.institutionName || "FinAccess Institution"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-base text-[#00685f]">
+                location_on
+              </span>
+              <span>{userProfile?.location || "Blantyre HQ"}</span>
+            </div>
+          </div>
           <p className="text-xs text-[#3d4947] mt-1 font-medium">
-            Logged in as {userProfile?.name || "M. Phiri"} •{" "}
-            {userProfile?.location || "Blantyre HQ"} • Registration No.{" "}
-            {userProfile?.registrationNumber || "RBM/MFI/2019/088"}
+            Logged in as {userProfile?.name || 'M. Phiri'} • {userProfile?.location || 'Blantyre HQ'} • Registration No. {userProfile?.registrationNumber || 'RBM/MFI/2019/088'}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="px-4 py-2.5 bg-[#eff4ff] hover:bg-[#d3e4fe] text-[#00685f] font-bold text-xs rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-base">
+                arrow_back
+              </span>
+              <span>Back</span>
+            </button>
+          )}
           <button
             onClick={() => onNavigate("product-management")}
             className="px-4 py-2.5 bg-[#eff4ff] hover:bg-[#d3e4fe] text-[#00685f] font-bold text-xs rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
@@ -179,61 +202,57 @@ export const ProviderDashboardView: React.FC<ProviderDashboardViewProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-[#bcc9c6]/30 shadow-xs space-y-2">
           <div className="flex justify-between items-center text-xs text-[#3d4947]">
-            <span className="font-semibold">Applications This Month</span>
+            <span className="font-semibold">Applied Loans This Month</span>
             <span className="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-              <span className="material-symbols-outlined text-xs">
-                arrow_upward
-              </span>
+              <span className="material-symbols-outlined text-xs">arrow_upward</span>
               <span>12.4%</span>
             </span>
           </div>
           <div className="text-2xl font-extrabold text-[#0b1c30]">1,284</div>
-          <p className="text-[11px] text-gray-500">
-            {applications.length} active in queue
-          </p>
+          <p className="text-[11px] text-gray-500">{applications.length} active in queue</p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-[#bcc9c6]/30 shadow-xs space-y-2">
           <div className="flex justify-between items-center text-xs text-[#3d4947]">
-            <span className="font-semibold">Approved This Month</span>
+            <span className="font-semibold">Approved Loans This Month</span>
             <span className="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-              <span className="material-symbols-outlined text-xs">
-                arrow_upward
-              </span>
+              <span className="material-symbols-outlined text-xs">arrow_upward</span>
               <span>8.1%</span>
             </span>
           </div>
-          <div className="text-2xl font-extrabold text-[#00685f]">956</div>
-          <p className="text-[11px] text-gray-500">MWK 840,000,000 disbursed</p>
+          <div className="text-2xl font-extrabold text-[#00685f]">
+            {approvedLoansThisMonth}
+          </div>
+          <p className="text-[11px] text-gray-500">
+            Loans approved in the current month
+          </p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-[#bcc9c6]/30 shadow-xs space-y-2">
           <div className="flex justify-between items-center text-xs text-[#3d4947]">
             <span className="font-semibold">Approval Rate</span>
             <span className="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-              <span className="material-symbols-outlined text-xs">
-                arrow_upward
-              </span>
+              <span className="material-symbols-outlined text-xs">arrow_upward</span>
               <span>3.1%</span>
             </span>
           </div>
-          <div className="text-2xl font-extrabold text-[#855300]">74.2%</div>
-          <p className="text-[11px] text-gray-500">25.8% rejected or flagged</p>
+          <div className="text-2xl font-extrabold text-[#855300]">
+            {pendingApplications}
+          </div>
+          <p className="text-[11px] text-gray-500">
+            Applications awaiting review
+          </p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-[#bcc9c6]/30 shadow-xs space-y-2">
           <div className="flex justify-between items-center text-xs text-[#3d4947]">
-            <span className="font-semibold">Avg Decision Time</span>
+            <span className="font-semibold">Approval Rate</span>
             <span className="text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-              <span className="material-symbols-outlined text-xs">
-                arrow_downward
-              </span>
+              <span className="material-symbols-outlined text-xs">arrow_downward</span>
               <span>2.1h</span>
             </span>
           </div>
-          <div className="text-2xl font-extrabold text-[#4648d4]">
-            14.5 Hours
-          </div>
+          <div className="text-2xl font-extrabold text-[#4648d4]">14.5 Hours</div>
           <p className="text-[11px] text-gray-500">Target: Under 24.0 hours</p>
         </div>
       </div>
