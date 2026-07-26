@@ -79,11 +79,11 @@ export const LandingView: React.FC<LandingViewProps> = ({
           <div className="lg:col-span-5 relative">
             <div className="relative mx-auto max-w-md">
               {/* Main visual card */}
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-white">
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-white bg-white">
                 <img
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRncdrmA6bC0uISCtdq_8wI0YixkVQVx1TK-GHaR_Dw2LJim9E3vG8Keo9GG-prB61-wW9kEffNX3fIMQ_QqLxzT1pJBRI_KoqVcvLwclnt70hnur23DcGcSTFPm8d5FuDMDGY7g2HwBqjkYsVBG9wohl83D1nfuZ2VrkTaPPNR2IZC0Aw3c9ToQVXT8XLF9EeeRjjtURgW9ETcFkE71nZ7ngZpzd-7cymkzNG_A4BXcTaUjpGTtq1br4VCtkWfnNsZKrfM1MlWfY"
+                  src="/Home_page.jpg"
                   alt="SmartFin Access Connect Platform"
-                  className="w-full h-96 object-cover"
+                  className="w-full h-99 object-cover"
                 />
 
                 {/* Floating "Two Sides" Badge */}
