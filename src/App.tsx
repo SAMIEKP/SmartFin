@@ -167,6 +167,7 @@ export function App() {
               criticalVerifications={CRITICAL_VERIFICATIONS}
               onNavigate={setCurrentView}
               onOpenAddProductModal={() => setIsAddProductModalOpen(true)}
+              onUpdateAppStatus={handleUpdateAppStatus}
             />
           )}
 
