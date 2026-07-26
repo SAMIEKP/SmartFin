@@ -34,7 +34,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </button>
 
         {/* Global Search input */}
-        {currentView !== 'login' && (
+        {currentView !== 'login' && currentView !== 'register' && (
           <div className="hidden md:flex items-center gap-2 bg-white border border-[#bcc9c6]/40 rounded-full px-3 py-1.5 text-xs text-[#3d4947] w-64 focus-within:ring-2 focus-within:ring-[#00685f]/30">
             <span className="material-symbols-outlined text-sm text-[#6d7a77]">search</span>
             <input
@@ -54,7 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Center Nav Links for Landing - Removed per requirements */}
 
       {/* Right Controls */}
-      {currentView !== 'login' && (
+      {currentView !== 'login' && currentView !== 'register' && (
         <div className="flex items-center gap-3">
           {/* Role toggle badge - Navigate to Login */}
           <div className="hidden sm:flex bg-[#e5eeff] p-1 rounded-full text-xs font-semibold">
