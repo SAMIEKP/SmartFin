@@ -1,115 +1,122 @@
-import React, { useState, useRef } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { ViewMode, Role, UserProfile } from "../types";
 import { USER_PROFILE_KWESI, PROVIDER_PROFILE_PHIRI } from "../data/mockData";
 
 interface LoginViewProps {
   onNavigate: (view: ViewMode) => void;
   onLoginSuccess: (userProfile: UserProfile, role: Role) => void;
+  defaultRole?: Role;
   infoMessage?: string | null;
 }
+
+const PROVIDER_CREDENTIALS_KEY = "smartfin_provider_credentials";
 
 export const LoginView: React.FC<LoginViewProps> = ({
   onNavigate,
   onLoginSuccess,
+  defaultRole = "user",
   infoMessage = null,
 }) => {
-  const [email, setEmail] = useState("kwesi.banda@example.mw");
-  const [password, setPassword] = useState("password123");
+  const [selectedRole, setSelectedRole] = useState<Role>(defaultRole);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [providerEmail, setProviderEmail] = useState("");
+  const [providerPassword, setProviderPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [emailError, setEmailError] = useState<string | null>(null);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const emailRef = useRef<HTMLInputElement | null>(null);
-  const passwordRef = useRef<HTMLInputElement | null>(null);
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(PROVIDER_CREDENTIALS_KEY);
+      if (!saved) {
+        return;
+      }
+      const credentials = JSON.parse(saved);
+      if (credentials?.email) {
+        setProviderEmail(credentials.email);
+      }
+      if (credentials?.password) {
+        setProviderPassword(credentials.password);
+      }
+    } catch {
+      // Ignore invalid storage data.
+    }
+  }, []);
+
+  const saveProviderCredentials = (email: string, password: string) => {
+    try {
+      window.localStorage.setItem(
+        PROVIDER_CREDENTIALS_KEY,
+        JSON.stringify({ email, password }),
+      );
+    } catch {
+      // Ignore storage failures.
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Clear previous errors
     setErrorMessage("");
-    setEmailError(null);
-    setPasswordError(null);
 
-    const cleanEmail = email.trim();
-    const emailRegex = /^\S+@\S+\.\S+$/;
-    if (!emailRegex.test(cleanEmail)) {
-      setEmailError("Enter a valid email address.");
-      emailRef.current?.focus();
-      return;
-    }
-
-    if (password.length < 6) {
-      setPasswordError("Password must be at least 6 characters.");
-      passwordRef.current?.focus();
-      return;
-    }
-
-    setIsLoading(true);
-
-    setTimeout(() => {
-      setIsLoading(false);
-      const normalized = cleanEmail.toLowerCase();
-
-      if (
-        normalized === "m.phiri@finaccess.mw" ||
-        normalized.includes("provider") ||
-        normalized.includes("lender")
-      ) {
-        onLoginSuccess(PROVIDER_PROFILE_PHIRI, "provider");
+    if (selectedRole === "user") {
+      if (!email || !password) {
+        setErrorMessage("Please fill in both email and password.");
+        return;
+      }
+      if (password.length < 6) {
+        setErrorMessage("Password must be at least 6 characters long.");
         return;
       }
 
-      if (
-        normalized === "kwesi.banda@example.mw" ||
-        (normalized.includes("@") && password.length >= 6)
-      ) {
-        onLoginSuccess({ ...USER_PROFILE_KWESI, email: email }, "user");
+      setIsSubmitting(true);
+      setTimeout(() => {
+        setIsSubmitting(false);
+        const normalized = email.trim().toLowerCase();
+        if (normalized.includes("@") && password.length >= 6) {
+          onLoginSuccess({ ...USER_PROFILE_KWESI, email: normalized }, "user");
+        } else {
+          setErrorMessage("Invalid email or password.");
+        }
+      }, 500);
+    } else {
+      if (!providerEmail || !providerPassword) {
+        setErrorMessage("Please fill in both institution email and password.");
+        return;
+      }
+      if (providerPassword.length < 6) {
+        setErrorMessage("Password must be at least 6 characters long.");
         return;
       }
 
-      setErrorMessage(
-        "Email or password is incorrect. Please check your credentials.",
-      );
-      // focus password to encourage retry
-      passwordRef.current?.focus();
-    }, 600);
-  };
-
-  const handleQuickLogin = (roleType: "user" | "provider") => {
-    setErrorMessage("");
-    setEmailError(null);
-    setPasswordError(null);
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      if (roleType === "provider") {
-        onLoginSuccess(PROVIDER_PROFILE_PHIRI, "provider");
-      } else {
-        onLoginSuccess(USER_PROFILE_KWESI, "user");
-      }
-    }, 400);
+      setIsSubmitting(true);
+      setTimeout(() => {
+        setIsSubmitting(false);
+        const normalized = providerEmail.trim().toLowerCase();
+        if (normalized.includes("@") && providerPassword.length >= 6) {
+          saveProviderCredentials(normalized, providerPassword);
+          onLoginSuccess(PROVIDER_PROFILE_PHIRI, "provider");
+        } else {
+          setErrorMessage("Invalid institution email or password.");
+        }
+      }, 500);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-[#eff4ff] flex flex-col justify-center items-center p-4">
-      <div className="w-full max-w-md bg-white rounded-3xl border border-[#bcc9c6]/30 shadow-md p-8 space-y-6">
-        {/* Header */}
+    <div className="min-h-screen bg-[#eff4ff] py-10 px-4 flex flex-col justify-center items-center">
+      <div className="w-full max-w-xl bg-white rounded-3xl border border-[#bcc9c6]/30 shadow-lg p-6 sm:p-8 space-y-6">
         <div className="text-center space-y-2">
-          <h1
-            onClick={() => onNavigate("landing")}
-            className="text-3xl font-extrabold text-[#00685f] cursor-pointer hover:opacity-80 transition-opacity tracking-tight"
-          >
-            FinAccess
+          <h1 className="text-3xl font-extrabold text-[#00685f] tracking-tight">
+            SmartFin Access Connect
           </h1>
-          <h2 className="text-xl font-bold text-[#0b1c30]">Welcome Back</h2>
+          <h2 className="text-xl font-bold text-[#0b1c30]">
+            Sign In to Your Account
+          </h2>
           <p className="text-xs text-[#3d4947]">
-            Sign in to access your financial discovery account and track
-            applications.
+            Access your financial discovery dashboard and track applications.
           </p>
         </div>
 
-        {/* Info banner when redirected */}
         {infoMessage && (
           <div className="p-3 bg-[#e6f7ff] border border-[#bfe9ff] text-[#055160] rounded-xl font-medium flex items-center gap-2">
             <span className="material-symbols-outlined text-sm">info</span>
@@ -117,109 +124,168 @@ export const LoginView: React.FC<LoginViewProps> = ({
           </div>
         )}
 
-        {/* Quick Demo Login Switcher */}
-        <div className="p-3 bg-[#eff4ff] rounded-2xl border border-[#bcc9c6]/30 space-y-2 text-xs">
-          <span className="font-bold text-[#0b1c30] block text-center">
-            Quick Demo Accounts
-          </span>
-          <div className="flex gap-2">
+        <div className="space-y-2">
+          <label className="text-xs font-bold text-[#0b1c30] block">
+            Select Account Type
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => handleQuickLogin("user")}
-              className="flex-1 py-2 px-3 bg-[#00685f] hover:bg-[#008378] text-white rounded-xl font-bold transition-colors cursor-pointer text-center"
+              onClick={() => {
+                setSelectedRole("user");
+                setErrorMessage("");
+              }}
+              className={`p-4 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                selectedRole === "user"
+                  ? "border-[#00685f] bg-[#f4fffc] ring-2 ring-[#00685f]/30"
+                  : "border-[#bcc9c6]/40 hover:bg-[#eff4ff]"
+              }`}
             >
-              Individual User
+              <div className="flex items-center gap-2 text-[#00685f]">
+                <span className="material-symbols-outlined">person</span>
+                <span className="font-extrabold text-xs">Individual User</span>
+              </div>
+              <p className="text-[11px] text-[#3d4947] mt-2">
+                Sign in to access your loan applications and dashboard.
+              </p>
             </button>
+
             <button
               type="button"
-              onClick={() => handleQuickLogin("provider")}
-              className="flex-1 py-2 px-3 bg-[#855300] hover:bg-[#653e00] text-white rounded-xl font-bold transition-colors cursor-pointer text-center"
+              onClick={() => {
+                setSelectedRole("provider");
+                setErrorMessage("");
+              }}
+              className={`p-4 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                selectedRole === "provider"
+                  ? "border-[#855300] bg-[#fff8f0] ring-2 ring-[#855300]/30"
+                  : "border-[#bcc9c6]/40 hover:bg-[#eff4ff]"
+              }`}
             >
-              Loan Provider
+              <div className="flex items-center gap-2 text-[#855300]">
+                <span className="material-symbols-outlined">
+                  account_balance
+                </span>
+                <span className="font-extrabold text-xs">
+                  Loan Provider / Institution
+                </span>
+              </div>
+              <p className="text-[11px] text-[#3d4947] mt-2">
+                Sign in to manage your loan products and applications.
+              </p>
             </button>
           </div>
         </div>
 
-        {/* Form */}
+        {errorMessage && (
+          <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-medium flex items-center gap-2 animate-in fade-in">
+            <span className="material-symbols-outlined text-sm">error</span>
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-          {errorMessage && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl font-medium flex items-center gap-2 animate-in fade-in">
-              <span className="material-symbols-outlined text-sm">error</span>
-              <span>{errorMessage}</span>
-            </div>
+          {selectedRole === "user" ? (
+            <>
+              <div className="space-y-1">
+                <label className="font-bold text-[#0b1c30]">
+                  Email Address *
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="kwesi@example.mw"
+                  className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex justify-between items-center">
+                  <label className="font-bold text-[#0b1c30]">Password *</label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      alert(
+                        "Password reset link sent to your registered email.",
+                      )
+                    }
+                    className="text-[11px] font-bold text-[#00685f] hover:underline"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="space-y-1">
+                <label className="font-bold text-[#0b1c30]">
+                  Institution Email Address *
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={providerEmail}
+                  onChange={(e) => setProviderEmail(e.target.value)}
+                  placeholder="admin@institution.mw"
+                  className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex justify-between items-center">
+                  <label className="font-bold text-[#0b1c30]">Password *</label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      alert(
+                        "Password reset link sent to your registered email.",
+                      )
+                    }
+                    className="text-[11px] font-bold text-[#855300] hover:underline"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
+                <input
+                  type="password"
+                  required
+                  value={providerPassword}
+                  onChange={(e) => setProviderPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
+                />
+              </div>
+            </>
           )}
-
-          <div className="space-y-1">
-            <label className="font-bold text-[#0b1c30] block">
-              Email Address
-            </label>
-            <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-3 text-gray-400 text-sm">
-                mail
-              </span>
-              <input
-                ref={emailRef}
-                type="email"
-                required
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (emailError) setEmailError(null);
-                }}
-                placeholder="name@example.mw"
-                className="w-full pl-9 pr-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl text-xs font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
-              />
-            </div>
-            {emailError && (
-              <p className="text-red-600 text-[11px] mt-1">{emailError}</p>
-            )}
-          </div>
-
-          <div className="space-y-1">
-            <div className="flex justify-between items-center">
-              <label className="font-bold text-[#0b1c30] block">Password</label>
-              <button
-                type="button"
-                onClick={() =>
-                  alert("Password reset link sent to your registered email.")
-                }
-                className="text-[11px] font-bold text-[#00685f] hover:underline"
-              >
-                Forgot Password?
-              </button>
-            </div>
-            <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-3 text-gray-400 text-sm">
-                lock
-              </span>
-              <input
-                ref={passwordRef}
-                type="password"
-                required
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (passwordError) setPasswordError(null);
-                }}
-                placeholder="••••••••••••"
-                className="w-full pl-9 pr-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl text-xs font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
-              />
-            </div>
-            {passwordError && (
-              <p className="text-red-600 text-[11px] mt-1">{passwordError}</p>
-            )}
-          </div>
 
           <button
             type="submit"
-            disabled={isLoading}
-            className="w-full py-3 bg-[#00685f] hover:bg-[#008378] text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            disabled={isSubmitting}
+            className={`w-full py-3.5 text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 ${
+              selectedRole === "provider"
+                ? "bg-[#855300] hover:bg-[#653e00]"
+                : "bg-[#00685f] hover:bg-[#008378]"
+            }`}
           >
-            {isLoading ? (
-              <span>Authenticating...</span>
+            {isSubmitting ? (
+              <span>Signing In...</span>
             ) : (
               <>
-                <span>Sign In to FinAccess</span>
+                <span>
+                  Sign In as{" "}
+                  {selectedRole === "provider" ? "Provider" : "Individual"}
+                </span>
                 <span className="material-symbols-outlined text-sm">
                   arrow_forward
                 </span>
@@ -228,14 +294,13 @@ export const LoginView: React.FC<LoginViewProps> = ({
           </button>
         </form>
 
-        {/* Footer link to Register */}
         <div className="text-center pt-2 border-t border-gray-100 text-xs text-[#3d4947]">
           <span>Don't have an account yet? </span>
           <button
             onClick={() => onNavigate("register")}
             className="font-bold text-[#00685f] hover:underline cursor-pointer"
           >
-            Sign Up Now
+            Create Account Here
           </button>
         </div>
       </div>

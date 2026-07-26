@@ -20,7 +20,6 @@ import { Sidebar } from "./components/Sidebar";
 import { ApplicationModal } from "./components/ApplicationModal";
 import { AddProductModal } from "./components/AddProductModal";
 import { SupportModal } from "./components/SupportModal";
-
 import { LandingView } from "./views/LandingView";
 import { RegisterView } from "./views/RegisterView";
 import { UserDashboardView } from "./views/UserDashboardView";
@@ -61,17 +60,32 @@ export function App() {
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
 
+  // Login default role (pre-select Member or Provider tab)
+  const [loginDefaultRole, setLoginDefaultRole] = useState<Role>("user");
+
+  // Navigate to login with a pre-selected role
+  const handleNavigateLogin = (defaultRole: Role) => {
+    setLoginDefaultRole(defaultRole);
+    setCurrentView("login");
+  };
+
   // Switch role handler
   const handleSwitchRole = (newRole: Role) => {
     setRole(newRole);
     if (newRole === "provider") {
       setUserProfile(PROVIDER_PROFILE_PHIRI);
-      if (currentView === "user-dashboard" || currentView === "landing") {
+      if (currentView === "landing") {
+        setLoginDefaultRole("provider");
+        setCurrentView("login");
+      } else if (currentView === "user-dashboard") {
         setCurrentView("provider-dashboard");
       }
     } else {
       setUserProfile(USER_PROFILE_KWESI);
-      if (currentView === "provider-dashboard" || currentView === "landing") {
+      if (currentView === "landing") {
+        setLoginDefaultRole("user");
+        setCurrentView("login");
+      } else if (currentView === "provider-dashboard") {
         setCurrentView("user-dashboard");
       }
     }
@@ -182,6 +196,7 @@ export function App() {
           userProfile={userProfile}
           onOpenApplyModal={() => setIsApplyModalOpen(true)}
           onSwitchRole={handleSwitchRole}
+          onNavigateLogin={handleNavigateLogin}
         />
 
         {/* View Content Renderer */}
@@ -201,6 +216,8 @@ export function App() {
             <LoginView
               onNavigate={handleNavigate}
               onLoginSuccess={handleLoginSuccess}
+              defaultRole={loginDefaultRole}
+              infoMessage={loginInfoMessage}
             />
           )}
 
