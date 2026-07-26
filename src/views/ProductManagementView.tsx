@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { ViewMode, LoanProduct } from '../types';
+import React, { useState } from "react";
+import { ViewMode, LoanProduct } from "../types";
 
 interface ProductManagementViewProps {
   products: LoanProduct[];
   onNavigate: (view: ViewMode) => void;
+  onBack?: () => void;
   onOpenAddProductModal: () => void;
   onToggleStatus: (productId: string) => void;
   onDeleteProduct: (productId: string) => void;
@@ -13,14 +14,15 @@ interface ProductManagementViewProps {
 export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
   products,
   onNavigate,
+  onBack,
   onOpenAddProductModal,
   onToggleStatus,
   onDeleteProduct,
   onSelectProduct,
 }) => {
-  const [search, setSearch] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [showEmptyState, setShowEmptyState] = useState(false);
 
   const displayedProducts = showEmptyState
@@ -30,8 +32,10 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
           p.name.toLowerCase().includes(search.toLowerCase()) ||
           p.code.toLowerCase().includes(search.toLowerCase()) ||
           p.provider.toLowerCase().includes(search.toLowerCase());
-        const matchesCat = categoryFilter === 'all' || p.category === categoryFilter;
-        const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
+        const matchesCat =
+          categoryFilter === "all" || p.category === categoryFilter;
+        const matchesStatus =
+          statusFilter === "all" || p.status === statusFilter;
         return matchesSearch && matchesCat && matchesStatus;
       });
 
@@ -49,17 +53,28 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
             </span>
           </div>
           <p className="text-xs text-[#3d4947] mt-1">
-            Configure interest rates, borrowing limits, and product visibility across Malawi.
+            Configure interest rates, borrowing limits, and product visibility
+            across Malawi.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <button
+            onClick={onBack || (() => onNavigate("provider-dashboard"))}
+            className="px-3 py-2 border border-[#bcc9c6] text-[#3d4947] font-bold text-xs rounded-xl hover:bg-gray-100 transition-colors flex items-center gap-2"
+          >
+            <span className="material-symbols-outlined text-sm">
+              arrow_back
+            </span>
+            <span>Back</span>
+          </button>
+
+          <button
             onClick={() => setShowEmptyState(!showEmptyState)}
             className="px-3 py-2 border border-[#bcc9c6] text-[#3d4947] font-bold text-xs rounded-xl hover:bg-gray-100 transition-colors"
             title="Toggle empty state view for design testing"
           >
-            {showEmptyState ? 'Show Products' : 'Simulate Empty State'}
+            {showEmptyState ? "Show Products" : "Simulate Empty State"}
           </button>
 
           <button
@@ -75,7 +90,9 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
       {/* Filter and Search Toolbar */}
       <div className="bg-white p-4 rounded-2xl border border-[#bcc9c6]/30 shadow-xs flex flex-col sm:flex-row gap-3 justify-between items-center text-xs">
         <div className="flex items-center gap-2 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl px-3 py-2 w-full sm:w-72">
-          <span className="material-symbols-outlined text-sm text-[#6d7a77]">search</span>
+          <span className="material-symbols-outlined text-sm text-[#6d7a77]">
+            search
+          </span>
           <input
             type="text"
             placeholder="Search code, name, or provider..."
@@ -120,11 +137,13 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
               alt="Empty Catalog"
               className="w-28 h-28 mx-auto object-contain opacity-70"
             />
-            <h3 className="text-lg font-bold text-[#0b1c30]">No Products Found</h3>
+            <h3 className="text-lg font-bold text-[#0b1c30]">
+              No Products Found
+            </h3>
             <p className="text-xs text-[#3d4947] max-w-sm mx-auto">
               {showEmptyState
                 ? 'Your financial product catalog is currently empty. Click "+ Add New Product" to publish a new loan facility.'
-                : 'No products match your search or filter settings.'}
+                : "No products match your search or filter settings."}
             </p>
             <button
               onClick={onOpenAddProductModal}
@@ -149,7 +168,10 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {displayedProducts.map((p) => (
-                  <tr key={p.id} className="hover:bg-gray-50/80 transition-colors">
+                  <tr
+                    key={p.id}
+                    className="hover:bg-gray-50/80 transition-colors"
+                  >
                     <td className="p-4">
                       <div>
                         <span className="text-[10px] font-bold text-gray-400 block font-mono">
@@ -158,7 +180,9 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
                         <span className="font-bold text-[#0b1c30] text-sm block mt-0.5">
                           {p.name}
                         </span>
-                        <span className="text-[11px] text-gray-500">{p.provider}</span>
+                        <span className="text-[11px] text-gray-500">
+                          {p.provider}
+                        </span>
                       </div>
                     </td>
 
@@ -174,31 +198,42 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
 
                     <td className="p-4">
                       <span className="font-bold text-[#0b1c30] block">
-                        MWK {p.minAmount.toLocaleString()} - {(p.maxAmount / 1000000).toFixed(1)}M
+                        MWK {p.minAmount.toLocaleString()} -{" "}
+                        {(p.maxAmount / 1000000).toFixed(1)}M
                       </span>
-                      <span className="text-[11px] text-gray-500">{p.termDisplay}</span>
+                      <span className="text-[11px] text-gray-500">
+                        {p.termDisplay}
+                      </span>
                     </td>
 
                     <td className="p-4">
-                      <span className="font-bold text-[#0b1c30]">{p.applicationsCount}</span>
-                      <span className="text-[10px] text-gray-400 block">Submissions</span>
+                      <span className="font-bold text-[#0b1c30]">
+                        {p.applicationsCount}
+                      </span>
+                      <span className="text-[10px] text-gray-400 block">
+                        Submissions
+                      </span>
                     </td>
 
                     <td className="p-4">
                       <button
                         onClick={() => onToggleStatus(p.id)}
                         className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold transition-all cursor-pointer ${
-                          p.status === 'active'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-gray-100 text-gray-600'
+                          p.status === "active"
+                            ? "bg-emerald-100 text-emerald-800"
+                            : "bg-gray-100 text-gray-600"
                         }`}
                       >
                         <span
                           className={`w-2 h-2 rounded-full ${
-                            p.status === 'active' ? 'bg-emerald-600' : 'bg-gray-400'
+                            p.status === "active"
+                              ? "bg-emerald-600"
+                              : "bg-gray-400"
                           }`}
                         ></span>
-                        <span>{p.status === 'active' ? 'Active' : 'Inactive'}</span>
+                        <span>
+                          {p.status === "active" ? "Active" : "Inactive"}
+                        </span>
                       </button>
                     </td>
 
@@ -206,12 +241,14 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
                       <button
                         onClick={() => {
                           onSelectProduct(p);
-                          onNavigate('product-details');
+                          onNavigate("product-details");
                         }}
                         className="p-1.5 text-[#00685f] hover:bg-[#eff4ff] rounded-lg transition-colors"
                         title="View Product Page"
                       >
-                        <span className="material-symbols-outlined text-base">visibility</span>
+                        <span className="material-symbols-outlined text-base">
+                          visibility
+                        </span>
                       </button>
 
                       <button
@@ -219,7 +256,9 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
                         className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="Remove Product"
                       >
-                        <span className="material-symbols-outlined text-base">delete</span>
+                        <span className="material-symbols-outlined text-base">
+                          delete
+                        </span>
                       </button>
                     </td>
                   </tr>

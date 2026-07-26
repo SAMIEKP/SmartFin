@@ -10,6 +10,7 @@ export type ViewMode =
   | 'provider-dashboard'
   | 'loan-products'
   | 'product-management'
+  | 'application-management'
   | 'product-details'
   | 'calculator'
   | 'my-applications'
