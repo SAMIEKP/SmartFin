@@ -36,7 +36,7 @@ const getCategoryLabel = (app: ApplicationItem) => {
 
 export const ApplicationManagementView: React.FC<
   ApplicationManagementViewProps
-> = ({ applications, onNavigate, onUpdateAppStatus }) => {
+> = ({ applications, onNavigate, onBack, onUpdateAppStatus }) => {
   const [selectedService, setSelectedService] = useState("All");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -100,7 +100,13 @@ export const ApplicationManagementView: React.FC<
             </p>
           </div>
           <button
-            onClick={onBack || (() => onNavigate("provider-dashboard"))}
+            onClick={() => {
+              if (onBack) {
+                onBack();
+              } else {
+                onNavigate("provider-dashboard");
+              }
+            }}
             className="px-4 py-2.5 bg-[#eff4ff] hover:bg-[#d3e4fe] text-[#00685f] font-bold text-xs rounded-xl transition-colors cursor-pointer flex items-center gap-2"
           >
             <span className="material-symbols-outlined text-sm">
