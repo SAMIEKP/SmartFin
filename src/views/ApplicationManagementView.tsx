@@ -39,6 +39,9 @@ export const ApplicationManagementView: React.FC<
   const [selectedService, setSelectedService] = useState("All");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedApplicationId, setSelectedApplicationId] = useState<
+    string | null
+  >(null);
 
   const serviceOptions = useMemo(() => {
     const services = Array.from(new Set(applications.map(getServiceLabel)));
@@ -77,6 +80,10 @@ export const ApplicationManagementView: React.FC<
   const approvedCount = filteredApplications.filter(
     (app) => app.status === "Approved",
   ).length;
+
+  const selectedApplication = applications.find(
+    (app) => app.id === selectedApplicationId,
+  );
 
   return (
     <div className="space-y-6 pb-12">
@@ -231,6 +238,12 @@ export const ApplicationManagementView: React.FC<
 
                   <div className="flex flex-wrap gap-2">
                     <button
+                      onClick={() => setSelectedApplicationId(app.id)}
+                      className="px-3 py-2 bg-[#d3e4fe] text-[#00685f] text-xs font-bold rounded-xl hover:bg-[#c3dafc] transition-colors cursor-pointer"
+                    >
+                      Open Details
+                    </button>
+                    <button
                       onClick={() => onUpdateAppStatus(app.id, "Under Review")}
                       className="px-3 py-2 bg-[#eff4ff] text-[#00685f] text-xs font-bold rounded-xl hover:bg-[#d3e4fe] transition-colors cursor-pointer"
                     >
@@ -255,6 +268,110 @@ export const ApplicationManagementView: React.FC<
           )}
         </div>
       </div>
+
+      {selectedApplication && (
+        <div className="bg-white rounded-2xl border border-[#bcc9c6]/30 shadow-xs p-6 space-y-5">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-extrabold text-[#0b1c30]">
+                {selectedApplication.applicantName} — Application Details
+              </h2>
+              <p className="text-sm text-[#3d4947] mt-1">
+                Review answers and documents before making a decision.
+              </p>
+            </div>
+            <button
+              onClick={() => setSelectedApplicationId(null)}
+              className="px-4 py-2.5 bg-[#eff4ff] hover:bg-[#d3e4fe] text-[#00685f] font-bold text-xs rounded-xl transition-colors cursor-pointer"
+            >
+              Close Details
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-extrabold text-[#0b1c30] mb-2">
+                  Applicant Answers
+                </h3>
+                <div className="rounded-2xl bg-[#f8f9ff] border border-[#bcc9c6]/30 p-4 space-y-3">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-[#3d4947]">
+                      Loan Purpose
+                    </p>
+                    <p className="text-sm text-[#0b1c30] mt-1">
+                      {selectedApplication.productName}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-[#3d4947]">
+                      Requested Amount
+                    </p>
+                    <p className="text-sm text-[#0b1c30] mt-1">
+                      MWK {selectedApplication.amount.toLocaleString()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-[#3d4947]">
+                      Applicant Location
+                    </p>
+                    <p className="text-sm text-[#0b1c30] mt-1">
+                      {selectedApplication.applicantLocation || "Not provided"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-[#3d4947]">
+                      Contact Details
+                    </p>
+                    <p className="text-sm text-[#0b1c30] mt-1">
+                      {selectedApplication.applicantEmail || "Not provided"}
+                    </p>
+                    <p className="text-sm text-[#0b1c30] mt-1">
+                      {selectedApplication.applicantPhone || "Not provided"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-extrabold text-[#0b1c30] mb-2">
+                  Uploaded Documents
+                </h3>
+                <div className="rounded-2xl bg-[#f8f9ff] border border-[#bcc9c6]/30 p-4 space-y-3">
+                  {(selectedApplication.requestedDocuments?.length || 0) > 0 ? (
+                    selectedApplication.requestedDocuments?.map(
+                      (document, index) => (
+                        <div
+                          key={`${document}-${index}`}
+                          className="flex items-center justify-between rounded-xl bg-white p-3 border border-[#bcc9c6]/20"
+                        >
+                          <div>
+                            <p className="text-sm font-semibold text-[#0b1c30]">
+                              {document}
+                            </p>
+                            <p className="text-xs text-[#3d4947] mt-1">
+                              Required document
+                            </p>
+                          </div>
+                          <span className="material-symbols-outlined text-[#00685f]">
+                            description
+                          </span>
+                        </div>
+                      ),
+                    )
+                  ) : (
+                    <p className="text-sm text-[#3d4947]">
+                      No documents have been uploaded yet.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
