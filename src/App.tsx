@@ -38,6 +38,7 @@ import { LoginView } from "./views/LoginView";
 
 export function App() {
   const [currentView, setCurrentView] = useState<ViewMode>("landing");
+  const [viewHistory, setViewHistory] = useState<ViewMode[]>([]);
   const [role, setRole] = useState<Role>("user");
   const [userProfile, setUserProfile] =
     useState<UserProfile>(USER_PROFILE_KWESI);
@@ -62,15 +63,38 @@ export function App() {
   // Login default role (pre-select Member or Provider tab)
   const [loginDefaultRole, setLoginDefaultRole] = useState<Role>("user");
 
+  const handleNavigate = (nextView: ViewMode) => {
+    if (currentView !== nextView) {
+      setViewHistory((prev) => [...prev, currentView]);
+      setCurrentView(nextView);
+    }
+  };
+
+  const handleGoBack = () => {
+    const previousView = viewHistory[viewHistory.length - 1];
+
+    if (previousView) {
+      setViewHistory((prev) => prev.slice(0, -1));
+      setCurrentView(previousView);
+      return;
+    }
+
+    setCurrentView(
+      role === "provider" ? "provider-dashboard" : "user-dashboard",
+    );
+  };
+
   // Navigate to login with a pre-selected role
   const handleNavigateLogin = (defaultRole: Role) => {
     setLoginDefaultRole(defaultRole);
+    setViewHistory([]);
     setCurrentView("login");
   };
 
   // Switch role handler
   const handleSwitchRole = (newRole: Role) => {
     setRole(newRole);
+    setViewHistory([]);
     if (newRole === "provider") {
       setUserProfile(PROVIDER_PROFILE_PHIRI);
       if (currentView === "landing") {
@@ -146,6 +170,7 @@ export function App() {
   const handleLoginSuccess = (profile: UserProfile, newRole: Role) => {
     setUserProfile(profile);
     setRole(newRole);
+    setViewHistory([]);
     setCurrentView(
       newRole === "provider" ? "provider-dashboard" : "user-dashboard",
     );
@@ -157,7 +182,7 @@ export function App() {
       {!isFullScreenLayout && (
         <Sidebar
           currentView={currentView}
-          onNavigate={setCurrentView}
+          onNavigate={handleNavigate}
           role={role}
           userProfile={userProfile}
           onOpenSupport={() => setIsSupportModalOpen(true)}
@@ -172,7 +197,7 @@ export function App() {
         {/* Top Navbar */}
         <Navbar
           currentView={currentView}
-          onNavigate={setCurrentView}
+          onNavigate={handleNavigate}
           role={role}
           userProfile={userProfile}
           onOpenApplyModal={() => setIsApplyModalOpen(true)}
@@ -186,7 +211,7 @@ export function App() {
         >
           {currentView === "landing" && (
             <LandingView
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
               products={products}
               onSelectProduct={setSelectedProduct}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
@@ -195,7 +220,7 @@ export function App() {
 
           {currentView === "login" && (
             <LoginView
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
               onLoginSuccess={handleLoginSuccess}
               defaultRole={loginDefaultRole}
             />
@@ -203,7 +228,7 @@ export function App() {
 
           {currentView === "register" && (
             <RegisterView
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
               onSelectUser={(u) => {
                 setUserProfile(u);
                 setRole(u.role);
@@ -216,7 +241,7 @@ export function App() {
               userProfile={userProfile}
               applications={userApplications}
               products={products}
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
               onSelectProduct={setSelectedProduct}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
             />
@@ -226,7 +251,8 @@ export function App() {
             <ProviderDashboardView
               applications={providerApplications}
               criticalVerifications={CRITICAL_VERIFICATIONS}
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
+              onBack={handleGoBack}
               onOpenAddProductModal={() => setIsAddProductModalOpen(true)}
               onUpdateAppStatus={handleUpdateAppStatus}
             />
@@ -235,7 +261,7 @@ export function App() {
           {currentView === "loan-products" && (
             <LoanProductsView
               products={products}
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
               onSelectProduct={setSelectedProduct}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
             />
@@ -244,7 +270,8 @@ export function App() {
           {currentView === "product-management" && (
             <ProductManagementView
               products={products}
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
+              onBack={handleGoBack}
               onOpenAddProductModal={() => setIsAddProductModalOpen(true)}
               onToggleStatus={handleToggleProductStatus}
               onDeleteProduct={handleDeleteProduct}
@@ -255,7 +282,8 @@ export function App() {
           {currentView === "application-management" && (
             <ApplicationManagementView
               applications={providerApplications}
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
+              onBack={handleGoBack}
               onUpdateAppStatus={handleUpdateAppStatus}
             />
           )}
@@ -263,7 +291,8 @@ export function App() {
           {currentView === "product-details" && (
             <ProductDetailsView
               product={selectedProduct}
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
+              onBack={handleGoBack}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
               onOpenSupport={() => setIsSupportModalOpen(true)}
             />
@@ -271,7 +300,7 @@ export function App() {
 
           {currentView === "calculator" && (
             <CalculatorView
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
             />
           )}
@@ -279,7 +308,7 @@ export function App() {
           {currentView === "my-applications" && (
             <MyApplicationsView
               applications={userApplications}
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
               onUpdateAppStatus={handleUpdateAppStatus}
             />
@@ -288,7 +317,7 @@ export function App() {
           {currentView === "credit-score" && (
             <CreditScoreView
               userProfile={userProfile}
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
             />
           )}
@@ -297,7 +326,7 @@ export function App() {
             <SettingsView
               userProfile={userProfile}
               role={role}
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
               onUpdateProfile={handleUpdateProfile}
             />
           )}
@@ -307,7 +336,7 @@ export function App() {
               userProfile={userProfile}
               role={role}
               applications={userApplications}
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
             />
           )}
         </main>

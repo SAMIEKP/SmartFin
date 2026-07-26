@@ -12,6 +12,7 @@ interface ProviderDashboardViewProps {
   applications: ApplicationItem[];
   criticalVerifications: CriticalVerification[];
   onNavigate: (view: ViewMode) => void;
+  onBack?: () => void;
   onOpenAddProductModal: () => void;
   onUpdateAppStatus: (
     appId: string,
@@ -25,6 +26,7 @@ export const ProviderDashboardView: React.FC<ProviderDashboardViewProps> = ({
   applications,
   criticalVerifications,
   onNavigate,
+  onBack,
   onOpenAddProductModal,
   onUpdateAppStatus,
 }) => {
@@ -229,6 +231,17 @@ export const ProviderDashboardView: React.FC<ProviderDashboardViewProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="px-4 py-2.5 bg-[#eff4ff] hover:bg-[#d3e4fe] text-[#00685f] font-bold text-xs rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-base">
+                arrow_back
+              </span>
+              <span>Back</span>
+            </button>
+          )}
           <button
             onClick={() => onNavigate("product-management")}
             className="px-4 py-2.5 bg-[#eff4ff] hover:bg-[#d3e4fe] text-[#00685f] font-bold text-xs rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"

@@ -4,6 +4,7 @@ import { ApplicationItem, ApplicationStatus, ViewMode } from "../types";
 interface ApplicationManagementViewProps {
   applications: ApplicationItem[];
   onNavigate: (view: ViewMode) => void;
+  onBack?: () => void;
   onUpdateAppStatus: (
     appId: string,
     status: ApplicationStatus,
@@ -99,10 +100,13 @@ export const ApplicationManagementView: React.FC<
             </p>
           </div>
           <button
-            onClick={() => onNavigate("provider-dashboard")}
-            className="px-4 py-2.5 bg-[#eff4ff] hover:bg-[#d3e4fe] text-[#00685f] font-bold text-xs rounded-xl transition-colors cursor-pointer"
+            onClick={onBack || (() => onNavigate("provider-dashboard"))}
+            className="px-4 py-2.5 bg-[#eff4ff] hover:bg-[#d3e4fe] text-[#00685f] font-bold text-xs rounded-xl transition-colors cursor-pointer flex items-center gap-2"
           >
-            Back to Dashboard
+            <span className="material-symbols-outlined text-sm">
+              arrow_back
+            </span>
+            <span>Back</span>
           </button>
         </div>
 
