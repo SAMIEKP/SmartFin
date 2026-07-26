@@ -86,32 +86,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Right Controls */}
       <div className="flex items-center gap-3">
-        {/* Role toggle badge if available */}
-        {onSwitchRole && (
-          <div className="hidden sm:flex bg-[#e5eeff] p-1 rounded-full text-xs font-semibold">
-            <button
-              onClick={() => onSwitchRole('user')}
-              className={`px-3 py-1 rounded-full transition-all ${
-                role === 'user'
-                  ? 'bg-[#00685f] text-white shadow-xs'
-                  : 'text-[#3d4947] hover:text-[#00685f]'
-              }`}
-            >
-              Member
-            </button>
-            <button
-              onClick={() => onSwitchRole('provider')}
-              className={`px-3 py-1 rounded-full transition-all ${
-                role === 'provider'
-                  ? 'bg-[#00685f] text-white shadow-xs'
-                  : 'text-[#3d4947] hover:text-[#00685f]'
-              }`}
-            >
-              Provider
-            </button>
-          </div>
-        )}
-
         {/* Notifications Icon Dropdown */}
         <div className="relative">
           <button
@@ -148,15 +122,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           )}
         </div>
-
-        {/* Apply Now Primary CTA */}
-        <button
-          onClick={onOpenApplyModal}
-          className="flex items-center gap-1.5 px-4 py-2 bg-[#00685f] hover:bg-[#008378] text-white text-xs font-bold rounded-lg shadow-xs transition-all active:scale-95 cursor-pointer"
-        >
-          <span className="material-symbols-outlined text-base">add_circle</span>
-          <span>Apply Now</span>
-        </button>
 
         {/* Profile Avatar / Login CTA */}
         {role === 'guest' ? (

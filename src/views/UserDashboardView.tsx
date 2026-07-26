@@ -51,14 +51,6 @@ export const UserDashboardView: React.FC<UserDashboardViewProps> = ({
             <span className="material-symbols-outlined text-base">explore</span>
             <span>Continue Discovery</span>
           </button>
-
-          <button
-            onClick={onOpenApplyModal}
-            className="px-5 py-2.5 bg-[#00685f] hover:bg-[#008378] text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-base">add</span>
-            <span>New Application</span>
-          </button>
         </div>
       </div>
 
@@ -274,21 +266,15 @@ export const UserDashboardView: React.FC<UserDashboardViewProps> = ({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                  <div className="pt-2 border-t border-gray-100">
                     <button
                       onClick={() => {
                         onSelectProduct(p);
                         onNavigate('product-details');
                       }}
-                      className="flex-1 py-2 bg-white text-[#00685f] font-bold text-xs rounded-xl border border-[#00685f]/30 hover:bg-[#f4fffc] transition-colors cursor-pointer text-center"
+                      className="w-full py-2 bg-white text-[#00685f] font-bold text-xs rounded-xl border border-[#00685f]/30 hover:bg-[#f4fffc] transition-colors cursor-pointer text-center"
                     >
                       View Details
-                    </button>
-                    <button
-                      onClick={onOpenApplyModal}
-                      className="flex-1 py-2 bg-[#00685f] hover:bg-[#008378] text-white font-bold text-xs rounded-xl transition-colors cursor-pointer text-center shadow-xs"
-                    >
-                      Apply
                     </button>
                   </div>
                 </div>
