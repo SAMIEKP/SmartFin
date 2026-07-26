@@ -1,5 +1,11 @@
-import React, { useState } from 'react';
-import { ViewMode, Role, LoanProduct, ApplicationItem, UserProfile } from './types';
+import React, { useState } from "react";
+import {
+  ViewMode,
+  Role,
+  LoanProduct,
+  ApplicationItem,
+  UserProfile,
+} from "./types";
 import {
   INITIAL_PRODUCTS,
   INITIAL_USER_APPLICATIONS,
@@ -7,38 +13,46 @@ import {
   CRITICAL_VERIFICATIONS,
   USER_PROFILE_KWESI,
   PROVIDER_PROFILE_PHIRI,
-} from './data/mockData';
+} from "./data/mockData";
 
-import { Navbar } from './components/Navbar';
-import { Sidebar } from './components/Sidebar';
-import { ApplicationModal } from './components/ApplicationModal';
-import { AddProductModal } from './components/AddProductModal';
-import { SupportModal } from './components/SupportModal';
+import { Navbar } from "./components/Navbar";
+import { Sidebar } from "./components/Sidebar";
+import { ApplicationModal } from "./components/ApplicationModal";
+import { AddProductModal } from "./components/AddProductModal";
+import { SupportModal } from "./components/SupportModal";
 
-import { LandingView } from './views/LandingView';
-import { RegisterView } from './views/RegisterView';
-import { UserDashboardView } from './views/UserDashboardView';
-import { ProviderDashboardView } from './views/ProviderDashboardView';
-import { LoanProductsView } from './views/LoanProductsView';
-import { ProductManagementView } from './views/ProductManagementView';
-import { ProductDetailsView } from './views/ProductDetailsView';
-import { CalculatorView } from './views/CalculatorView';
-import { MyApplicationsView } from './views/MyApplicationsView';
-import { CreditScoreView } from './views/CreditScoreView';
-import { SettingsView } from './views/SettingsView';
-import { UserProfileView } from './views/UserProfileView';
-import { LoginView } from './views/LoginView';
+import { LandingView } from "./views/LandingView";
+import { RegisterView } from "./views/RegisterView";
+import { UserDashboardView } from "./views/UserDashboardView";
+import { ProviderDashboardView } from "./views/ProviderDashboardView";
+import { LoanProductsView } from "./views/LoanProductsView";
+import { ProductManagementView } from "./views/ProductManagementView";
+import { ApplicationManagementView } from "./views/ApplicationManagementView";
+import { ProductDetailsView } from "./views/ProductDetailsView";
+import { CalculatorView } from "./views/CalculatorView";
+import { MyApplicationsView } from "./views/MyApplicationsView";
+import { CreditScoreView } from "./views/CreditScoreView";
+import { SettingsView } from "./views/SettingsView";
+import { UserProfileView } from "./views/UserProfileView";
+import { LoginView } from "./views/LoginView";
 
 export function App() {
-  const [currentView, setCurrentView] = useState<ViewMode>('landing');
-  const [role, setRole] = useState<Role>('user');
-  const [userProfile, setUserProfile] = useState<UserProfile>(USER_PROFILE_KWESI);
+  const [currentView, setCurrentView] = useState<ViewMode>("landing");
+  const [role, setRole] = useState<Role>("user");
+  const [userProfile, setUserProfile] =
+    useState<UserProfile>(USER_PROFILE_KWESI);
 
   // App Data State
   const [products, setProducts] = useState<LoanProduct[]>(INITIAL_PRODUCTS);
-  const [userApplications, setUserApplications] = useState<ApplicationItem[]>(INITIAL_USER_APPLICATIONS);
-  const [providerApplications, setProviderApplications] = useState<ApplicationItem[]>(INITIAL_PROVIDER_APPLICATIONS);
-  const [selectedProduct, setSelectedProduct] = useState<LoanProduct | null>(INITIAL_PRODUCTS[0]);
+  const [userApplications, setUserApplications] = useState<ApplicationItem[]>(
+    INITIAL_USER_APPLICATIONS,
+  );
+  const [providerApplications, setProviderApplications] = useState<
+    ApplicationItem[]
+  >(INITIAL_PROVIDER_APPLICATIONS);
+  const [selectedProduct, setSelectedProduct] = useState<LoanProduct | null>(
+    INITIAL_PRODUCTS[0],
+  );
 
   // Modals
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
@@ -46,32 +60,32 @@ export function App() {
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
 
   // Login default role (pre-select Member or Provider tab)
-  const [loginDefaultRole, setLoginDefaultRole] = useState<Role>('user');
+  const [loginDefaultRole, setLoginDefaultRole] = useState<Role>("user");
 
   // Navigate to login with a pre-selected role
   const handleNavigateLogin = (defaultRole: Role) => {
     setLoginDefaultRole(defaultRole);
-    setCurrentView('login');
+    setCurrentView("login");
   };
 
   // Switch role handler
   const handleSwitchRole = (newRole: Role) => {
     setRole(newRole);
-    if (newRole === 'provider') {
+    if (newRole === "provider") {
       setUserProfile(PROVIDER_PROFILE_PHIRI);
-      if (currentView === 'landing') {
-        setLoginDefaultRole('provider');
-        setCurrentView('login');
-      } else if (currentView === 'user-dashboard') {
-        setCurrentView('provider-dashboard');
+      if (currentView === "landing") {
+        setLoginDefaultRole("provider");
+        setCurrentView("login");
+      } else if (currentView === "user-dashboard") {
+        setCurrentView("provider-dashboard");
       }
     } else {
       setUserProfile(USER_PROFILE_KWESI);
-      if (currentView === 'landing') {
-        setLoginDefaultRole('user');
-        setCurrentView('login');
-      } else if (currentView === 'provider-dashboard') {
-        setCurrentView('user-dashboard');
+      if (currentView === "landing") {
+        setLoginDefaultRole("user");
+        setCurrentView("login");
+      } else if (currentView === "provider-dashboard") {
+        setCurrentView("user-dashboard");
       }
     }
   };
@@ -90,7 +104,11 @@ export function App() {
   // Toggle active product status
   const handleToggleProductStatus = (id: string) => {
     setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, status: p.status === 'active' ? 'inactive' : 'active' } : p))
+      prev.map((p) =>
+        p.id === id
+          ? { ...p, status: p.status === "active" ? "inactive" : "active" }
+          : p,
+      ),
     );
   };
 
@@ -102,11 +120,13 @@ export function App() {
   // Update application status
   const handleUpdateAppStatus = (
     appId: string,
-    status: ApplicationItem['status'],
-    actionText?: string
+    status: ApplicationItem["status"],
+    actionText?: string,
   ) => {
     const updater = (prev: ApplicationItem[]) =>
-      prev.map((a) => (a.id === appId ? { ...a, status, actionRequiredText: actionText } : a));
+      prev.map((a) =>
+        a.id === appId ? { ...a, status, actionRequiredText: actionText } : a,
+      );
     setUserApplications(updater);
     setProviderApplications(updater);
   };
@@ -117,13 +137,18 @@ export function App() {
   };
 
   // Determine if full-screen layout (without sidebar)
-  const isFullScreenLayout = currentView === 'landing' || currentView === 'register' || currentView === 'login';
+  const isFullScreenLayout =
+    currentView === "landing" ||
+    currentView === "register" ||
+    currentView === "login";
 
   // Handle login success
   const handleLoginSuccess = (profile: UserProfile, newRole: Role) => {
     setUserProfile(profile);
     setRole(newRole);
-    setCurrentView(newRole === 'provider' ? 'provider-dashboard' : 'user-dashboard');
+    setCurrentView(
+      newRole === "provider" ? "provider-dashboard" : "user-dashboard",
+    );
   };
 
   return (
@@ -141,7 +166,9 @@ export function App() {
       )}
 
       {/* Main Page Area */}
-      <div className={`flex-1 flex flex-col ${!isFullScreenLayout ? 'lg:pl-64' : ''}`}>
+      <div
+        className={`flex-1 flex flex-col ${!isFullScreenLayout ? "lg:pl-64" : ""}`}
+      >
         {/* Top Navbar */}
         <Navbar
           currentView={currentView}
@@ -154,8 +181,10 @@ export function App() {
         />
 
         {/* View Content Renderer */}
-        <main className={`flex-1 ${!isFullScreenLayout ? 'p-4 md:p-8 max-w-7xl mx-auto w-full' : ''}`}>
-          {currentView === 'landing' && (
+        <main
+          className={`flex-1 ${!isFullScreenLayout ? "p-4 md:p-8 max-w-7xl mx-auto w-full" : ""}`}
+        >
+          {currentView === "landing" && (
             <LandingView
               onNavigate={setCurrentView}
               products={products}
@@ -164,7 +193,7 @@ export function App() {
             />
           )}
 
-          {currentView === 'login' && (
+          {currentView === "login" && (
             <LoginView
               onNavigate={setCurrentView}
               onLoginSuccess={handleLoginSuccess}
@@ -172,7 +201,7 @@ export function App() {
             />
           )}
 
-          {currentView === 'register' && (
+          {currentView === "register" && (
             <RegisterView
               onNavigate={setCurrentView}
               onSelectUser={(u) => {
@@ -182,7 +211,7 @@ export function App() {
             />
           )}
 
-          {currentView === 'user-dashboard' && (
+          {currentView === "user-dashboard" && (
             <UserDashboardView
               userProfile={userProfile}
               applications={userApplications}
@@ -193,7 +222,7 @@ export function App() {
             />
           )}
 
-          {currentView === 'provider-dashboard' && (
+          {currentView === "provider-dashboard" && (
             <ProviderDashboardView
               applications={providerApplications}
               criticalVerifications={CRITICAL_VERIFICATIONS}
@@ -202,7 +231,7 @@ export function App() {
             />
           )}
 
-          {currentView === 'loan-products' && (
+          {currentView === "loan-products" && (
             <LoanProductsView
               products={products}
               onNavigate={setCurrentView}
@@ -211,7 +240,7 @@ export function App() {
             />
           )}
 
-          {currentView === 'product-management' && (
+          {currentView === "product-management" && (
             <ProductManagementView
               products={products}
               onNavigate={setCurrentView}
@@ -222,7 +251,15 @@ export function App() {
             />
           )}
 
-          {currentView === 'product-details' && (
+          {currentView === "application-management" && (
+            <ApplicationManagementView
+              applications={providerApplications}
+              onNavigate={setCurrentView}
+              onUpdateAppStatus={handleUpdateAppStatus}
+            />
+          )}
+
+          {currentView === "product-details" && (
             <ProductDetailsView
               product={selectedProduct}
               onNavigate={setCurrentView}
@@ -231,14 +268,14 @@ export function App() {
             />
           )}
 
-          {currentView === 'calculator' && (
+          {currentView === "calculator" && (
             <CalculatorView
               onNavigate={setCurrentView}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
             />
           )}
 
-          {currentView === 'my-applications' && (
+          {currentView === "my-applications" && (
             <MyApplicationsView
               applications={userApplications}
               onNavigate={setCurrentView}
@@ -247,7 +284,7 @@ export function App() {
             />
           )}
 
-          {currentView === 'credit-score' && (
+          {currentView === "credit-score" && (
             <CreditScoreView
               userProfile={userProfile}
               onNavigate={setCurrentView}
@@ -255,7 +292,7 @@ export function App() {
             />
           )}
 
-          {currentView === 'settings' && (
+          {currentView === "settings" && (
             <SettingsView
               userProfile={userProfile}
               role={role}
@@ -264,7 +301,7 @@ export function App() {
             />
           )}
 
-          {currentView === 'user-profile' && (
+          {currentView === "user-profile" && (
             <UserProfileView
               userProfile={userProfile}
               role={role}
