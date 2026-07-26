@@ -24,6 +24,14 @@ export const LoginView: React.FC<LoginViewProps> = ({
   const [providerPassword, setProviderPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSavedCredentials, setShowSavedCredentials] = useState(false);
+  const [savedProviderCredentials, setSavedProviderCredentials] = useState<{
+    email: string;
+    password: string;
+  } | null>(null);
+  const [credentialsValid, setCredentialsValid] = useState<boolean | null>(
+    null,
+  );
 
   useEffect(() => {
     try {
@@ -37,6 +45,16 @@ export const LoginView: React.FC<LoginViewProps> = ({
       }
       if (credentials?.password) {
         setProviderPassword(credentials.password);
+      }
+      if (credentials?.email && credentials?.password) {
+        setSavedProviderCredentials({
+          email: credentials.email,
+          password: credentials.password,
+        });
+        setCredentialsValid(
+          credentials.email.trim().includes("@") &&
+            credentials.password.length >= 6,
+        );
       }
     } catch {
       // Ignore invalid storage data.
@@ -266,6 +284,55 @@ export const LoginView: React.FC<LoginViewProps> = ({
                   className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
                 />
               </div>
+
+              <div className="flex items-start gap-2 text-xs text-[#3d4947] rounded-2xl border border-[#bcc9c6]/30 bg-[#fff8f0] p-4">
+                <label className="inline-flex items-center gap-2 font-semibold">
+                  <input
+                    type="checkbox"
+                    checked={showSavedCredentials}
+                    onChange={(e) => setShowSavedCredentials(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-[#855300] focus:ring-[#855300]"
+                  />
+                  View saved provider credentials
+                </label>
+              </div>
+
+              {showSavedCredentials && (
+                <div className="rounded-2xl border border-[#bcc9c6]/30 bg-[#fff8f0] p-4 text-xs text-[#3d4947] space-y-2">
+                  {savedProviderCredentials ? (
+                    <>
+                      <div className="flex flex-wrap gap-2 text-[11px]">
+                        <span className="font-bold">Email:</span>
+                        <span>{savedProviderCredentials.email}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2 text-[11px]">
+                        <span className="font-bold">Password:</span>
+                        <span>{savedProviderCredentials.password}</span>
+                      </div>
+                      <div
+                        className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-bold ${
+                          credentialsValid
+                            ? "bg-emerald-100 text-emerald-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-[12px]">
+                          {credentialsValid ? "check_circle" : "error"}
+                        </span>
+                        <span>
+                          {credentialsValid
+                            ? "Saved credentials appear valid"
+                            : "Saved credentials are invalid"}
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-[11px] text-[#6b7280]">
+                      No saved provider credentials were found.
+                    </p>
+                  )}
+                </div>
+              )}
             </>
           )}
 
