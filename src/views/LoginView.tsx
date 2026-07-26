@@ -5,150 +5,246 @@ import { USER_PROFILE_KWESI, PROVIDER_PROFILE_PHIRI } from '../data/mockData';
 interface LoginViewProps {
   onNavigate: (view: ViewMode) => void;
   onLoginSuccess: (userProfile: UserProfile, role: Role) => void;
+  defaultRole?: Role;
 }
 
 export const LoginView: React.FC<LoginViewProps> = ({
   onNavigate,
   onLoginSuccess,
+  defaultRole = 'user',
 }) => {
-  const [email, setEmail] = useState('kwesi.banda@example.mw');
-  const [password, setPassword] = useState('password123');
+  const [selectedRole, setSelectedRole] = useState<Role>(defaultRole);
+  
+  // Individual login fields
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  // Provider login fields
+  const [providerEmail, setProviderEmail] = useState('');
+  const [providerPassword, setProviderPassword] = useState('');
+
+  // Validation
   const [errorMessage, setErrorMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
-    setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
-      const cleanEmail = email.trim().toLowerCase();
-
-      if (cleanEmail === 'm.phiri@finaccess.mw' || cleanEmail.includes('provider') || cleanEmail.includes('lender')) {
-        onLoginSuccess(PROVIDER_PROFILE_PHIRI, 'provider');
-      } else if (cleanEmail === 'kwesi.banda@example.mw' || cleanEmail.includes('@') && password.length >= 6) {
-        onLoginSuccess(
-          {
-            ...USER_PROFILE_KWESI,
-            email: email,
-          },
-          'user'
-        );
-      } else {
-        setErrorMessage('Email or password is incorrect. Please check your credentials.');
+    if (selectedRole === 'user') {
+      if (!email || !password) {
+        setErrorMessage('Please fill in all required fields (Email, Password).');
+        return;
       }
-    }, 600);
-  };
-
-  const handleQuickLogin = (roleType: 'user' | 'provider') => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      if (roleType === 'provider') {
-        onLoginSuccess(PROVIDER_PROFILE_PHIRI, 'provider');
-      } else {
-        onLoginSuccess(USER_PROFILE_KWESI, 'user');
+      if (password.length < 6) {
+        setErrorMessage('Password must be at least 6 characters long.');
+        return;
       }
-    }, 400);
+
+      setIsSubmitting(true);
+      setTimeout(() => {
+        setIsSubmitting(false);
+        const cleanEmail = email.trim().toLowerCase();
+        
+        // Demo login logic
+        if (cleanEmail.includes('@') && password.length >= 6) {
+          onLoginSuccess(
+            {
+              ...USER_PROFILE_KWESI,
+              email: email,
+            },
+            'user'
+          );
+          onNavigate('user-dashboard');
+        } else {
+          setErrorMessage('Invalid email or password.');
+        }
+      }, 500);
+
+    } else {
+      if (!providerEmail || !providerPassword) {
+        setErrorMessage('Please fill in all required institution fields.');
+        return;
+      }
+      if (providerPassword.length < 6) {
+        setErrorMessage('Password must be at least 6 characters long.');
+        return;
+      }
+
+      setIsSubmitting(true);
+      setTimeout(() => {
+        setIsSubmitting(false);
+        const cleanEmail = providerEmail.trim().toLowerCase();
+        
+        // Demo login logic for providers
+        if (cleanEmail.includes('@') && providerPassword.length >= 6) {
+          onLoginSuccess(PROVIDER_PROFILE_PHIRI, 'provider');
+          onNavigate('provider-dashboard');
+        } else {
+          setErrorMessage('Invalid email or password.');
+        }
+      }, 500);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-[#eff4ff] flex flex-col justify-center items-center p-4">
-      <div className="w-full max-w-md bg-white rounded-3xl border border-[#bcc9c6]/30 shadow-md p-8 space-y-6">
-        {/* Header */}
+    <div className="min-h-screen bg-[#eff4ff] py-10 px-4 flex flex-col justify-center items-center">
+      <div className="w-full max-w-xl bg-white rounded-3xl border border-[#bcc9c6]/30 shadow-lg p-6 sm:p-8 space-y-6">
+        {/* Top Header */}
         <div className="text-center space-y-2">
-          <h1 
-            onClick={() => onNavigate('landing')}
-            className="text-3xl font-extrabold text-[#00685f] cursor-pointer hover:opacity-80 transition-opacity tracking-tight"
-          >
-            FinAccess
+          <h1 className="text-3xl font-extrabold text-[#00685f] tracking-tight">
+            SmartFin Access Connect
           </h1>
-          <h2 className="text-xl font-bold text-[#0b1c30]">Welcome Back</h2>
+          <h2 className="text-xl font-bold text-[#0b1c30]">Sign In to Your Account</h2>
           <p className="text-xs text-[#3d4947]">
-            Sign in to access your financial discovery account and track applications.
+            Access your financial discovery dashboard and track applications.
           </p>
         </div>
 
-        {/* Quick Demo Login Switcher */}
-        <div className="p-3 bg-[#eff4ff] rounded-2xl border border-[#bcc9c6]/30 space-y-2 text-xs">
-          <span className="font-bold text-[#0b1c30] block text-center">Quick Demo Accounts</span>
-          <div className="flex gap-2">
+        {/* Role Selector Tabs */}
+        <div className="space-y-2">
+          <label className="text-xs font-bold text-[#0b1c30] block">Select Account Type</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => handleQuickLogin('user')}
-              className="flex-1 py-2 px-3 bg-[#00685f] hover:bg-[#008378] text-white rounded-xl font-bold transition-colors cursor-pointer text-center"
+              onClick={() => {
+                setSelectedRole('user');
+                setErrorMessage('');
+              }}
+              className={`p-4 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                selectedRole === 'user'
+                  ? 'border-[#00685f] bg-[#f4fffc] ring-2 ring-[#00685f]/30'
+                  : 'border-[#bcc9c6]/40 hover:bg-[#eff4ff]'
+              }`}
             >
-              Individual User
+              <div className="flex items-center gap-2 text-[#00685f]">
+                <span className="material-symbols-outlined">person</span>
+                <span className="font-extrabold text-xs">Individual User</span>
+              </div>
+              <p className="text-[11px] text-[#3d4947] mt-2">
+                Sign in to access your loan applications and dashboard.
+              </p>
             </button>
+
             <button
               type="button"
-              onClick={() => handleQuickLogin('provider')}
-              className="flex-1 py-2 px-3 bg-[#855300] hover:bg-[#653e00] text-white rounded-xl font-bold transition-colors cursor-pointer text-center"
+              onClick={() => {
+                setSelectedRole('provider');
+                setErrorMessage('');
+              }}
+              className={`p-4 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                selectedRole === 'provider'
+                  ? 'border-[#855300] bg-[#fff8f0] ring-2 ring-[#855300]/30'
+                  : 'border-[#bcc9c6]/40 hover:bg-[#eff4ff]'
+              }`}
             >
-              Loan Provider
+              <div className="flex items-center gap-2 text-[#855300]">
+                <span className="material-symbols-outlined">account_balance</span>
+                <span className="font-extrabold text-xs">Loan Provider / Institution</span>
+              </div>
+              <p className="text-[11px] text-[#3d4947] mt-2">
+                Sign in to manage your loan products and applications.
+              </p>
             </button>
           </div>
         </div>
 
-        {/* Form */}
+        {/* Error Alert */}
+        {errorMessage && (
+          <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-medium flex items-center gap-2 animate-in fade-in">
+            <span className="material-symbols-outlined text-sm">error</span>
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
+        {/* Form Body */}
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-          {errorMessage && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl font-medium flex items-center gap-2 animate-in fade-in">
-              <span className="material-symbols-outlined text-sm">error</span>
-              <span>{errorMessage}</span>
-            </div>
+          {selectedRole === 'user' ? (
+            /* Individual User Login Fields */
+            <>
+              <div className="space-y-1">
+                <label className="font-bold text-[#0b1c30]">Email Address *</label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="kwesi@example.mw"
+                  className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex justify-between items-center">
+                  <label className="font-bold text-[#0b1c30]">Password *</label>
+                  <button
+                    type="button"
+                    onClick={() => alert('Password reset link sent to your registered email.')}
+                    className="text-[11px] font-bold text-[#00685f] hover:underline"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
+                />
+              </div>
+            </>
+          ) : (
+            /* Loan Provider Login Fields */
+            <>
+              <div className="space-y-1">
+                <label className="font-bold text-[#0b1c30]">Institution Email Address *</label>
+                <input
+                  type="email"
+                  required
+                  value={providerEmail}
+                  onChange={(e) => setProviderEmail(e.target.value)}
+                  placeholder="admin@institution.mw"
+                  className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex justify-between items-center">
+                  <label className="font-bold text-[#0b1c30]">Password *</label>
+                  <button
+                    type="button"
+                    onClick={() => alert('Password reset link sent to your registered email.')}
+                    className="text-[11px] font-bold text-[#855300] hover:underline"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
+                <input
+                  type="password"
+                  required
+                  value={providerPassword}
+                  onChange={(e) => setProviderPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
+                />
+              </div>
+            </>
           )}
-
-          <div className="space-y-1">
-            <label className="font-bold text-[#0b1c30] block">Email Address</label>
-            <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-3 text-gray-400 text-sm">mail</span>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@example.mw"
-                className="w-full pl-9 pr-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl text-xs font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <div className="flex justify-between items-center">
-              <label className="font-bold text-[#0b1c30] block">Password</label>
-              <button
-                type="button"
-                onClick={() => alert('Password reset link sent to your registered email.')}
-                className="text-[11px] font-bold text-[#00685f] hover:underline"
-              >
-                Forgot Password?
-              </button>
-            </div>
-            <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-3 text-gray-400 text-sm">lock</span>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••••••"
-                className="w-full pl-9 pr-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl text-xs font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
-              />
-            </div>
-          </div>
 
           <button
             type="submit"
-            disabled={isLoading}
-            className="w-full py-3 bg-[#00685f] hover:bg-[#008378] text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            disabled={isSubmitting}
+            className={`w-full py-3.5 text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 ${
+              selectedRole === 'provider' ? 'bg-[#855300] hover:bg-[#653e00]' : 'bg-[#00685f] hover:bg-[#008378]'
+            }`}
           >
-            {isLoading ? (
-              <span>Authenticating...</span>
+            {isSubmitting ? (
+              <span>Signing In...</span>
             ) : (
               <>
-                <span>Sign In to FinAccess</span>
+                <span>Sign In as {selectedRole === 'provider' ? 'Provider' : 'Individual'}</span>
                 <span className="material-symbols-outlined text-sm">arrow_forward</span>
               </>
             )}
@@ -162,7 +258,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
             onClick={() => onNavigate('register')}
             className="font-bold text-[#00685f] hover:underline cursor-pointer"
           >
-            Sign Up Now
+            Create Account Here
           </button>
         </div>
       </div>
