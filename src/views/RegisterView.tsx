@@ -106,11 +106,8 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
       <div className="w-full max-w-xl bg-white rounded-3xl border border-[#bcc9c6]/30 shadow-lg p-6 sm:p-8 space-y-6">
         {/* Top Header */}
         <div className="text-center space-y-2">
-          <h1 
-            onClick={() => onNavigate('landing')}
-            className="text-3xl font-extrabold text-[#00685f] cursor-pointer hover:opacity-80 transition-opacity tracking-tight"
-          >
-            FinAccess
+          <h1 className="text-3xl font-extrabold text-[#00685f] tracking-tight">
+            SmartFin Access Connect
           </h1>
           <h2 className="text-xl font-bold text-[#0b1c30]">Create your FinAccess Account</h2>
           <p className="text-xs text-[#3d4947]">
