@@ -3,6 +3,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { pool } from './config/database';
 import authRoutes from './routes/authRoutes';
+import userRoutes from './routes/userRoutes';
+import productRoutes from './routes/productRoutes';
+import applicationRoutes from './routes/applicationRoutes';
 
 dotenv.config();
 
@@ -31,9 +34,9 @@ app.get('/health', (req: Request, res: Response) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
-// app.use('/api/users', userRoutes);
-// app.use('/api/products', productRoutes);
-// app.use('/api/applications', applicationRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/applications', applicationRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
