@@ -27,6 +27,8 @@ import { MyApplicationsView } from './views/MyApplicationsView';
 import { CreditScoreView } from './views/CreditScoreView';
 import { SettingsView } from './views/SettingsView';
 import { UserProfileView } from './views/UserProfileView';
+import { UserOnboardingView } from './views/UserOnboardingView';
+import { ProviderOnboardingView } from './views/ProviderOnboardingView';
 
 export function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('landing');
@@ -84,15 +86,13 @@ export function App() {
   };
 
   // Update application status
-  const handleUpdateAppStatus = (
-    appId: string,
-    status: ApplicationItem['status'],
-    actionText?: string
-  ) => {
-    const updater = (prev: ApplicationItem[]) =>
-      prev.map((a) => (a.id === appId ? { ...a, status, actionRequiredText: actionText } : a));
-    setUserApplications(updater);
-    setProviderApplications(updater);
+  const handleUpdateAppStatus = (applicationId: string, status: ApplicationItem['status']) => {
+    setUserApplications((prev) =>
+      prev.map((app) => (app.id === applicationId ? { ...app, status } : app))
+    );
+    setProviderApplications((prev) =>
+      prev.map((app) => (app.id === applicationId ? { ...app, status } : app))
+    );
   };
 
   // Profile update handler
@@ -101,7 +101,11 @@ export function App() {
   };
 
   // Determine if full-screen layout (without sidebar)
-  const isFullScreenLayout = currentView === 'landing' || currentView === 'register';
+  const isFullScreenLayout =
+    currentView === 'landing' ||
+    currentView === 'register' ||
+    currentView === 'user-onboarding' ||
+    currentView === 'provider-onboarding';
 
   return (
     <div className="min-h-screen bg-[#f8f9ff] text-[#0b1c30] flex flex-col font-sans selection:bg-[#008378] selection:text-[#f4fffc]">
@@ -150,6 +154,22 @@ export function App() {
             />
           )}
 
+          {currentView === 'user-onboarding' && (
+            <UserOnboardingView
+              userProfile={userProfile}
+              onNavigate={setCurrentView}
+              onUpdateProfile={handleUpdateProfile}
+            />
+          )}
+
+          {currentView === 'provider-onboarding' && (
+            <ProviderOnboardingView
+              userProfile={userProfile}
+              onNavigate={setCurrentView}
+              onUpdateProfile={handleUpdateProfile}
+            />
+          )}
+
           {currentView === 'user-dashboard' && (
             <UserDashboardView
               userProfile={userProfile}
@@ -163,10 +183,11 @@ export function App() {
 
           {currentView === 'provider-dashboard' && (
             <ProviderDashboardView
-              applications={providerApplications}
+              applications={userApplications}
               criticalVerifications={CRITICAL_VERIFICATIONS}
               onNavigate={setCurrentView}
               onOpenAddProductModal={() => setIsAddProductModalOpen(true)}
+              onUpdateAppStatus={handleUpdateAppStatus}
             />
           )}
 
