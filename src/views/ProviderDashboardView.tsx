@@ -89,6 +89,62 @@ export const ProviderDashboardView: React.FC<ProviderDashboardViewProps> = ({
       ? Math.round((approvedLoansThisMonth / appliedLoansThisMonth) * 100)
       : 0;
 
+  const sixMonthTrend = Array.from({ length: 6 }, (_, index) => {
+    const targetDate = new Date(currentYear, currentMonth - (5 - index), 1);
+    const monthApps = applications.filter((app) => {
+      const appDate = new Date(app.date);
+      return (
+        !Number.isNaN(appDate.getTime()) &&
+        appDate.getMonth() === targetDate.getMonth() &&
+        appDate.getFullYear() === targetDate.getFullYear()
+      );
+    });
+
+    return {
+      label: targetDate.toLocaleString("en-US", { month: "short" }),
+      value: monthApps.length,
+    };
+  });
+
+  const categoryLabels = [
+    "Farmer",
+    "Student",
+    "Household",
+    "Small Business",
+    "Other",
+  ];
+  const categoryTrend = categoryLabels.map((label) => {
+    const count = applications.filter((app) => {
+      const text = `${app.productName} ${app.applicantName}`.toLowerCase();
+      if (label === "Farmer") {
+        return /farmer|agri|agriculture|farming/.test(text);
+      }
+      if (label === "Student") {
+        return /student|education|school|scholar/.test(text);
+      }
+      if (label === "Household") {
+        return /household|home|family|personal/.test(text);
+      }
+      if (label === "Small Business") {
+        return /small business|business|enterprise|trader|shop|market/.test(
+          text,
+        );
+      }
+      return true;
+    }).length;
+
+    return { label, value: count };
+  });
+
+  const maxSixMonthValue = Math.max(
+    1,
+    ...sixMonthTrend.map((item) => item.value),
+  );
+  const maxCategoryValue = Math.max(
+    1,
+    ...categoryTrend.map((item) => item.value),
+  );
+
   const handleStatusChange = (newStatus: ApplicationStatus) => {
     if (!reviewingApp) return;
     onUpdateAppStatus(reviewingApp.id, newStatus, newNote || undefined);
@@ -261,6 +317,84 @@ export const ProviderDashboardView: React.FC<ProviderDashboardViewProps> = ({
           <p className="text-[11px] text-gray-500">
             Approved out of applied loans
           </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div className="bg-white rounded-2xl p-6 border border-[#bcc9c6]/30 shadow-xs space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-extrabold text-lg text-[#0b1c30]">
+                Applications Over Time
+              </h2>
+              <p className="text-xs text-[#3d4947] mt-1">
+                Last six months of application volume
+              </p>
+            </div>
+            <span className="text-xs font-bold text-[#00685f] bg-[#eff4ff] px-3 py-1 rounded-full">
+              6-Month Trend
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            {sixMonthTrend.map((item) => {
+              const width = Math.max(8, (item.value / maxSixMonthValue) * 100);
+              return (
+                <div key={item.label} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs text-[#3d4947]">
+                    <span className="font-semibold">{item.label}</span>
+                    <span className="font-bold text-[#0b1c30]">
+                      {item.value}
+                    </span>
+                  </div>
+                  <div className="h-2.5 rounded-full bg-[#eff4ff] overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-[#00685f] to-[#4db6ac]"
+                      style={{ width: `${width}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-6 border border-[#bcc9c6]/30 shadow-xs space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-extrabold text-lg text-[#0b1c30]">
+                Applications by Category
+              </h2>
+              <p className="text-xs text-[#3d4947] mt-1">
+                Distribution across key borrower segments
+              </p>
+            </div>
+            <span className="text-xs font-bold text-[#855300] bg-[#ffddb8] px-3 py-1 rounded-full">
+              Segment Mix
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            {categoryTrend.map((item) => {
+              const width = Math.max(8, (item.value / maxCategoryValue) * 100);
+              return (
+                <div key={item.label} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs text-[#3d4947]">
+                    <span className="font-semibold">{item.label}</span>
+                    <span className="font-bold text-[#0b1c30]">
+                      {item.value}
+                    </span>
+                  </div>
+                  <div className="h-2.5 rounded-full bg-[#eff4ff] overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-[#855300] to-[#ffb347]"
+                      style={{ width: `${width}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
