@@ -59,12 +59,18 @@ export function App() {
     setRole(newRole);
     if (newRole === 'provider') {
       setUserProfile(PROVIDER_PROFILE_PHIRI);
-      if (currentView === 'user-dashboard' || currentView === 'landing') {
+      if (currentView === 'landing') {
+        setLoginDefaultRole('provider');
+        setCurrentView('login');
+      } else if (currentView === 'user-dashboard') {
         setCurrentView('provider-dashboard');
       }
     } else {
       setUserProfile(USER_PROFILE_KWESI);
-      if (currentView === 'provider-dashboard' || currentView === 'landing') {
+      if (currentView === 'landing') {
+        setLoginDefaultRole('user');
+        setCurrentView('login');
+      } else if (currentView === 'provider-dashboard') {
         setCurrentView('user-dashboard');
       }
     }

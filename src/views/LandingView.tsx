@@ -324,7 +324,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                 </li>
               </ul>
               <button
-                onClick={() => onNavigate('provider-onboarding')}
+                onClick={() => onNavigate('register')}
                 className="w-full px-4 py-2.5 bg-[#855300] hover:bg-[#a86b00] text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
               >
                 <span>Start as a loan provider</span>
@@ -482,7 +482,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                 </li>
               </ul>
               <button
-                onClick={() => onNavigate('provider-onboarding')}
+                onClick={() => onNavigate('register')}
                 className="mt-4 px-6 py-3 bg-[#855300] hover:bg-[#a86b00] text-white text-sm font-bold rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer active:scale-95"
               >
                 <span>Start as a loan provider</span>
@@ -680,7 +680,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
             <span className="material-symbols-outlined text-base">arrow_forward</span>
           </button>
           <button
-            onClick={() => onNavigate('provider-onboarding')}
+            onClick={() => onNavigate('register')}
             className="px-8 py-3.5 bg-white border-2 border-[#bcc9c6]/60 text-[#0b1c30] hover:border-[#855300] hover:text-[#855300] font-bold text-sm rounded-xl transition-all flex items-center gap-2 cursor-pointer"
           >
             <span>Sign up as loan provider</span>
