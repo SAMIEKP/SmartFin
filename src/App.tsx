@@ -42,6 +42,9 @@ export function App() {
   const [role, setRole] = useState<Role>("user");
   const [userProfile, setUserProfile] =
     useState<UserProfile>(USER_PROFILE_KWESI);
+  const [loginRedirectTarget, setLoginRedirectTarget] =
+    useState<ViewMode | null>(null);
+  const [loginInfoMessage, setLoginInfoMessage] = useState<string | null>(null);
 
   // App Data State
   const [products, setProducts] = useState<LoanProduct[]>(INITIAL_PRODUCTS);
@@ -63,7 +66,7 @@ export function App() {
   // Login default role (pre-select Member or Provider tab)
   const [loginDefaultRole, setLoginDefaultRole] = useState<Role>("user");
 
-  const handleNavigate = (nextView: ViewMode) => {
+  const handleNavigateHistory = (nextView: ViewMode) => {
     if (currentView !== nextView) {
       setViewHistory((prev) => [...prev, currentView]);
       setCurrentView(nextView);
@@ -112,6 +115,34 @@ export function App() {
         setCurrentView("user-dashboard");
       }
     }
+  };
+
+  const handleNavigate = (view: ViewMode) => {
+    if (view === "provider-dashboard" && role !== "provider") {
+      setLoginRedirectTarget("provider-dashboard");
+      setLoginInfoMessage(
+        "Please sign in with your provider account to access the Provider Portal.",
+      );
+      setCurrentView("login");
+      return;
+    }
+
+    setCurrentView(view);
+  };
+
+  const handleLoginSuccess = (profile: UserProfile, roleType: Role) => {
+    setUserProfile(profile);
+    setRole(roleType);
+    setViewHistory([]);
+    let nextView: ViewMode =
+      loginRedirectTarget ??
+      (roleType === "provider" ? "provider-dashboard" : "user-dashboard");
+    if (nextView === "provider-dashboard" && roleType !== "provider") {
+      nextView = "user-dashboard";
+    }
+    setCurrentView(nextView);
+    setLoginRedirectTarget(null);
+    setLoginInfoMessage(null);
   };
 
   // Submit new application
@@ -166,16 +197,6 @@ export function App() {
     currentView === "register" ||
     currentView === "login";
 
-  // Handle login success
-  const handleLoginSuccess = (profile: UserProfile, newRole: Role) => {
-    setUserProfile(profile);
-    setRole(newRole);
-    setViewHistory([]);
-    setCurrentView(
-      newRole === "provider" ? "provider-dashboard" : "user-dashboard",
-    );
-  };
-
   return (
     <div className="min-h-screen bg-[#f8f9ff] text-[#0b1c30] flex flex-col font-sans selection:bg-[#008378] selection:text-[#f4fffc]">
       {/* Sidebar for internal views */}
@@ -223,6 +244,7 @@ export function App() {
               onNavigate={handleNavigate}
               onLoginSuccess={handleLoginSuccess}
               defaultRole={loginDefaultRole}
+              infoMessage={loginInfoMessage}
             />
           )}
 
@@ -287,8 +309,6 @@ export function App() {
               onUpdateAppStatus={handleUpdateAppStatus}
             />
           )}
-
-          {currentView === "product-details" && (
             <ProductDetailsView
               product={selectedProduct}
               onNavigate={handleNavigate}

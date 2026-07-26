@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { LoanProduct } from '../types';
+import React, { useState } from "react";
+import { LoanProduct } from "../types";
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -12,18 +12,22 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
   onClose,
   onAddProduct,
 }) => {
-  const [name, setName] = useState('');
-  const [category, setCategory] = useState<'loan' | 'savings' | 'mortgage' | 'business' | 'insurance' | 'agriculture'>('loan');
-  const [provider, setProvider] = useState('FinAccess Partner Institution');
+  const [name, setName] = useState("");
+  const [category, setCategory] = useState<
+    "loan" | "savings" | "mortgage" | "business" | "insurance" | "agriculture"
+  >("loan");
+  const [provider, setProvider] = useState("FinAccess Partner Institution");
   const [minAmount, setMinAmount] = useState<number>(500000);
   const [maxAmount, setMaxAmount] = useState<number>(10000000);
   const [interestRateMin, setInterestRateMin] = useState<number>(12.0);
   const [interestRateMax, setInterestRateMax] = useState<number>(16.0);
   const [termMaxMonths, setTermMaxMonths] = useState<number>(36);
   const [collateralRequired, setCollateralRequired] = useState(false);
-  const [collateralText, setCollateralText] = useState('None');
-  const [description, setDescription] = useState('');
-  const [eligibilityText, setEligibilityText] = useState('Malawian Citizen; Age 21-65; Verifiable Cashflow');
+  const [collateralText, setCollateralText] = useState("None");
+  const [description, setDescription] = useState("");
+  const [eligibilityText, setEligibilityText] = useState(
+    "Malawian Citizen; Age 21-65; Verifiable Cashflow",
+  );
 
   if (!isOpen) return null;
 
@@ -32,7 +36,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
     const newProd: LoanProduct = {
       id: `prod-${Date.now().toString().slice(-4)}`,
       code: `MKW-LN-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
-      name: name || 'New Credit Facility',
+      name: name || "New Credit Facility",
       provider: provider,
       category: category,
       categoryLabel: category.toUpperCase(),
@@ -45,15 +49,23 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       maxAmount,
       processingDays: 2,
       collateralRequired,
-      collateralText: collateralRequired ? collateralText : 'None',
-      status: 'active',
+      collateralText: collateralRequired ? collateralText : "None",
+      status: "active",
       applicationsCount: 0,
       rating: 5.0,
       reviewsCount: 1,
-      tags: [category.toUpperCase(), collateralRequired ? 'COLLATERAL' : 'NO COLLATERAL'],
-      description: description || 'New financial product offered by institution.',
-      eligibility: eligibilityText.split(';').map((s) => s.trim()),
-      documents: ['National ID', 'Proof of Residence', 'Bank Statements (3 months)'],
+      tags: [
+        category.toUpperCase(),
+        collateralRequired ? "COLLATERAL" : "NO COLLATERAL",
+      ],
+      description:
+        description || "New financial product offered by institution.",
+      eligibility: eligibilityText.split(";").map((s) => s.trim()),
+      documents: [
+        "National ID",
+        "Proof of Residence",
+        "Bank Statements (3 months)",
+      ],
     };
 
     onAddProduct(newProd);
@@ -69,7 +81,9 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
             <span className="text-[10px] font-bold uppercase tracking-wider bg-[#89f5e7] text-[#00201d] px-2 py-0.5 rounded-full">
               Provider Dashboard
             </span>
-            <h2 className="text-xl font-bold mt-1">Publish New Financial Product</h2>
+            <h2 className="text-xl font-bold mt-1">
+              Publish New Financial Product
+            </h2>
           </div>
           <button
             onClick={onClose}
@@ -80,7 +94,10 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
         </div>
 
         {/* Body Form */}
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto custom-scrollbar space-y-4">
+        <form
+          onSubmit={handleSubmit}
+          className="p-6 overflow-y-auto custom-scrollbar space-y-4"
+        >
           <div>
             <label className="block text-xs font-bold text-[#0b1c30] uppercase mb-1">
               Product Title / Name
@@ -201,7 +218,8 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 checked={collateralRequired}
                 onChange={(e) => {
                   setCollateralRequired(e.target.checked);
-                  if (e.target.checked && collateralText === 'None') setCollateralText('Land or Vehicle deed');
+                  if (e.target.checked && collateralText === "None")
+                    setCollateralText("Land or Vehicle deed");
                 }}
                 className="accent-[#00685f] w-4 h-4 rounded"
               />
