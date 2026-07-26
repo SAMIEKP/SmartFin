@@ -2,6 +2,7 @@ import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { pool } from './config/database';
+import authRoutes from './routes/authRoutes';
 
 dotenv.config();
 
@@ -28,8 +29,8 @@ app.get('/health', (req: Request, res: Response) => {
   });
 });
 
-// API Routes (to be added)
-// app.use('/api/auth', authRoutes);
+// API Routes
+app.use('/api/auth', authRoutes);
 // app.use('/api/users', userRoutes);
 // app.use('/api/products', productRoutes);
 // app.use('/api/applications', applicationRoutes);
