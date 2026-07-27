@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { ViewMode, Role, UserProfile } from '../types';
-import { USER_PROFILE_KWESI, PROVIDER_PROFILE_PHIRI } from '../data/mockData';
+import { authAPI, mapApiUser } from '../services/api';
 
 interface RegisterViewProps {
   onNavigate: (view: ViewMode) => void;
-  onSelectUser: (user: UserProfile, role: Role) => void;
+  onSelectUser: (user: UserProfile, role: Role, token?: string) => void;
 }
 
 export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelectUser }) => {
@@ -33,7 +33,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
 
@@ -52,20 +52,26 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
       }
 
       setIsSubmitting(true);
-      setTimeout(() => {
-        setIsSubmitting(false);
-        const newUser: UserProfile = {
-          ...USER_PROFILE_KWESI,
-          name: name,
-          email: email,
-          phone: phone || '+265 999 123 456',
-          location: location,
-          incomeRange: incomeRange,
+      try {
+        const response = await authAPI.register({
+          email,
+          password,
           role: 'user',
-        };
-        onSelectUser(newUser, 'user');
+          name,
+          phone,
+          location,
+          incomeRange,
+        });
+
+        const newUser = mapApiUser(response.user);
+
+        onSelectUser(newUser, 'user', response.token);
         onNavigate('user-onboarding');
-      }, 500);
+      } catch (error: any) {
+        setErrorMessage(error.message || 'Registration failed. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
 
     } else {
       if (!institutionName || !contactPerson || !providerEmail || !providerPassword) {
@@ -82,22 +88,26 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
       }
 
       setIsSubmitting(true);
-      setTimeout(() => {
-        setIsSubmitting(false);
-        const newProvider: UserProfile = {
-          ...PROVIDER_PROFILE_PHIRI,
-          name: contactPerson,
-          institutionName: institutionName,
+      try {
+        const response = await authAPI.register({
           email: providerEmail,
-          phone: providerPhone || '+265 888 765 432',
-          institutionType: institutionType,
-          registrationNumber: registrationNumber || 'RBM/PENDING/2024',
+          password: providerPassword,
           role: 'provider',
-          isPendingVerification: true,
-        };
-        onSelectUser(newProvider, 'provider');
+          institutionName,
+          contactPerson,
+          institutionType,
+          registrationNumber,
+        });
+
+        const newProvider = mapApiUser(response.user);
+
+        onSelectUser(newProvider, 'provider', response.token);
         onNavigate('provider-onboarding');
-      }, 500);
+      } catch (error: any) {
+        setErrorMessage(error.message || 'Registration failed. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 

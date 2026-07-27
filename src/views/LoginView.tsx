@@ -1,10 +1,11 @@
-﻿import React, { useEffect, useState } from "react";
-import { ViewMode, Role, UserProfile } from "../types";
-import { USER_PROFILE_KWESI, PROVIDER_PROFILE_PHIRI } from "../data/mockData";
+import React, { useState } from 'react';
+import { ViewMode, Role, UserProfile } from '../types';
+import { authAPI, mapApiUser } from '../services/api';
+import { useEffect } from 'react';
 
 interface LoginViewProps {
   onNavigate: (view: ViewMode) => void;
-  onLoginSuccess: (userProfile: UserProfile, role: Role) => void;
+  onLoginSuccess: (userProfile: UserProfile, role: Role, token?: string) => void;
   defaultRole?: Role;
   infoMessage?: string | null;
 }
@@ -55,7 +56,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
 
@@ -70,15 +71,19 @@ export const LoginView: React.FC<LoginViewProps> = ({
       }
 
       setIsSubmitting(true);
-      setTimeout(() => {
+      try {
+        const response = await authAPI.login({ email, password });
+        
+        const userProfile = mapApiUser(response.user);
+
+        onLoginSuccess(userProfile, response.user.role as Role, response.token);
+        onNavigate(response.user.role === 'provider' ? 'provider-dashboard' : 'user-dashboard');
+      } catch (error: any) {
+        setErrorMessage(error.message || 'Invalid email or password.');
+      } finally {
         setIsSubmitting(false);
-        const normalized = email.trim().toLowerCase();
-        if (normalized.includes("@") && password.length >= 6) {
-          onLoginSuccess({ ...USER_PROFILE_KWESI, email: normalized }, "user");
-        } else {
-          setErrorMessage("Invalid email or password.");
-        }
-      }, 500);
+      }
+
     } else {
       if (!providerEmail || !providerPassword) {
         setErrorMessage("Please fill in both institution email and password.");
@@ -90,16 +95,21 @@ export const LoginView: React.FC<LoginViewProps> = ({
       }
 
       setIsSubmitting(true);
-      setTimeout(() => {
+      try {
+        const response = await authAPI.login({
+          email: providerEmail,
+          password: providerPassword
+        });
+
+        const userProfile = mapApiUser(response.user);
+
+        onLoginSuccess(userProfile, response.user.role as Role, response.token);
+        onNavigate(response.user.role === 'provider' ? 'provider-dashboard' : 'user-dashboard');
+      } catch (error: any) {
+        setErrorMessage(error.message || 'Invalid email or password.');
+      } finally {
         setIsSubmitting(false);
-        const normalized = providerEmail.trim().toLowerCase();
-        if (normalized.includes("@") && providerPassword.length >= 6) {
-          saveProviderCredentials(normalized, providerPassword);
-          onLoginSuccess(PROVIDER_PROFILE_PHIRI, "provider");
-        } else {
-          setErrorMessage("Invalid institution email or password.");
-        }
-      }, 500);
+      }
     }
   };
 

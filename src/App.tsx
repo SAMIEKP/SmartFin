@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ViewMode,
   Role,
@@ -13,7 +13,16 @@ import {
   CRITICAL_VERIFICATIONS,
   USER_PROFILE_KWESI,
   PROVIDER_PROFILE_PHIRI,
-} from './data/mockData';
+} from "./data/mockData";
+import {
+  applicationAPI,
+  authAPI,
+  mapApiApplication,
+  mapApiProduct,
+  mapApiUser,
+  productAPI,
+  userAPI,
+} from "./services/api";
 
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
@@ -27,6 +36,7 @@ import { UserDashboardView } from './views/UserDashboardView';
 import { ProviderDashboardView } from './views/ProviderDashboardView';
 import { LoanProductsView } from './views/LoanProductsView';
 import { ProductManagementView } from './views/ProductManagementView';
+import { ApplicationManagementView } from './views/ApplicationManagementView';
 import { ProductDetailsView } from './views/ProductDetailsView';
 import { CalculatorView } from './views/CalculatorView';
 import { MyApplicationsView } from './views/MyApplicationsView';
@@ -36,10 +46,50 @@ import { UserProfileView } from './views/UserProfileView';
 import { UserOnboardingView } from './views/UserOnboardingView';
 import { ProviderOnboardingView } from './views/ProviderOnboardingView';
 
-export const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<ViewMode>('landing');
-  const [role, setRole] = useState<Role>('user');
-  const [userProfile, setUserProfile] = useState<UserProfile>(USER_PROFILE_KWESI);
+export function App() {
+  const [currentView, setCurrentView] = useState<ViewMode>("landing");
+  const [viewHistory, setViewHistory] = useState<ViewMode[]>([]);
+  const [role, setRole] = useState<Role>("user");
+  const [userProfile, setUserProfile] =
+    useState<UserProfile>(USER_PROFILE_KWESI);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [dataError, setDataError] = useState("");
+
+  // Restore the session from the backend on mount.
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    authAPI.getProfile()
+      .then(({ user }) => {
+        const profile = mapApiUser(user);
+        setIsAuthenticated(true);
+        setRole(user.role);
+        setUserProfile(profile);
+        localStorage.setItem("role", user.role);
+        localStorage.setItem("userProfile", JSON.stringify(profile));
+        setCurrentView(user.role === "provider" ? "provider-dashboard" : "user-dashboard");
+      })
+      .catch(() => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        localStorage.removeItem("userProfile");
+      });
+  }, []);
+
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setIsAuthenticated(false);
+      setRole("user");
+      setUserProfile(USER_PROFILE_KWESI);
+      setViewHistory([]);
+      setCurrentView("login");
+      setDataError("Your session is no longer valid. Please sign in again.");
+    };
+
+    window.addEventListener("finaccess:unauthorized", handleUnauthorized);
+    return () => window.removeEventListener("finaccess:unauthorized", handleUnauthorized);
+  }, []);
 
   // App Data State
   const [products, setProducts] = useState<LoanProduct[]>(INITIAL_PRODUCTS);
@@ -53,6 +103,39 @@ export const App: React.FC = () => {
     INITIAL_PRODUCTS[0],
   );
 
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    setDataError("");
+    const loadData = async () => {
+      try {
+        if (role === "provider") {
+          const [{ products }, { applications }] = await Promise.all([
+            productAPI.getProviderProducts(),
+            applicationAPI.getProviderApplications(),
+          ]);
+          setProducts(products.map(mapApiProduct));
+          setProviderApplications(applications.map(mapApiApplication));
+        } else {
+          const [{ products }, { applications }] = await Promise.all([
+            userAPI.getProducts(),
+            userAPI.getApplications(),
+          ]);
+          setProducts(products.map(mapApiProduct));
+          setUserApplications(applications.map(mapApiApplication));
+        }
+      } catch (error) {
+        if (error instanceof Error && "status" in error && (error as { status: number }).status === 403) {
+          window.dispatchEvent(new Event("finaccess:unauthorized"));
+          return;
+        }
+        setDataError(error instanceof Error ? error.message : "Unable to load account data.");
+      }
+    };
+
+    void loadData();
+  }, [isAuthenticated, role]);
+
   // Modals
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
@@ -60,6 +143,8 @@ export const App: React.FC = () => {
 
   // Login default role (pre-select Member or Provider tab)
   const [loginDefaultRole, setLoginDefaultRole] = useState<Role>("user");
+  const [loginRedirectTarget, setLoginRedirectTarget] = useState<ViewMode | null>(null);
+  const [loginInfoMessage, setLoginInfoMessage] = useState<string | null>(null);
 
   const handleNavigateHistory = (nextView: ViewMode) => {
     if (currentView !== nextView) {
@@ -122,64 +207,116 @@ export const App: React.FC = () => {
       return;
     }
 
+    if (currentView !== view) {
+      setViewHistory((prev) => [...prev, currentView]);
+    }
     setCurrentView(view);
   };
 
-  const handleLoginSuccess = (profile: UserProfile, roleType: Role) => {
-    setUserProfile(profile);
-    setRole(roleType);
-    setViewHistory([]);
-    let nextView: ViewMode =
-      loginRedirectTarget ??
-      (roleType === "provider" ? "provider-dashboard" : "user-dashboard");
-    if (nextView === "provider-dashboard" && roleType !== "provider") {
-      nextView = "user-dashboard";
-    }
-    setCurrentView(nextView);
-    setLoginRedirectTarget(null);
-    setLoginInfoMessage(null);
-  };
-
   // Submit new application
-  const handleAddApplication = (newApp: ApplicationItem) => {
-    setUserApplications((prev) => [newApp, ...prev]);
-    setProviderApplications((prev) => [newApp, ...prev]);
+  const handleAddApplication = async (newApp: ApplicationItem) => {
+    try {
+      const { application } = await applicationAPI.createApplication({
+        productId: newApp.productId,
+        answers: {
+          amount: newApp.amount,
+          applicantName: newApp.applicantName,
+          phone: newApp.applicantPhone,
+          location: newApp.applicantLocation,
+        },
+        documents: [],
+      });
+      setUserApplications((prev) => [mapApiApplication(application), ...prev]);
+    } catch (error) {
+      setDataError(error instanceof Error ? error.message : "Unable to submit application.");
+    }
   };
 
   // Add new provider product
-  const handleAddProduct = (newProd: LoanProduct) => {
-    setProducts((prev) => [newProd, ...prev]);
+  const handleAddProduct = async (newProd: LoanProduct) => {
+    try {
+      const { product } = await productAPI.createProduct({
+        name: newProd.name,
+        category: newProd.category,
+        minAmount: newProd.minAmount,
+        maxAmount: newProd.maxAmount,
+        interestRate: newProd.interestRateMin,
+        tenure: newProd.termDisplay,
+        description: newProd.description,
+        eligibilityCriteria: newProd.eligibility,
+        requiredDocuments: newProd.documents,
+      });
+      setProducts((prev) => [mapApiProduct(product), ...prev]);
+    } catch (error) {
+      setDataError(error instanceof Error ? error.message : "Unable to publish product.");
+    }
   };
 
   // Toggle active product status
-  const handleToggleProductStatus = (id: string) => {
-    setProducts((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? { ...p, status: p.status === "active" ? "inactive" : "active" }
-          : p,
-      ),
-    );
+  const handleToggleProductStatus = async (id: string) => {
+    const product = products.find((item) => item.id === id);
+    if (!product) return;
+    try {
+      const { product: updated } = await productAPI.updateProduct(id, { isActive: product.status !== "active" });
+      setProducts((prev) => prev.map((item) => item.id === id ? mapApiProduct(updated) : item));
+    } catch (error) {
+      setDataError(error instanceof Error ? error.message : "Unable to update product.");
+    }
   };
 
   // Delete product
-  const handleDeleteProduct = (id: string) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
+  const handleDeleteProduct = async (id: string) => {
+    try {
+      await productAPI.deleteProduct(id);
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+    } catch (error) {
+      setDataError(error instanceof Error ? error.message : "Unable to delete product.");
+    }
   };
 
   // Update application status
-  const handleUpdateAppStatus = (applicationId: string, status: ApplicationItem['status']) => {
-    setUserApplications((prev) =>
-      prev.map((app) => (app.id === applicationId ? { ...app, status } : app))
-    );
-    setProviderApplications((prev) =>
-      prev.map((app) => (app.id === applicationId ? { ...app, status } : app))
-    );
+  const handleUpdateAppStatus = async (
+    appId: string,
+    status: ApplicationItem["status"],
+    actionText?: string,
+  ) => {
+    const backendStatus = {
+      "Pending": "pending",
+      "Under Review": "under_review",
+      "In Progress": "under_review",
+      "Approved": "approved",
+      "Declined": "rejected",
+      "Verification Red": "under_review",
+      "Action Required": "under_review",
+    }[status];
+    try {
+      const { application } = await applicationAPI.updateApplicationStatus(appId, {
+        status: backendStatus,
+        notes: actionText,
+      });
+      const updated = mapApiApplication(application);
+      setUserApplications((prev) => prev.map((a) => a.id === appId ? { ...updated, actionRequiredText: actionText } : a));
+      setProviderApplications((prev) => prev.map((a) => a.id === appId ? { ...updated, actionRequiredText: actionText } : a));
+    } catch (error) {
+      setDataError(error instanceof Error ? error.message : "Unable to update application.");
+    }
   };
 
   // Profile update handler
-  const handleUpdateProfile = (updated: Partial<UserProfile>) => {
-    setUserProfile((prev) => ({ ...prev, ...updated }));
+  const handleUpdateProfile = async (updated: Partial<UserProfile>) => {
+    try {
+      const { user } = await userAPI.updateProfile({
+        name: updated.name,
+        phone: updated.phone,
+        location: updated.location,
+        incomeRange: updated.incomeRange,
+      });
+      const profile = mapApiUser(user);
+      setUserProfile(profile);
+      localStorage.setItem("userProfile", JSON.stringify(profile));
+    } catch (error) {
+      setDataError(error instanceof Error ? error.message : "Unable to update profile.");
+    }
   };
 
   // Determine if full-screen layout (without sidebar)
@@ -191,10 +328,51 @@ export const App: React.FC = () => {
     currentView === 'provider-onboarding';
 
   // Handle login success
-  const handleLoginSuccess = (profile: UserProfile, newRole: Role) => {
+  const handleLoginSuccess = (profile: UserProfile, newRole: Role, token?: string) => {
     setUserProfile(profile);
     setRole(newRole);
-    setCurrentView(newRole === 'provider' ? 'provider-dashboard' : 'user-dashboard');
+    setIsAuthenticated(true);
+    setViewHistory([]);
+
+    // Store authentication data
+    if (token) {
+      localStorage.setItem("token", token);
+    }
+    localStorage.setItem("role", newRole);
+    localStorage.setItem("userProfile", JSON.stringify(profile));
+
+    setCurrentView(
+      newRole === "provider" ? "provider-dashboard" : "user-dashboard",
+    );
+    let nextView = loginRedirectTarget ??
+      (newRole === "provider" ? "provider-dashboard" : "user-dashboard");
+    if (nextView === "provider-dashboard" && newRole !== "provider") {
+      nextView = "user-dashboard";
+    }
+    setCurrentView(nextView);
+    setLoginRedirectTarget(null);
+    setLoginInfoMessage(null);
+  };
+
+  const handleRegistrationSuccess = (profile: UserProfile, newRole: Role, token?: string) => {
+    setUserProfile(profile);
+    setRole(newRole);
+    setIsAuthenticated(true);
+    if (token) localStorage.setItem("token", token);
+    localStorage.setItem("role", newRole);
+    localStorage.setItem("userProfile", JSON.stringify(profile));
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("userProfile");
+    setIsAuthenticated(false);
+    setRole("user");
+    setUserProfile(USER_PROFILE_KWESI);
+    setViewHistory([]);
+    setCurrentView("landing");
   };
 
   return (
@@ -207,6 +385,7 @@ export const App: React.FC = () => {
           userProfile={userProfile}
           onOpenSupport={() => setIsSupportModalOpen(true)}
           onSwitchRole={handleSwitchRole}
+          onLogout={handleLogout}
         />
       )}
 
@@ -229,6 +408,11 @@ export const App: React.FC = () => {
         <main
           className={`flex-1 ${!isFullScreenLayout ? "p-4 md:p-8 max-w-7xl mx-auto w-full" : ""}`}
         >
+          {dataError && (
+            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-700">
+              {dataError}
+            </div>
+          )}
           {currentView === "landing" && (
             <LandingView
               onNavigate={handleNavigate}
@@ -250,9 +434,8 @@ export const App: React.FC = () => {
           {currentView === "register" && (
             <RegisterView
               onNavigate={handleNavigate}
-              onSelectUser={(u) => {
-                setUserProfile(u);
-                setRole(u.role);
+              onSelectUser={(u, newRole, token) => {
+                handleRegistrationSuccess(u, newRole, token);
               }}
             />
           )}
@@ -324,6 +507,7 @@ export const App: React.FC = () => {
               onUpdateAppStatus={handleUpdateAppStatus}
             />
           )}
+          {currentView === "product-details" && (
             <ProductDetailsView
               product={selectedProduct}
               onNavigate={handleNavigate}
