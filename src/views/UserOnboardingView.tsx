@@ -62,15 +62,28 @@ export const UserOnboardingView: React.FC<UserOnboardingViewProps> = ({
         
         {/* Step Indicator Header */}
         <div className="space-y-3 border-b border-gray-100 pb-4">
-          <div className="flex justify-between items-center text-xs font-bold text-[#00685f]">
-            <span>MEMBER ONBOARDING</span>
-            <span>Step {step} of 3</span>
+          <div className="flex items-center justify-between text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#00685f]">
+            <span>Member Onboarding</span>
+            <span className="rounded-full bg-[#e5eeff] px-2.5 py-1 text-[10px] text-[#00685f]">
+              Step {step} of 3
+            </span>
           </div>
 
-          <div className="flex gap-2">
-            <div className={`h-2 flex-1 rounded-full transition-all ${step >= 1 ? 'bg-[#00685f]' : 'bg-gray-200'}`} />
-            <div className={`h-2 flex-1 rounded-full transition-all ${step >= 2 ? 'bg-[#00685f]' : 'bg-gray-200'}`} />
-            <div className={`h-2 flex-1 rounded-full transition-all ${step >= 3 ? 'bg-[#00685f]' : 'bg-gray-200'}`} />
+          <div className="rounded-full bg-[#e9eef5] p-1">
+            <div className="flex gap-2">
+              {[1, 2, 3].map((index) => {
+                const isActive = step === index;
+                const isComplete = step > index;
+                return (
+                  <div
+                    key={index}
+                    className={`h-2 flex-1 rounded-full transition-all duration-200 ${
+                      isComplete || isActive ? 'bg-[#00685f]' : 'bg-[#cfd8e3]'
+                    } ${isActive ? 'shadow-[0_0_0_3px_rgba(0,104,95,0.15)]' : ''}`}
+                  />
+                );
+              })}
+            </div>
           </div>
 
           <h1 className="text-xl font-extrabold text-[#0b1c30]">

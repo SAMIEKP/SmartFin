@@ -24,26 +24,27 @@ import {
   userAPI,
 } from "./services/api";
 
-import { Navbar } from "./components/Navbar";
-import { Sidebar } from "./components/Sidebar";
-import { ApplicationModal } from "./components/ApplicationModal";
-import { AddProductModal } from "./components/AddProductModal";
-import { SupportModal } from "./components/SupportModal";
+import { Navbar } from './components/Navbar';
+import { Sidebar } from './components/Sidebar';
+import { ApplicationModal } from './components/ApplicationModal';
+import { AddProductModal } from './components/AddProductModal';
+import { SupportModal } from './components/SupportModal';
 
-import { LandingView } from "./views/LandingView";
-import { RegisterView } from "./views/RegisterView";
-import { UserDashboardView } from "./views/UserDashboardView";
-import { ProviderDashboardView } from "./views/ProviderDashboardView";
-import { LoanProductsView } from "./views/LoanProductsView";
-import { ProductManagementView } from "./views/ProductManagementView";
-import { ApplicationManagementView } from "./views/ApplicationManagementView";
-import { ProductDetailsView } from "./views/ProductDetailsView";
-import { CalculatorView } from "./views/CalculatorView";
-import { MyApplicationsView } from "./views/MyApplicationsView";
-import { CreditScoreView } from "./views/CreditScoreView";
-import { SettingsView } from "./views/SettingsView";
-import { UserProfileView } from "./views/UserProfileView";
-import { LoginView } from "./views/LoginView";
+import { LandingView } from './views/LandingView';
+import { RegisterView } from './views/RegisterView';
+import { UserDashboardView } from './views/UserDashboardView';
+import { ProviderDashboardView } from './views/ProviderDashboardView';
+import { LoanProductsView } from './views/LoanProductsView';
+import { ProductManagementView } from './views/ProductManagementView';
+import { ApplicationManagementView } from './views/ApplicationManagementView';
+import { ProductDetailsView } from './views/ProductDetailsView';
+import { CalculatorView } from './views/CalculatorView';
+import { MyApplicationsView } from './views/MyApplicationsView';
+import { CreditScoreView } from './views/CreditScoreView';
+import { SettingsView } from './views/SettingsView';
+import { UserProfileView } from './views/UserProfileView';
+import { UserOnboardingView } from './views/UserOnboardingView';
+import { ProviderOnboardingView } from './views/ProviderOnboardingView';
 
 export function App() {
   const [currentView, setCurrentView] = useState<ViewMode>("landing");
@@ -142,8 +143,10 @@ export function App() {
 
   // Login default role (pre-select Member or Provider tab)
   const [loginDefaultRole, setLoginDefaultRole] = useState<Role>("user");
+  const [loginRedirectTarget, setLoginRedirectTarget] = useState<ViewMode | null>(null);
+  const [loginInfoMessage, setLoginInfoMessage] = useState<string | null>(null);
 
-  const handleNavigate = (nextView: ViewMode) => {
+  const handleNavigateHistory = (nextView: ViewMode) => {
     if (currentView !== nextView) {
       setViewHistory((prev) => [...prev, currentView]);
       setCurrentView(nextView);
@@ -192,6 +195,22 @@ export function App() {
         setCurrentView("user-dashboard");
       }
     }
+  };
+
+  const handleNavigate = (view: ViewMode) => {
+    if (view === "provider-dashboard" && role !== "provider") {
+      setLoginRedirectTarget("provider-dashboard");
+      setLoginInfoMessage(
+        "Please sign in with your provider account to access the Provider Portal.",
+      );
+      setCurrentView("login");
+      return;
+    }
+
+    if (currentView !== view) {
+      setViewHistory((prev) => [...prev, currentView]);
+    }
+    setCurrentView(view);
   };
 
   // Submit new application
@@ -302,9 +321,11 @@ export function App() {
 
   // Determine if full-screen layout (without sidebar)
   const isFullScreenLayout =
-    currentView === "landing" ||
-    currentView === "register" ||
-    currentView === "login";
+    currentView === 'landing' ||
+    currentView === 'register' ||
+    currentView === 'login' ||
+    currentView === 'user-onboarding' ||
+    currentView === 'provider-onboarding';
 
   // Handle login success
   const handleLoginSuccess = (profile: UserProfile, newRole: Role, token?: string) => {
@@ -323,6 +344,14 @@ export function App() {
     setCurrentView(
       newRole === "provider" ? "provider-dashboard" : "user-dashboard",
     );
+    let nextView = loginRedirectTarget ??
+      (newRole === "provider" ? "provider-dashboard" : "user-dashboard");
+    if (nextView === "provider-dashboard" && newRole !== "provider") {
+      nextView = "user-dashboard";
+    }
+    setCurrentView(nextView);
+    setLoginRedirectTarget(null);
+    setLoginInfoMessage(null);
   };
 
   const handleRegistrationSuccess = (profile: UserProfile, newRole: Role, token?: string) => {
@@ -347,8 +376,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9ff] text-[#0b1c30] flex flex-col font-sans selection:bg-[#008378] selection:text-[#f4fffc]">
-      {/* Sidebar for internal views */}
+    <div className="flex h-screen">
       {!isFullScreenLayout && (
         <Sidebar
           currentView={currentView}
@@ -399,6 +427,7 @@ export function App() {
               onNavigate={handleNavigate}
               onLoginSuccess={handleLoginSuccess}
               defaultRole={loginDefaultRole}
+              infoMessage={loginInfoMessage}
             />
           )}
 
@@ -411,7 +440,23 @@ export function App() {
             />
           )}
 
-          {currentView === "user-dashboard" && (
+          {currentView === 'user-onboarding' && (
+            <UserOnboardingView
+              userProfile={userProfile}
+              onNavigate={setCurrentView}
+              onUpdateProfile={handleUpdateProfile}
+            />
+          )}
+
+          {currentView === 'provider-onboarding' && (
+            <ProviderOnboardingView
+              userProfile={userProfile}
+              onNavigate={setCurrentView}
+              onUpdateProfile={handleUpdateProfile}
+            />
+          )}
+
+          {currentView === 'user-dashboard' && (
             <UserDashboardView
               userProfile={userProfile}
               applications={userApplications}
@@ -424,7 +469,7 @@ export function App() {
 
           {currentView === "provider-dashboard" && (
             <ProviderDashboardView
-              applications={providerApplications}
+              applications={userApplications}
               criticalVerifications={CRITICAL_VERIFICATIONS}
               onNavigate={handleNavigate}
               onBack={handleGoBack}
@@ -462,8 +507,6 @@ export function App() {
               onUpdateAppStatus={handleUpdateAppStatus}
             />
           )}
-
-          {currentView === "product-details" && (
             <ProductDetailsView
               product={selectedProduct}
               onNavigate={handleNavigate}

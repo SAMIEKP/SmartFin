@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ViewMode,
   ApplicationItem,
@@ -60,93 +60,6 @@ export const ProviderDashboardView: React.FC<ProviderDashboardViewProps> = ({
     return matchesStatus && matchesQuery;
   });
 
-  const currentDate = new Date();
-  const currentMonth = currentDate.getMonth();
-  const currentYear = currentDate.getFullYear();
-
-  const thisMonthApps = applications.filter((app) => {
-    const appDate = new Date(app.date);
-    return (
-      !Number.isNaN(appDate.getTime()) &&
-      appDate.getMonth() === currentMonth &&
-      appDate.getFullYear() === currentYear
-    );
-  });
-
-  const appliedLoansThisMonth = thisMonthApps.length;
-  const approvedLoansThisMonth = thisMonthApps.filter(
-    (app) => app.status === "Approved",
-  ).length;
-  const pendingApplications = thisMonthApps.filter((app) =>
-    [
-      "Pending",
-      "Under Review",
-      "Action Required",
-      "Verification Red",
-      "In Progress",
-    ].includes(app.status),
-  ).length;
-  const approvalRate =
-    appliedLoansThisMonth > 0
-      ? Math.round((approvedLoansThisMonth / appliedLoansThisMonth) * 100)
-      : 0;
-
-  const sixMonthTrend = Array.from({ length: 6 }, (_, index) => {
-    const targetDate = new Date(currentYear, currentMonth - (5 - index), 1);
-    const monthApps = applications.filter((app) => {
-      const appDate = new Date(app.date);
-      return (
-        !Number.isNaN(appDate.getTime()) &&
-        appDate.getMonth() === targetDate.getMonth() &&
-        appDate.getFullYear() === targetDate.getFullYear()
-      );
-    });
-
-    return {
-      label: targetDate.toLocaleString("en-US", { month: "short" }),
-      value: monthApps.length,
-    };
-  });
-
-  const categoryLabels = [
-    "Farmer",
-    "Student",
-    "Household",
-    "Small Business",
-    "Other",
-  ];
-  const categoryTrend = categoryLabels.map((label) => {
-    const count = applications.filter((app) => {
-      const text = `${app.productName} ${app.applicantName}`.toLowerCase();
-      if (label === "Farmer") {
-        return /farmer|agri|agriculture|farming/.test(text);
-      }
-      if (label === "Student") {
-        return /student|education|school|scholar/.test(text);
-      }
-      if (label === "Household") {
-        return /household|home|family|personal/.test(text);
-      }
-      if (label === "Small Business") {
-        return /small business|business|enterprise|trader|shop|market/.test(
-          text,
-        );
-      }
-      return true;
-    }).length;
-
-    return { label, value: count };
-  });
-
-  const maxSixMonthValue = Math.max(
-    1,
-    ...sixMonthTrend.map((item) => item.value),
-  );
-  const maxCategoryValue = Math.max(
-    1,
-    ...categoryTrend.map((item) => item.value),
-  );
-
   const handleStatusChange = (newStatus: ApplicationStatus) => {
     if (!reviewingApp) return;
     onUpdateAppStatus(reviewingApp.id, newStatus, newNote || undefined);
@@ -197,6 +110,30 @@ export const ProviderDashboardView: React.FC<ProviderDashboardViewProps> = ({
         </div>
       )}
 
+      {/* Notification bar for new application messages */}
+      {newApplicationMessagesCount > 0 && (
+        <div className="bg-[#fff4e6] border-l-4 border-[#ffb547] p-4 rounded-xl mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-[#a85d00]">notifications</span>
+            <div className="text-xs text-[#3d4947]">
+              <div className="font-bold text-sm text-[#855300]">{newApplicationMessagesCount} new application message{newApplicationMessagesCount > 1 ? 's' : ''}</div>
+              <div className="mt-0.5">New applications are waiting for review in the triage queue.</div>
+            </div>
+          </div>
+          <div>
+            <button
+              onClick={() => {
+                setSelectedStatus('Pending');
+                showToast('Filtered to Pending applications');
+              }}
+              className="px-3 py-2 bg-[#855300] text-white rounded-xl text-xs font-bold hover:bg-[#653e00]"
+            >
+              View Triage
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Top Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl border border-[#bcc9c6]/30 shadow-xs">
         <div>
@@ -225,8 +162,7 @@ export const ProviderDashboardView: React.FC<ProviderDashboardViewProps> = ({
             </div>
           </div>
           <p className="text-xs text-[#3d4947] mt-1 font-medium">
-            Logged in as {userProfile?.name || "M. Phiri"} • Registration No.{" "}
-            {userProfile?.registrationNumber || "RBM/MFI/2019/088"}
+            Logged in as {userProfile?.name || 'M. Phiri'} • {userProfile?.location || 'Blantyre HQ'} • Registration No. {userProfile?.registrationNumber || 'RBM/MFI/2019/088'}
           </p>
         </div>
 
@@ -268,28 +204,20 @@ export const ProviderDashboardView: React.FC<ProviderDashboardViewProps> = ({
           <div className="flex justify-between items-center text-xs text-[#3d4947]">
             <span className="font-semibold">Applied Loans This Month</span>
             <span className="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-              <span className="material-symbols-outlined text-xs">
-                arrow_upward
-              </span>
-              <span>Live</span>
+              <span className="material-symbols-outlined text-xs">arrow_upward</span>
+              <span>12.4%</span>
             </span>
           </div>
-          <div className="text-2xl font-extrabold text-[#0b1c30]">
-            {appliedLoansThisMonth}
-          </div>
-          <p className="text-[11px] text-gray-500">
-            New applications received this month
-          </p>
+          <div className="text-2xl font-extrabold text-[#0b1c30]">1,284</div>
+          <p className="text-[11px] text-gray-500">{applications.length} active in queue</p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-[#bcc9c6]/30 shadow-xs space-y-2">
           <div className="flex justify-between items-center text-xs text-[#3d4947]">
             <span className="font-semibold">Approved Loans This Month</span>
             <span className="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-              <span className="material-symbols-outlined text-xs">
-                check_circle
-              </span>
-              <span>Ready</span>
+              <span className="material-symbols-outlined text-xs">arrow_upward</span>
+              <span>8.1%</span>
             </span>
           </div>
           <div className="text-2xl font-extrabold text-[#00685f]">
@@ -302,10 +230,10 @@ export const ProviderDashboardView: React.FC<ProviderDashboardViewProps> = ({
 
         <div className="bg-white p-5 rounded-2xl border border-[#bcc9c6]/30 shadow-xs space-y-2">
           <div className="flex justify-between items-center text-xs text-[#3d4947]">
-            <span className="font-semibold">Pending Applications</span>
-            <span className="text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-              <span className="material-symbols-outlined text-xs">pending</span>
-              <span>Review</span>
+            <span className="font-semibold">Approval Rate</span>
+            <span className="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-0.5">
+              <span className="material-symbols-outlined text-xs">arrow_upward</span>
+              <span>3.1%</span>
             </span>
           </div>
           <div className="text-2xl font-extrabold text-[#855300]">
@@ -320,94 +248,12 @@ export const ProviderDashboardView: React.FC<ProviderDashboardViewProps> = ({
           <div className="flex justify-between items-center text-xs text-[#3d4947]">
             <span className="font-semibold">Approval Rate</span>
             <span className="text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-              <span className="material-symbols-outlined text-xs">percent</span>
-              <span>Ratio</span>
+              <span className="material-symbols-outlined text-xs">arrow_downward</span>
+              <span>2.1h</span>
             </span>
           </div>
-          <div className="text-2xl font-extrabold text-[#4648d4]">
-            {approvalRate}%
-          </div>
-          <p className="text-[11px] text-gray-500">
-            Approved out of applied loans
-          </p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl p-6 border border-[#bcc9c6]/30 shadow-xs space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="font-extrabold text-lg text-[#0b1c30]">
-                Applications Over Time
-              </h2>
-              <p className="text-xs text-[#3d4947] mt-1">
-                Last six months of application volume
-              </p>
-            </div>
-            <span className="text-xs font-bold text-[#00685f] bg-[#eff4ff] px-3 py-1 rounded-full">
-              6-Month Trend
-            </span>
-          </div>
-
-          <div className="space-y-3">
-            {sixMonthTrend.map((item) => {
-              const width = Math.max(8, (item.value / maxSixMonthValue) * 100);
-              return (
-                <div key={item.label} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs text-[#3d4947]">
-                    <span className="font-semibold">{item.label}</span>
-                    <span className="font-bold text-[#0b1c30]">
-                      {item.value}
-                    </span>
-                  </div>
-                  <div className="h-2.5 rounded-full bg-[#eff4ff] overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-[#00685f] to-[#4db6ac]"
-                      style={{ width: `${width}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl p-6 border border-[#bcc9c6]/30 shadow-xs space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="font-extrabold text-lg text-[#0b1c30]">
-                Applications by Category
-              </h2>
-              <p className="text-xs text-[#3d4947] mt-1">
-                Distribution across key borrower segments
-              </p>
-            </div>
-            <span className="text-xs font-bold text-[#855300] bg-[#ffddb8] px-3 py-1 rounded-full">
-              Segment Mix
-            </span>
-          </div>
-
-          <div className="space-y-3">
-            {categoryTrend.map((item) => {
-              const width = Math.max(8, (item.value / maxCategoryValue) * 100);
-              return (
-                <div key={item.label} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs text-[#3d4947]">
-                    <span className="font-semibold">{item.label}</span>
-                    <span className="font-bold text-[#0b1c30]">
-                      {item.value}
-                    </span>
-                  </div>
-                  <div className="h-2.5 rounded-full bg-[#eff4ff] overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-[#855300] to-[#ffb347]"
-                      style={{ width: `${width}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <div className="text-2xl font-extrabold text-[#4648d4]">14.5 Hours</div>
+          <p className="text-[11px] text-gray-500">Target: Under 24.0 hours</p>
         </div>
       </div>
 
