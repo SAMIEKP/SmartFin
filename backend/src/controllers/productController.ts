@@ -147,7 +147,7 @@ export const deleteProduct = async (req: any, res: Response) => {
 
     const result = await query(
       `DELETE FROM loan_products 
-       WHERE id = $1 AND provider_id = $12
+       WHERE id = $1 AND provider_id = $2
        RETURNING id`,
       [productId, providerId]
     );

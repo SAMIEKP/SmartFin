@@ -8,6 +8,7 @@ interface SidebarProps {
   userProfile: UserProfile;
   onOpenSupport: () => void;
   onSwitchRole?: (newRole: Role) => void;
+  onLogout?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -17,6 +18,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   userProfile,
   onOpenSupport,
   onSwitchRole,
+  onLogout,
 }) => {
   return (
     <aside className="h-screen w-64 fixed left-0 top-0 bg-[#eff4ff] flex flex-col p-4 gap-2 border-r border-[#bcc9c6]/20 z-50 overflow-y-auto custom-scrollbar">

@@ -94,6 +94,7 @@ export interface ApplicationItem {
 }
 
 export interface UserProfile {
+  id?: string;
   name: string;
   role: Role;
   email: string;

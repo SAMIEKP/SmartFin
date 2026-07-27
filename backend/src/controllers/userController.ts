@@ -44,9 +44,10 @@ export const getApplications = async (req: any, res: Response) => {
     const userId = req.user.id;
 
     const result = await query(
-      `SELECT a.*, p.name as product_name, p.institution_name 
+      `SELECT a.*, p.name as product_name, u.institution_name as provider_name
        FROM applications a
        JOIN loan_products p ON a.product_id = p.id
+       JOIN users u ON p.provider_id = u.id
        WHERE a.user_id = $1
        ORDER BY a.created_at DESC`,
       [userId]
@@ -68,8 +69,10 @@ export const getLoanProducts = async (req: any, res: Response) => {
     const { category, minAmount, maxAmount } = req.query;
 
     let queryText = `
-      SELECT * FROM loan_products 
-      WHERE is_active = true
+      SELECT p.*, u.institution_name as provider_name
+      FROM loan_products p
+      LEFT JOIN users u ON p.provider_id = u.id
+      WHERE p.is_active = true
     `;
     const params: any[] = [];
     let paramCount = 0;
