@@ -292,6 +292,8 @@ export const UserDashboardView: React.FC<UserDashboardViewProps> = ({
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMkeEuPpmmzKQpkQB5rNK_FjU_AjlZFp6ULorYRy-N61J_GNkhmq4dX3TazjatopsKZQZf-jJg-JziCMYnc6WTfo0oBn75ACeTduoSETcn6FcseTN4zjbkoaY9PBIAx50NJOVc1XVDRgSr9tI5DIMYtWBJP7AvmOgscJDtT0xEs3S_y1wSCH5FC1wjZpYV8Dnz7mCP7_FqWiLeXHqC8mSL9r2Zn8cSrbOlTXLjy7AMloowqkH80-4X6yRtY_yhSyVrvmHrhDEVbL0"
               alt="Financial City Insights"
               className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-overlay"
+              loading="lazy"
+              decoding="async"
             />
             <div className="relative z-10 space-y-2">
               <span className="text-[10px] font-bold uppercase tracking-wider bg-primary-fixed text-on-primary-fixed px-2.5 py-0.5 rounded-full">

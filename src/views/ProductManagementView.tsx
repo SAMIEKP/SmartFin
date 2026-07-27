@@ -136,6 +136,8 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4i3z-rXyJCzpLTsh5rC_VuJwG-f7wGybXr5ceyqPZ_indhmP_Fi2_-EyhGPoUtDehilaywWmQz1DJPTXWS2LOTpi6btMugLeGnOPi0XxZJf5zU-Tt0SD5viPjdydoydRMcoCq4GM-O9OxPiykIPGLYg3bvQDQ4-77nBPBIRVfQtZ0Pn3SCfJ3HYKclKrHB6bSMKcE4Vq9sWJrZms93hJtRYA93B6-8WmtBPixA5bXd2kYCW9tLOHUVWrhsrYcXY7QCsui-HQdOkQ"
               alt="Empty Catalog"
               className="w-28 h-28 mx-auto object-contain opacity-70"
+              loading="lazy"
+              decoding="async"
             />
             <h3 className="text-lg font-bold text-[#0b1c30]">
               No Products Found
