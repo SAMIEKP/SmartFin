@@ -519,7 +519,7 @@ export const ProviderDashboardView: React.FC<ProviderDashboardViewProps> = ({
                   Contact Phone
                 </span>
                 <span className="font-bold text-[#0b1c30]">
-                  {reviewingApp.applicantPhone || "+265 999 123 456"}
+                  {reviewingApp.applicantPhone || "Not provided"}
                 </span>
               </div>
               <div>

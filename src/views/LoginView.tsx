@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ViewMode, Role, UserProfile } from '../types';
 import { authAPI, mapApiUser } from '../services/api';
-import { useEffect } from 'react';
 
 interface LoginViewProps {
   onNavigate: (view: ViewMode) => void;
@@ -83,7 +82,6 @@ export const LoginView: React.FC<LoginViewProps> = ({
       } finally {
         setIsSubmitting(false);
       }
-
     } else {
       if (!providerEmail || !providerPassword) {
         setErrorMessage("Please fill in both institution email and password.");
@@ -186,7 +184,6 @@ export const LoginView: React.FC<LoginViewProps> = ({
               </p>
             </button>
           </div>
-        </div>
 
         {errorMessage && (
           <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-medium flex items-center gap-2 animate-in fade-in">
@@ -330,7 +327,6 @@ export const LoginView: React.FC<LoginViewProps> = ({
             Create Account Here
           </button>
         </div>
-      </div>
     </div>
   );
 };

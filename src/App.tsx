@@ -23,7 +23,6 @@ import {
   productAPI,
   userAPI,
 } from "./services/api";
-
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import { ApplicationModal } from './components/ApplicationModal';
@@ -92,16 +91,10 @@ export function App() {
   }, []);
 
   // App Data State
-  const [products, setProducts] = useState<LoanProduct[]>(INITIAL_PRODUCTS);
-  const [userApplications, setUserApplications] = useState<ApplicationItem[]>(
-    INITIAL_USER_APPLICATIONS,
-  );
-  const [providerApplications, setProviderApplications] = useState<
-    ApplicationItem[]
-  >(INITIAL_PROVIDER_APPLICATIONS);
-  const [selectedProduct, setSelectedProduct] = useState<LoanProduct | null>(
-    INITIAL_PRODUCTS[0],
-  );
+  const [products, setProducts] = useState<LoanProduct[]>([]);
+  const [userApplications, setUserApplications] = useState<ApplicationItem[]>([]);
+  const [providerApplications, setProviderApplications] = useState<ApplicationItem[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<LoanProduct | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -178,71 +171,6 @@ export function App() {
   const handleSwitchRole = (newRole: Role) => {
     setRole(newRole);
     setViewHistory([]);
-    if (newRole === "provider") {
-      setUserProfile(PROVIDER_PROFILE_PHIRI);
-      if (currentView === "landing") {
-        setLoginDefaultRole("provider");
-        setCurrentView("login");
-      } else if (currentView === "user-dashboard") {
-        setCurrentView("provider-dashboard");
-      }
-    } else {
-      setUserProfile(USER_PROFILE_KWESI);
-      if (currentView === "landing") {
-        setLoginDefaultRole("user");
-        setCurrentView("login");
-      } else if (currentView === "provider-dashboard") {
-        setCurrentView("user-dashboard");
-      }
-    }
-  };
-
-  const handleNavigate = (view: ViewMode) => {
-    if (view === "provider-dashboard" && role !== "provider") {
-      setLoginRedirectTarget("provider-dashboard");
-      setLoginInfoMessage(
-        "Please sign in with your provider account to access the Provider Portal.",
-      );
-      setCurrentView("login");
-      return;
-    }
-
-    if (currentView !== view) {
-      setViewHistory((prev) => [...prev, currentView]);
-    }
-    setCurrentView(view);
-  };
-
-  // Submit new application
-  const handleAddApplication = async (newApp: ApplicationItem) => {
-    try {
-      const { application } = await applicationAPI.createApplication({
-        productId: newApp.productId,
-        answers: {
-          amount: newApp.amount,
-          applicantName: newApp.applicantName,
-          phone: newApp.applicantPhone,
-          location: newApp.applicantLocation,
-        },
-        documents: [],
-      });
-      setUserApplications((prev) => [mapApiApplication(application), ...prev]);
-    } catch (error) {
-      setDataError(error instanceof Error ? error.message : "Unable to submit application.");
-    }
-  };
-
-  // Add new provider product
-  const handleAddProduct = async (newProd: LoanProduct) => {
-    try {
-      const { product } = await productAPI.createProduct({
-        name: newProd.name,
-        category: newProd.category,
-        minAmount: newProd.minAmount,
-        maxAmount: newProd.maxAmount,
-        interestRate: newProd.interestRateMin,
-        tenure: newProd.termDisplay,
-        description: newProd.description,
         eligibilityCriteria: newProd.eligibility,
         requiredDocuments: newProd.documents,
       });
@@ -275,31 +203,13 @@ export function App() {
   };
 
   // Update application status
-  const handleUpdateAppStatus = async (
-    appId: string,
-    status: ApplicationItem["status"],
-    actionText?: string,
-  ) => {
-    const backendStatus = {
-      "Pending": "pending",
-      "Under Review": "under_review",
-      "In Progress": "under_review",
-      "Approved": "approved",
-      "Declined": "rejected",
-      "Verification Red": "under_review",
-      "Action Required": "under_review",
-    }[status];
-    try {
-      const { application } = await applicationAPI.updateApplicationStatus(appId, {
-        status: backendStatus,
-        notes: actionText,
-      });
-      const updated = mapApiApplication(application);
-      setUserApplications((prev) => prev.map((a) => a.id === appId ? { ...updated, actionRequiredText: actionText } : a));
-      setProviderApplications((prev) => prev.map((a) => a.id === appId ? { ...updated, actionRequiredText: actionText } : a));
-    } catch (error) {
-      setDataError(error instanceof Error ? error.message : "Unable to update application.");
-    }
+  const handleUpdateAppStatus = (applicationId: string, status: ApplicationItem['status']) => {
+    setUserApplications((prev) =>
+      prev.map((app) => (app.id === applicationId ? { ...app, status } : app))
+    );
+    setProviderApplications((prev) =>
+      prev.map((app) => (app.id === applicationId ? { ...app, status } : app))
+    );
   };
 
   // Profile update handler
@@ -328,51 +238,10 @@ export function App() {
     currentView === 'provider-onboarding';
 
   // Handle login success
-  const handleLoginSuccess = (profile: UserProfile, newRole: Role, token?: string) => {
+  const handleLoginSuccess = (profile: UserProfile, newRole: Role) => {
     setUserProfile(profile);
     setRole(newRole);
-    setIsAuthenticated(true);
-    setViewHistory([]);
-
-    // Store authentication data
-    if (token) {
-      localStorage.setItem("token", token);
-    }
-    localStorage.setItem("role", newRole);
-    localStorage.setItem("userProfile", JSON.stringify(profile));
-
-    setCurrentView(
-      newRole === "provider" ? "provider-dashboard" : "user-dashboard",
-    );
-    let nextView = loginRedirectTarget ??
-      (newRole === "provider" ? "provider-dashboard" : "user-dashboard");
-    if (nextView === "provider-dashboard" && newRole !== "provider") {
-      nextView = "user-dashboard";
-    }
-    setCurrentView(nextView);
-    setLoginRedirectTarget(null);
-    setLoginInfoMessage(null);
-  };
-
-  const handleRegistrationSuccess = (profile: UserProfile, newRole: Role, token?: string) => {
-    setUserProfile(profile);
-    setRole(newRole);
-    setIsAuthenticated(true);
-    if (token) localStorage.setItem("token", token);
-    localStorage.setItem("role", newRole);
-    localStorage.setItem("userProfile", JSON.stringify(profile));
-  };
-
-  // Handle logout
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("userProfile");
-    setIsAuthenticated(false);
-    setRole("user");
-    setUserProfile(USER_PROFILE_KWESI);
-    setViewHistory([]);
-    setCurrentView("landing");
+    setCurrentView(newRole === 'provider' ? 'provider-dashboard' : 'user-dashboard');
   };
 
   return (
@@ -469,8 +338,8 @@ export function App() {
 
           {currentView === "provider-dashboard" && (
             <ProviderDashboardView
-              applications={userApplications}
-              criticalVerifications={CRITICAL_VERIFICATIONS}
+              applications={providerApplications}
+              criticalVerifications={[]}
               onNavigate={handleNavigate}
               onBack={handleGoBack}
               onOpenAddProductModal={() => setIsAddProductModalOpen(true)}
@@ -507,7 +376,6 @@ export function App() {
               onUpdateAppStatus={handleUpdateAppStatus}
             />
           )}
-          {currentView === "product-details" && (
             <ProductDetailsView
               product={selectedProduct}
               onNavigate={handleNavigate}

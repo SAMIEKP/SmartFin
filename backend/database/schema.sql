@@ -59,3 +59,4 @@ CREATE INDEX IF NOT EXISTS applications_status_idx ON applications(status);
 CREATE UNIQUE INDEX IF NOT EXISTS applications_pending_product_user_idx
   ON applications(user_id, product_id)
   WHERE status IN ('pending', 'under_review');
+

@@ -19,7 +19,7 @@ export const UserDashboardView: React.FC<UserDashboardViewProps> = ({
   onSelectProduct,
   onOpenApplyModal,
 }) => {
-  const [savedProductsCount] = useState(4);
+  const [savedProductsCount] = useState(0);
   const pendingApps = applications.filter(
     (a) => a.status === 'Pending' || a.status === 'Action Required' || a.status === 'In Progress'
   );

@@ -17,7 +17,7 @@ export const UserOnboardingView: React.FC<UserOnboardingViewProps> = ({
   // Step 1: Basic profile
   const [name, setName] = useState(userProfile.name || 'Kwesi Banda');
   const [location, setLocation] = useState(userProfile.location || 'Lilongwe, Central Region');
-  const [phone, setPhone] = useState(userProfile.phone || '+265 999 123 456');
+  const [phone, setPhone] = useState(userProfile.phone || '');
 
   // Step 2: Financial goals
   const [selectedGoals, setSelectedGoals] = useState<string[]>(['small_loan', 'save']);

@@ -171,7 +171,6 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
               </p>
             </button>
           </div>
-        </div>
 
         {/* Error Alert */}
         {errorMessage && (
@@ -209,7 +208,6 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                     className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
                   />
                 </div>
-              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
@@ -218,7 +216,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+265 999 123 456"
+                    placeholder="Enter phone number"
                     className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
                   />
                 </div>
@@ -237,7 +235,6 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                     <option value="Mangochi, Southern Region">Mangochi, Southern Region</option>
                   </select>
                 </div>
-              </div>
 
               <div className="space-y-1">
                 <label className="font-bold text-[#0b1c30]">Estimated Monthly Income Range (Optional)</label>
@@ -277,7 +274,6 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                     className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
                   />
                 </div>
-              </div>
             </>
           ) : (
             /* Loan Provider Fields */
@@ -317,7 +313,6 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                     className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
                   />
                 </div>
-              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
@@ -344,7 +339,6 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                     className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
                   />
                 </div>
-              </div>
 
               <div className="space-y-1">
                 <label className="font-bold text-[#0b1c30]">Institution Contact Phone</label>
@@ -352,7 +346,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                   type="tel"
                   value={providerPhone}
                   onChange={(e) => setProviderPhone(e.target.value)}
-                  placeholder="+265 888 765 432"
+                    placeholder="Enter institution phone"
                   className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
                 />
               </div>
@@ -380,7 +374,6 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                     className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
                   />
                 </div>
-              </div>
             </>
           )}
 
@@ -412,7 +405,6 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
             Sign In Here
           </button>
         </div>
-      </div>
     </div>
   );
 };
