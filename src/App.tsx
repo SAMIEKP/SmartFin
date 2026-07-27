@@ -29,7 +29,9 @@ import { SettingsView } from './views/SettingsView';
 import { UserProfileView } from './views/UserProfileView';
 import { UserOnboardingView } from './views/UserOnboardingView';
 import { ProviderOnboardingView } from './views/ProviderOnboardingView';
-import { LoginView } from './views/LoginView';<ViewMode>('landing');
+
+export const App: React.FC = () => {
+  const [currentView, setCurrentView] = useState<ViewMode>('landing');
   const [role, setRole] = useState<Role>('user');
   const [userProfile, setUserProfile] = useState<UserProfile>(USER_PROFILE_KWESI);
 
@@ -117,9 +119,6 @@ import { LoginView } from './views/LoginView';<ViewMode>('landing');
   const isFullScreenLayout =
     currentView === 'landing' ||
     currentView === 'register' ||
-  const isFullScreenLayout =
-    currentView === 'landing' ||
-    currentView === 'register' ||
     currentView === 'login' ||
     currentView === 'user-onboarding' ||
     currentView === 'provider-onboarding';
@@ -130,6 +129,11 @@ import { LoginView } from './views/LoginView';<ViewMode>('landing');
     setRole(newRole);
     setCurrentView(newRole === 'provider' ? 'provider-dashboard' : 'user-dashboard');
   };
+
+  return (
+    <div className="flex h-screen">
+      {!isFullScreenLayout && (
+        <Sidebar
           currentView={currentView}
           onNavigate={setCurrentView}
           role={role}

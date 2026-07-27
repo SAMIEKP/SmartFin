@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ViewMode, Role, UserProfile } from '../types';
 
 interface NavbarProps {
@@ -20,12 +20,15 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSwitchRole,
   onNavigateLogin,
 }) => {
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadNotificationsCount] = useState(2);
+
   return (
     <header className="sticky top-0 z-40 bg-[#eff4ff]/90 backdrop-blur-md border-b border-[#bcc9c6]/20 px-4 py-3 flex items-center justify-between gap-4">
       {/* Brand or Search */}
       <div className="flex items-center gap-6">
-<button 
-          onClick={() => onNavigate('landing')} 
+        <button
+          onClick={() => onNavigate('landing')}
           className="flex items-center gap-2 text-left group"
         >
           <span className="font-bold text-xl text-[#00685f] tracking-tight group-hover:text-[#008378] transition-colors">
@@ -118,41 +121,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           </div>
 
-          {/* Login Primary CTA */}">Your Auto Loan Pro application was pre-approved!</p>
-                    <span className="text-[10px] text-gray-400 mt-1 block">2 hours ago</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Role toggle badge - Navigate to Login */}
-          <div className="hidden sm:flex bg-[#e5eeff] p-1 rounded-full text-xs font-semibold">
-            <button
-              onClick={() => onNavigateLogin ? onNavigateLogin('user') : onNavigate('login')}
-              className={`px-3 py-1 rounded-full transition-all ${
-                role === 'user'
-                  ? 'bg-[#00685f] text-white shadow-xs'
-                  : 'text-[#3d4947] hover:text-[#00685f]'
-              }`}
-            >
-              Member
-            </button>
-            <button
-              onClick={() => onNavigateLogin ? onNavigateLogin('provider') : onNavigate('login')}
-              className={`px-3 py-1 rounded-full transition-all ${
-                role === 'provider'
-                  ? 'bg-[#00685f] text-white shadow-xs'
-                  : 'text-[#3d4947] hover:text-[#00685f]'
-              }`}
-            >
-              Provider
-            </button>
-          </div>
-      )}
-                className="w-8 h-8 rounded-full object-cover ring-2 ring-[#00685f]/20"
-              />
-            </button>
+          {/* User Avatar */}
+          {userProfile.avatarUrl ? (
+            <img
+              src={userProfile.avatarUrl}
+              className="w-8 h-8 rounded-full object-cover ring-2 ring-[#00685f]/20"
+            />
           ) : null}
         </div>
       )}
