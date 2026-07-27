@@ -1,5 +1,11 @@
-import React, { useState } from 'react';
-import { ViewMode, Role, LoanProduct, ApplicationItem, UserProfile } from './types';
+import React, { useState } from "react";
+import {
+  ViewMode,
+  Role,
+  LoanProduct,
+  ApplicationItem,
+  UserProfile,
+} from "./types";
 import {
   INITIAL_PRODUCTS,
   INITIAL_USER_APPLICATIONS,
@@ -37,9 +43,15 @@ export const App: React.FC = () => {
 
   // App Data State
   const [products, setProducts] = useState<LoanProduct[]>(INITIAL_PRODUCTS);
-  const [userApplications, setUserApplications] = useState<ApplicationItem[]>(INITIAL_USER_APPLICATIONS);
-  const [providerApplications, setProviderApplications] = useState<ApplicationItem[]>(INITIAL_PROVIDER_APPLICATIONS);
-  const [selectedProduct, setSelectedProduct] = useState<LoanProduct | null>(INITIAL_PRODUCTS[0]);
+  const [userApplications, setUserApplications] = useState<ApplicationItem[]>(
+    INITIAL_USER_APPLICATIONS,
+  );
+  const [providerApplications, setProviderApplications] = useState<
+    ApplicationItem[]
+  >(INITIAL_PROVIDER_APPLICATIONS);
+  const [selectedProduct, setSelectedProduct] = useState<LoanProduct | null>(
+    INITIAL_PRODUCTS[0],
+  );
 
   // Modals
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
@@ -47,34 +59,85 @@ export const App: React.FC = () => {
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
 
   // Login default role (pre-select Member or Provider tab)
-  const [loginDefaultRole, setLoginDefaultRole] = useState<Role>('user');
+  const [loginDefaultRole, setLoginDefaultRole] = useState<Role>("user");
+
+  const handleNavigateHistory = (nextView: ViewMode) => {
+    if (currentView !== nextView) {
+      setViewHistory((prev) => [...prev, currentView]);
+      setCurrentView(nextView);
+    }
+  };
+
+  const handleGoBack = () => {
+    const previousView = viewHistory[viewHistory.length - 1];
+
+    if (previousView) {
+      setViewHistory((prev) => prev.slice(0, -1));
+      setCurrentView(previousView);
+      return;
+    }
+
+    setCurrentView(
+      role === "provider" ? "provider-dashboard" : "user-dashboard",
+    );
+  };
 
   // Navigate to login with a pre-selected role
   const handleNavigateLogin = (defaultRole: Role) => {
     setLoginDefaultRole(defaultRole);
-    setCurrentView('login');
+    setViewHistory([]);
+    setCurrentView("login");
   };
 
   // Switch role handler
   const handleSwitchRole = (newRole: Role) => {
     setRole(newRole);
-    if (newRole === 'provider') {
+    setViewHistory([]);
+    if (newRole === "provider") {
       setUserProfile(PROVIDER_PROFILE_PHIRI);
-      if (currentView === 'landing') {
-        setLoginDefaultRole('provider');
-        setCurrentView('login');
-      } else if (currentView === 'user-dashboard') {
-        setCurrentView('provider-dashboard');
+      if (currentView === "landing") {
+        setLoginDefaultRole("provider");
+        setCurrentView("login");
+      } else if (currentView === "user-dashboard") {
+        setCurrentView("provider-dashboard");
       }
     } else {
       setUserProfile(USER_PROFILE_KWESI);
-      if (currentView === 'landing') {
-        setLoginDefaultRole('user');
-        setCurrentView('login');
-      } else if (currentView === 'provider-dashboard') {
-        setCurrentView('user-dashboard');
+      if (currentView === "landing") {
+        setLoginDefaultRole("user");
+        setCurrentView("login");
+      } else if (currentView === "provider-dashboard") {
+        setCurrentView("user-dashboard");
       }
     }
+  };
+
+  const handleNavigate = (view: ViewMode) => {
+    if (view === "provider-dashboard" && role !== "provider") {
+      setLoginRedirectTarget("provider-dashboard");
+      setLoginInfoMessage(
+        "Please sign in with your provider account to access the Provider Portal.",
+      );
+      setCurrentView("login");
+      return;
+    }
+
+    setCurrentView(view);
+  };
+
+  const handleLoginSuccess = (profile: UserProfile, roleType: Role) => {
+    setUserProfile(profile);
+    setRole(roleType);
+    setViewHistory([]);
+    let nextView: ViewMode =
+      loginRedirectTarget ??
+      (roleType === "provider" ? "provider-dashboard" : "user-dashboard");
+    if (nextView === "provider-dashboard" && roleType !== "provider") {
+      nextView = "user-dashboard";
+    }
+    setCurrentView(nextView);
+    setLoginRedirectTarget(null);
+    setLoginInfoMessage(null);
   };
 
   // Submit new application
@@ -91,7 +154,11 @@ export const App: React.FC = () => {
   // Toggle active product status
   const handleToggleProductStatus = (id: string) => {
     setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, status: p.status === 'active' ? 'inactive' : 'active' } : p))
+      prev.map((p) =>
+        p.id === id
+          ? { ...p, status: p.status === "active" ? "inactive" : "active" }
+          : p,
+      ),
     );
   };
 
@@ -135,7 +202,7 @@ export const App: React.FC = () => {
       {!isFullScreenLayout && (
         <Sidebar
           currentView={currentView}
-          onNavigate={setCurrentView}
+          onNavigate={handleNavigate}
           role={role}
           userProfile={userProfile}
           onOpenSupport={() => setIsSupportModalOpen(true)}
@@ -144,11 +211,13 @@ export const App: React.FC = () => {
       )}
 
       {/* Main Page Area */}
-      <div className={`flex-1 flex flex-col ${!isFullScreenLayout ? 'lg:pl-64' : ''}`}>
+      <div
+        className={`flex-1 flex flex-col ${!isFullScreenLayout ? "lg:pl-64" : ""}`}
+      >
         {/* Top Navbar */}
         <Navbar
           currentView={currentView}
-          onNavigate={setCurrentView}
+          onNavigate={handleNavigate}
           role={role}
           userProfile={userProfile}
           onOpenApplyModal={() => setIsApplyModalOpen(true)}
@@ -157,27 +226,30 @@ export const App: React.FC = () => {
         />
 
         {/* View Content Renderer */}
-        <main className={`flex-1 ${!isFullScreenLayout ? 'p-4 md:p-8 max-w-7xl mx-auto w-full' : ''}`}>
-          {currentView === 'landing' && (
+        <main
+          className={`flex-1 ${!isFullScreenLayout ? "p-4 md:p-8 max-w-7xl mx-auto w-full" : ""}`}
+        >
+          {currentView === "landing" && (
             <LandingView
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
               products={products}
               onSelectProduct={setSelectedProduct}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
             />
           )}
 
-          {currentView === 'login' && (
+          {currentView === "login" && (
             <LoginView
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
               onLoginSuccess={handleLoginSuccess}
               defaultRole={loginDefaultRole}
+              infoMessage={loginInfoMessage}
             />
           )}
 
-          {currentView === 'register' && (
+          {currentView === "register" && (
             <RegisterView
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
               onSelectUser={(u) => {
                 setUserProfile(u);
                 setRole(u.role);
@@ -206,35 +278,37 @@ export const App: React.FC = () => {
               userProfile={userProfile}
               applications={userApplications}
               products={products}
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
               onSelectProduct={setSelectedProduct}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
             />
           )}
 
-          {currentView === 'provider-dashboard' && (
+          {currentView === "provider-dashboard" && (
             <ProviderDashboardView
               applications={userApplications}
               criticalVerifications={CRITICAL_VERIFICATIONS}
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
+              onBack={handleGoBack}
               onOpenAddProductModal={() => setIsAddProductModalOpen(true)}
               onUpdateAppStatus={handleUpdateAppStatus}
             />
           )}
 
-          {currentView === 'loan-products' && (
+          {currentView === "loan-products" && (
             <LoanProductsView
               products={products}
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
               onSelectProduct={setSelectedProduct}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
             />
           )}
 
-          {currentView === 'product-management' && (
+          {currentView === "product-management" && (
             <ProductManagementView
               products={products}
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
+              onBack={handleGoBack}
               onOpenAddProductModal={() => setIsAddProductModalOpen(true)}
               onToggleStatus={handleToggleProductStatus}
               onDeleteProduct={handleDeleteProduct}
@@ -242,54 +316,62 @@ export const App: React.FC = () => {
             />
           )}
 
-          {currentView === 'product-details' && (
+          {currentView === "application-management" && (
+            <ApplicationManagementView
+              applications={providerApplications}
+              onNavigate={handleNavigate}
+              onBack={handleGoBack}
+              onUpdateAppStatus={handleUpdateAppStatus}
+            />
+          )}
             <ProductDetailsView
               product={selectedProduct}
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
+              onBack={handleGoBack}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
               onOpenSupport={() => setIsSupportModalOpen(true)}
             />
           )}
 
-          {currentView === 'calculator' && (
+          {currentView === "calculator" && (
             <CalculatorView
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
             />
           )}
 
-          {currentView === 'my-applications' && (
+          {currentView === "my-applications" && (
             <MyApplicationsView
               applications={userApplications}
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
               onUpdateAppStatus={handleUpdateAppStatus}
             />
           )}
 
-          {currentView === 'credit-score' && (
+          {currentView === "credit-score" && (
             <CreditScoreView
               userProfile={userProfile}
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
             />
           )}
 
-          {currentView === 'settings' && (
+          {currentView === "settings" && (
             <SettingsView
               userProfile={userProfile}
               role={role}
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
               onUpdateProfile={handleUpdateProfile}
             />
           )}
 
-          {currentView === 'user-profile' && (
+          {currentView === "user-profile" && (
             <UserProfileView
               userProfile={userProfile}
               role={role}
               applications={userApplications}
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
             />
           )}
         </main>

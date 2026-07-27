@@ -1,5 +1,5 @@
-import React from 'react';
-import { ViewMode, Role, UserProfile } from '../types';
+import React from "react";
+import { ViewMode, Role, UserProfile } from "../types";
 
 interface SidebarProps {
   currentView: ViewMode;
@@ -22,25 +22,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <aside className="h-screen w-64 fixed left-0 top-0 bg-[#eff4ff] flex flex-col p-4 gap-2 border-r border-[#bcc9c6]/20 z-50 overflow-y-auto custom-scrollbar">
       {/* Brand Header */}
       <div className="mb-6 px-2">
-        <h1 
-          onClick={() => onNavigate('landing')}
+        <h1
+          onClick={() => onNavigate("landing")}
           className="font-bold text-2xl text-[#00685f] cursor-pointer hover:opacity-80 transition-opacity tracking-tight"
         >
           FinAccess
         </h1>
         <p className="text-xs text-[#3d4947] font-medium mt-0.5">
-          {userProfile.memberStatus || (role === 'provider' ? 'Provider Dashboard' : 'Verified Member')}
+          {userProfile.memberStatus ||
+            (role === "provider" ? "Provider Dashboard" : "Verified Member")}
         </p>
       </div>
 
       {/* Navigation items */}
       <nav className="flex-1 space-y-1">
         <button
-          onClick={() => onNavigate(role === 'provider' ? 'provider-dashboard' : 'user-dashboard')}
+          onClick={() =>
+            onNavigate(
+              role === "provider" ? "provider-dashboard" : "user-dashboard",
+            )
+          }
           className={`w-full flex items-center gap-3 p-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-            currentView === 'user-dashboard' || currentView === 'provider-dashboard'
-              ? 'bg-[#6bd8cb] text-[#00685f] shadow-xs'
-              : 'text-[#3d4947] hover:bg-[#d3e4fe]'
+            currentView === "user-dashboard" ||
+            currentView === "provider-dashboard"
+              ? "bg-[#6bd8cb] text-[#00685f] shadow-xs"
+              : "text-[#3d4947] hover:bg-[#d3e4fe]"
           }`}
         >
           <span className="material-symbols-outlined text-base">dashboard</span>
@@ -48,35 +54,59 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
 
         <button
-          onClick={() => onNavigate(role === 'provider' ? 'product-management' : 'loan-products')}
+          onClick={() =>
+            onNavigate(
+              role === "provider" ? "product-management" : "loan-products",
+            )
+          }
           className={`w-full flex items-center gap-3 p-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-            currentView === 'loan-products' || currentView === 'product-management' || currentView === 'product-details'
-              ? 'bg-[#6bd8cb] text-[#00685f] shadow-xs'
-              : 'text-[#3d4947] hover:bg-[#d3e4fe]'
+            currentView === "loan-products" ||
+            currentView === "product-management" ||
+            currentView === "product-details"
+              ? "bg-[#6bd8cb] text-[#00685f] shadow-xs"
+              : "text-[#3d4947] hover:bg-[#d3e4fe]"
           }`}
         >
           <span className="material-symbols-outlined text-base">payments</span>
           <span>Loan Products</span>
         </button>
 
+        {role === "provider" && (
+          <button
+            onClick={() => onNavigate("application-management")}
+            className={`w-full flex items-center gap-3 p-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+              currentView === "application-management"
+                ? "bg-[#6bd8cb] text-[#00685f] shadow-xs"
+                : "text-[#3d4947] hover:bg-[#d3e4fe]"
+            }`}
+          >
+            <span className="material-symbols-outlined text-base">
+              inventory
+            </span>
+            <span>Application Management</span>
+          </button>
+        )}
+
         <button
-          onClick={() => onNavigate('my-applications')}
+          onClick={() => onNavigate("my-applications")}
           className={`w-full flex items-center gap-3 p-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-            currentView === 'my-applications'
-              ? 'bg-[#6bd8cb] text-[#00685f] shadow-xs'
-              : 'text-[#3d4947] hover:bg-[#d3e4fe]'
+            currentView === "my-applications"
+              ? "bg-[#6bd8cb] text-[#00685f] shadow-xs"
+              : "text-[#3d4947] hover:bg-[#d3e4fe]"
           }`}
         >
-          <span className="material-symbols-outlined text-base">assignment_turned_in</span>
+          <span className="material-symbols-outlined text-base">
+            assignment_turned_in
+          </span>
           <span>My Applications</span>
         </button>
 
         <button
-          onClick={() => onNavigate('credit-score')}
+          onClick={() => onNavigate("credit-score")}
           className={`w-full flex items-center gap-3 p-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-            currentView === 'credit-score'
-              ? 'bg-[#6bd8cb] text-[#00685f] shadow-xs'
-              : 'text-[#3d4947] hover:bg-[#d3e4fe]'
+            currentView === "credit-score"
+              ? "bg-[#6bd8cb] text-[#00685f] shadow-xs"
+              : "text-[#3d4947] hover:bg-[#d3e4fe]"
           }`}
         >
           <span className="material-symbols-outlined text-base">speed</span>
@@ -84,11 +114,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
 
         <button
-          onClick={() => onNavigate('calculator')}
+          onClick={() => onNavigate("calculator")}
           className={`w-full flex items-center gap-3 p-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-            currentView === 'calculator'
-              ? 'bg-[#6bd8cb] text-[#00685f] shadow-xs'
-              : 'text-[#3d4947] hover:bg-[#d3e4fe]'
+            currentView === "calculator"
+              ? "bg-[#6bd8cb] text-[#00685f] shadow-xs"
+              : "text-[#3d4947] hover:bg-[#d3e4fe]"
           }`}
         >
           <span className="material-symbols-outlined text-base">calculate</span>
@@ -96,11 +126,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
 
         <button
-          onClick={() => onNavigate('user-profile')}
+          onClick={() => onNavigate("user-profile")}
           className={`w-full flex items-center gap-3 p-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-            currentView === 'user-profile'
-              ? 'bg-[#6bd8cb] text-[#00685f] shadow-xs'
-              : 'text-[#3d4947] hover:bg-[#d3e4fe]'
+            currentView === "user-profile"
+              ? "bg-[#6bd8cb] text-[#00685f] shadow-xs"
+              : "text-[#3d4947] hover:bg-[#d3e4fe]"
           }`}
         >
           <span className="material-symbols-outlined text-base">person</span>
@@ -108,11 +138,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
 
         <button
-          onClick={() => onNavigate('settings')}
+          onClick={() => onNavigate("settings")}
           className={`w-full flex items-center gap-3 p-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-            currentView === 'settings'
-              ? 'bg-[#6bd8cb] text-[#00685f] shadow-xs'
-              : 'text-[#3d4947] hover:bg-[#d3e4fe]'
+            currentView === "settings"
+              ? "bg-[#6bd8cb] text-[#00685f] shadow-xs"
+              : "text-[#3d4947] hover:bg-[#d3e4fe]"
           }`}
         >
           <span className="material-symbols-outlined text-base">settings</span>
@@ -123,7 +153,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
           onClick={onOpenSupport}
           className="w-full flex items-center gap-3 p-3 rounded-xl text-xs font-bold text-[#3d4947] hover:bg-[#d3e4fe] transition-all duration-200 cursor-pointer"
         >
-          <span className="material-symbols-outlined text-base">contact_support</span>
+          <span className="material-symbols-outlined text-base">
+            contact_support
+          </span>
           <span>Support</span>
         </button>
       </nav>
@@ -132,17 +164,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {onSwitchRole && (
         <div className="bg-[#d3e4fe]/50 p-1.5 rounded-xl flex gap-1 text-xs mb-2">
           <button
-            onClick={() => onSwitchRole('user')}
+            onClick={() => onSwitchRole("user")}
             className={`flex-1 py-1.5 px-2 rounded-lg font-bold transition-colors cursor-pointer ${
-              role === 'user' ? 'bg-[#00685f] text-white shadow-xs' : 'text-[#3d4947] hover:text-[#00685f]'
+              role === "user"
+                ? "bg-[#00685f] text-white shadow-xs"
+                : "text-[#3d4947] hover:text-[#00685f]"
             }`}
           >
             Individual
           </button>
           <button
-            onClick={() => onSwitchRole('provider')}
+            onClick={() => onSwitchRole("provider")}
             className={`flex-1 py-1.5 px-2 rounded-lg font-bold transition-colors cursor-pointer ${
-              role === 'provider' ? 'bg-[#00685f] text-white shadow-xs' : 'text-[#3d4947] hover:text-[#00685f]'
+              role === "provider"
+                ? "bg-[#00685f] text-white shadow-xs"
+                : "text-[#3d4947] hover:text-[#00685f]"
             }`}
           >
             Provider
@@ -154,7 +190,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="mt-auto p-4 bg-[#008378] rounded-2xl text-[#f4fffc] flex flex-col items-center gap-2 text-center shadow-xs">
         <span className="material-symbols-outlined text-2xl">lightbulb</span>
         <p className="text-xs font-medium">
-          {role === 'provider' ? 'Need performance insights?' : 'Need guidance on interest rates?'}
+          {role === "provider"
+            ? "Need performance insights?"
+            : "Need guidance on interest rates?"}
         </p>
         <button
           onClick={onOpenSupport}
@@ -165,8 +203,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* User Profile Bar */}
-      <div 
-        onClick={() => onNavigate('user-profile')}
+      <div
+        onClick={() => onNavigate("user-profile")}
         className="mt-3 flex items-center gap-2.5 px-2 pt-2 border-t border-[#bcc9c6]/30 cursor-pointer hover:opacity-90 transition-opacity"
       >
         <div className="w-9 h-9 rounded-full bg-[#d3e4fe] flex items-center justify-center overflow-hidden shrink-0 border border-[#00685f]/20">
