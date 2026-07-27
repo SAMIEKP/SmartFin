@@ -13,38 +13,33 @@ import {
   CRITICAL_VERIFICATIONS,
   USER_PROFILE_KWESI,
   PROVIDER_PROFILE_PHIRI,
-} from "./data/mockData";
+} from './data/mockData';
 
-import { Navbar } from "./components/Navbar";
-import { Sidebar } from "./components/Sidebar";
-import { ApplicationModal } from "./components/ApplicationModal";
-import { AddProductModal } from "./components/AddProductModal";
-import { SupportModal } from "./components/SupportModal";
+import { Navbar } from './components/Navbar';
+import { Sidebar } from './components/Sidebar';
+import { ApplicationModal } from './components/ApplicationModal';
+import { AddProductModal } from './components/AddProductModal';
+import { SupportModal } from './components/SupportModal';
 
-import { LandingView } from "./views/LandingView";
-import { RegisterView } from "./views/RegisterView";
-import { UserDashboardView } from "./views/UserDashboardView";
-import { ProviderDashboardView } from "./views/ProviderDashboardView";
-import { LoanProductsView } from "./views/LoanProductsView";
-import { ProductManagementView } from "./views/ProductManagementView";
-import { ApplicationManagementView } from "./views/ApplicationManagementView";
-import { ProductDetailsView } from "./views/ProductDetailsView";
-import { CalculatorView } from "./views/CalculatorView";
-import { MyApplicationsView } from "./views/MyApplicationsView";
-import { CreditScoreView } from "./views/CreditScoreView";
-import { SettingsView } from "./views/SettingsView";
-import { UserProfileView } from "./views/UserProfileView";
-import { LoginView } from "./views/LoginView";
+import { LandingView } from './views/LandingView';
+import { RegisterView } from './views/RegisterView';
+import { UserDashboardView } from './views/UserDashboardView';
+import { ProviderDashboardView } from './views/ProviderDashboardView';
+import { LoanProductsView } from './views/LoanProductsView';
+import { ProductManagementView } from './views/ProductManagementView';
+import { ProductDetailsView } from './views/ProductDetailsView';
+import { CalculatorView } from './views/CalculatorView';
+import { MyApplicationsView } from './views/MyApplicationsView';
+import { CreditScoreView } from './views/CreditScoreView';
+import { SettingsView } from './views/SettingsView';
+import { UserProfileView } from './views/UserProfileView';
+import { UserOnboardingView } from './views/UserOnboardingView';
+import { ProviderOnboardingView } from './views/ProviderOnboardingView';
 
-export function App() {
-  const [currentView, setCurrentView] = useState<ViewMode>("landing");
-  const [viewHistory, setViewHistory] = useState<ViewMode[]>([]);
-  const [role, setRole] = useState<Role>("user");
-  const [userProfile, setUserProfile] =
-    useState<UserProfile>(USER_PROFILE_KWESI);
-  const [loginRedirectTarget, setLoginRedirectTarget] =
-    useState<ViewMode | null>(null);
-  const [loginInfoMessage, setLoginInfoMessage] = useState<string | null>(null);
+export const App: React.FC = () => {
+  const [currentView, setCurrentView] = useState<ViewMode>('landing');
+  const [role, setRole] = useState<Role>('user');
+  const [userProfile, setUserProfile] = useState<UserProfile>(USER_PROFILE_KWESI);
 
   // App Data State
   const [products, setProducts] = useState<LoanProduct[]>(INITIAL_PRODUCTS);
@@ -173,17 +168,13 @@ export function App() {
   };
 
   // Update application status
-  const handleUpdateAppStatus = (
-    appId: string,
-    status: ApplicationItem["status"],
-    actionText?: string,
-  ) => {
-    const updater = (prev: ApplicationItem[]) =>
-      prev.map((a) =>
-        a.id === appId ? { ...a, status, actionRequiredText: actionText } : a,
-      );
-    setUserApplications(updater);
-    setProviderApplications(updater);
+  const handleUpdateAppStatus = (applicationId: string, status: ApplicationItem['status']) => {
+    setUserApplications((prev) =>
+      prev.map((app) => (app.id === applicationId ? { ...app, status } : app))
+    );
+    setProviderApplications((prev) =>
+      prev.map((app) => (app.id === applicationId ? { ...app, status } : app))
+    );
   };
 
   // Profile update handler
@@ -193,13 +184,21 @@ export function App() {
 
   // Determine if full-screen layout (without sidebar)
   const isFullScreenLayout =
-    currentView === "landing" ||
-    currentView === "register" ||
-    currentView === "login";
+    currentView === 'landing' ||
+    currentView === 'register' ||
+    currentView === 'login' ||
+    currentView === 'user-onboarding' ||
+    currentView === 'provider-onboarding';
+
+  // Handle login success
+  const handleLoginSuccess = (profile: UserProfile, newRole: Role) => {
+    setUserProfile(profile);
+    setRole(newRole);
+    setCurrentView(newRole === 'provider' ? 'provider-dashboard' : 'user-dashboard');
+  };
 
   return (
-    <div className="min-h-screen bg-[#f8f9ff] text-[#0b1c30] flex flex-col font-sans selection:bg-[#008378] selection:text-[#f4fffc]">
-      {/* Sidebar for internal views */}
+    <div className="flex h-screen">
       {!isFullScreenLayout && (
         <Sidebar
           currentView={currentView}
@@ -258,7 +257,23 @@ export function App() {
             />
           )}
 
-          {currentView === "user-dashboard" && (
+          {currentView === 'user-onboarding' && (
+            <UserOnboardingView
+              userProfile={userProfile}
+              onNavigate={setCurrentView}
+              onUpdateProfile={handleUpdateProfile}
+            />
+          )}
+
+          {currentView === 'provider-onboarding' && (
+            <ProviderOnboardingView
+              userProfile={userProfile}
+              onNavigate={setCurrentView}
+              onUpdateProfile={handleUpdateProfile}
+            />
+          )}
+
+          {currentView === 'user-dashboard' && (
             <UserDashboardView
               userProfile={userProfile}
               applications={userApplications}
@@ -271,7 +286,7 @@ export function App() {
 
           {currentView === "provider-dashboard" && (
             <ProviderDashboardView
-              applications={providerApplications}
+              applications={userApplications}
               criticalVerifications={CRITICAL_VERIFICATIONS}
               onNavigate={handleNavigate}
               onBack={handleGoBack}
