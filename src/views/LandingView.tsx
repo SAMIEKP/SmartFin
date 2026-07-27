@@ -84,6 +84,8 @@ export const LandingView: React.FC<LandingViewProps> = ({
                   src="/Home_page.jpg"
                   alt="SmartFin Access Connect Platform"
                   className="w-full h-99 object-cover"
+                  loading="lazy"
+                  decoding="async"
                 />
 
                 {/* Floating "Two Sides" Badge */}

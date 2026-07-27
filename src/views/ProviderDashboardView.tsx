@@ -38,6 +38,17 @@ export const ProviderDashboardView: React.FC<ProviderDashboardViewProps> = ({
   const [newNote, setNewNote] = useState("");
   const [toastMessage, setToastMessage] = useState("");
 
+  // Derived state - fixes undefined variable references
+  const newApplicationMessagesCount = applications.filter(
+    (a) => a.status === "Pending" || a.status === "Under Review"
+  ).length;
+  const approvedLoansThisMonth = applications.filter(
+    (a) => a.status === "Approved"
+  ).length;
+  const pendingApplications = applications.filter(
+    (a) => a.status === "Pending"
+  ).length;
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(""), 3000);

@@ -215,6 +215,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               src={userProfile.avatarUrl}
               alt={userProfile.name}
               className="w-full h-full object-cover"
+              loading="lazy"
+              decoding="async"
             />
           ) : (
             <span className="font-bold text-[#00685f]">
