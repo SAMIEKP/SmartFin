@@ -507,6 +507,7 @@ export function App() {
               onUpdateAppStatus={handleUpdateAppStatus}
             />
           )}
+          {currentView === "product-details" && (
             <ProductDetailsView
               product={selectedProduct}
               onNavigate={handleNavigate}

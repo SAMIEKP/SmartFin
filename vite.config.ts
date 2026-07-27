@@ -4,6 +4,8 @@ import path from 'path';
 import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
+  const apiProxyTarget = process.env.VITE_API_PROXY_TARGET || 'http://localhost:5001';
+
   return {
     plugins: [react(), tailwindcss()],
     resolve: {
@@ -13,8 +15,8 @@ export default defineConfig(() => {
     },
     server: {
       proxy: {
-        '/api': 'http://localhost:5000',
-        '/health': 'http://localhost:5000',
+        '/api': apiProxyTarget,
+        '/health': apiProxyTarget,
       },
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
