@@ -263,15 +263,28 @@ export function App() {
   // Profile update handler
   const handleUpdateProfile = async (updated: Partial<UserProfile>) => {
     try {
-      const { user } = await userAPI.updateProfile({
+      // Apply optimistic local update so avatar and profile changes show immediately
+      setUserProfile((prev) => {
+        const merged = { ...prev, ...updated } as UserProfile;
+        localStorage.setItem("userProfile", JSON.stringify(merged));
+        return merged;
+      });
+
+      // Send update to backend (include avatarUrl if present)
+      const payload: Record<string, unknown> = {
         name: updated.name,
         phone: updated.phone,
         location: updated.location,
-        incomeRange: updated.incomeRange,
-      });
-      const profile = mapApiUser(user);
-      setUserProfile(profile);
-      localStorage.setItem("userProfile", JSON.stringify(profile));
+        income_range: updated.incomeRange,
+      };
+      if (updated.avatarUrl) payload.avatar_url = updated.avatarUrl;
+
+      const { user } = await userAPI.updateProfile(payload);
+      const profileFromServer = mapApiUser(user);
+      // Preserve client-side avatarUrl if backend doesn't return it
+      const finalProfile = { ...profileFromServer, avatarUrl: updated.avatarUrl || (userProfile && userProfile.avatarUrl) } as UserProfile;
+      setUserProfile(finalProfile);
+      localStorage.setItem("userProfile", JSON.stringify(finalProfile));
     } catch (error) {
       setDataError(error instanceof Error ? error.message : "Unable to update profile.");
     }

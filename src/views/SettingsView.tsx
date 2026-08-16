@@ -378,7 +378,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
                     {avatarUrl ? (
                       <button
-                        onClick={() => setShowCropModal(true)}
+                        onClick={() => {
+                          setCropImageSrc(avatarUrl);
+                          setShowCropModal(true);
+                        }}
                         className="px-3 py-2 bg-white border border-[#bcc9c6]/40 rounded-lg text-xs"
                       >
                         Edit
