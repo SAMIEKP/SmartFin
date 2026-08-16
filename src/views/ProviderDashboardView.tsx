@@ -173,7 +173,7 @@ export const ProviderDashboardView: React.FC<ProviderDashboardViewProps> = ({
             </div>
           </div>
           <p className="text-xs text-[#3d4947] mt-1 font-medium">
-            Logged in as {userProfile?.name || 'M. Phiri'} • {userProfile?.location || 'Blantyre HQ'} • Registration No. {userProfile?.registrationNumber || 'RBM/MFI/2019/088'}
+            Logged in as {userProfile?.name || 'Provider'} • {userProfile?.location || 'Malawi'} • Registration No. {userProfile?.registrationNumber || 'Pending'}
           </p>
         </div>
 

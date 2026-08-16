@@ -7,14 +7,6 @@ import {
   UserProfile,
 } from "./types";
 import {
-  INITIAL_PRODUCTS,
-  INITIAL_USER_APPLICATIONS,
-  INITIAL_PROVIDER_APPLICATIONS,
-  CRITICAL_VERIFICATIONS,
-  USER_PROFILE_KWESI,
-  PROVIDER_PROFILE_PHIRI,
-} from "./data/mockData";
-import {
   applicationAPI,
   authAPI,
   mapApiApplication,
@@ -51,7 +43,16 @@ export function App() {
   const [viewHistory, setViewHistory] = useState<ViewMode[]>([]);
   const [role, setRole] = useState<Role>("user");
   const [userProfile, setUserProfile] =
-    useState<UserProfile>(USER_PROFILE_KWESI);
+    useState<UserProfile>({
+      id: '',
+      name: '',
+      email: '',
+      phone: '',
+      location: '',
+      role: 'user',
+      memberStatus: 'Pending verification',
+      creditScore: 0,
+    });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [dataError, setDataError] = useState("");
 
@@ -81,7 +82,16 @@ export function App() {
     const handleUnauthorized = () => {
       setIsAuthenticated(false);
       setRole("user");
-      setUserProfile(USER_PROFILE_KWESI);
+      setUserProfile({
+        id: '',
+        name: '',
+        email: '',
+        phone: '',
+        location: '',
+        role: 'user',
+        memberStatus: 'Pending verification',
+        creditScore: 0,
+      });
       setViewHistory([]);
       setCurrentView("login");
       setDataError("Your session is no longer valid. Please sign in again.");
@@ -159,36 +169,6 @@ export function App() {
     setCurrentView(
       role === "provider" ? "provider-dashboard" : "user-dashboard",
     );
-  };
-
-  // Navigate to login with a pre-selected role
-  const handleNavigateLogin = (defaultRole: Role) => {
-    setLoginDefaultRole(defaultRole);
-    setViewHistory([]);
-    setCurrentView("login");
-  };
-
-  // Switch role handler
-  const handleSwitchRole = (newRole: Role) => {
-    setRole(newRole);
-    setViewHistory([]);
-    if (newRole === "provider") {
-      setUserProfile(PROVIDER_PROFILE_PHIRI);
-      if (currentView === "landing") {
-        setLoginDefaultRole("provider");
-        setCurrentView("login");
-      } else if (currentView === "user-dashboard") {
-        setCurrentView("provider-dashboard");
-      }
-    } else {
-      setUserProfile(USER_PROFILE_KWESI);
-      if (currentView === "landing") {
-        setLoginDefaultRole("user");
-        setCurrentView("login");
-      } else if (currentView === "provider-dashboard") {
-        setCurrentView("user-dashboard");
-      }
-    }
   };
 
   // Submit new application
@@ -333,7 +313,16 @@ export function App() {
     localStorage.removeItem("userProfile");
     setIsAuthenticated(false);
     setRole("user");
-    setUserProfile(USER_PROFILE_KWESI);
+    setUserProfile({
+      id: '',
+      name: '',
+      email: '',
+      phone: '',
+      location: '',
+      role: 'user',
+      memberStatus: 'Pending verification',
+      creditScore: 0,
+    });
     setViewHistory([]);
     setCurrentView("landing");
   };
@@ -347,7 +336,6 @@ export function App() {
           role={role}
           userProfile={userProfile}
           onOpenSupport={() => setIsSupportModalOpen(true)}
-          onSwitchRole={handleSwitchRole}
           onLogout={handleLogout}
         />
       )}
@@ -363,8 +351,6 @@ export function App() {
           role={role}
           userProfile={userProfile}
           onOpenApplyModal={() => setIsApplyModalOpen(true)}
-          onSwitchRole={handleSwitchRole}
-          onNavigateLogin={handleNavigateLogin}
         />
 
         {/* View Content Renderer */}

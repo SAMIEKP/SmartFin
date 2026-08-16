@@ -19,7 +19,7 @@ export const LoanProductsView: React.FC<LoanProductsViewProps> = ({
   const [maxAmountFilter, setMaxAmountFilter] = useState<number>(30000000);
   const [maxInterestFilter, setMaxInterestFilter] = useState<number>(20);
   const [collateralOnly, setCollateralOnly] = useState(false);
-  const [selectedCity, setSelectedCity] = useState('Lilongwe');
+  const [selectedCity, setSelectedCity] = useState('');
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
