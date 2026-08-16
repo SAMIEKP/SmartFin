@@ -171,6 +171,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
               </p>
             </button>
           </div>
+        </div>
 
         {/* Error Alert */}
         {errorMessage && (
@@ -208,6 +209,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                     className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
                   />
                 </div>
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
@@ -224,7 +226,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                   <label className="font-bold text-[#0b1c30]">Location</label>
                   <select
                     value={location}
-                    onChange={(e) => setLocation(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setLocation(e.target.value)}
                     className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
                   >
                     <option value="Lilongwe, Central Region">Lilongwe, Central Region</option>
@@ -235,12 +237,13 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                     <option value="Mangochi, Southern Region">Mangochi, Southern Region</option>
                   </select>
                 </div>
+              </div>
 
               <div className="space-y-1">
                 <label className="font-bold text-[#0b1c30]">Estimated Monthly Income Range (Optional)</label>
                 <select
                   value={incomeRange}
-                  onChange={(e) => setIncomeRange(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setIncomeRange(e.target.value)}
                   className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
                 >
                   <option value="Under MWK 100,000">Under MWK 100,000</option>
@@ -274,6 +277,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                     className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
                   />
                 </div>
+              </div>
             </>
           ) : (
             /* Loan Provider Fields */
@@ -313,13 +317,14 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                     className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
                   />
                 </div>
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="font-bold text-[#0b1c30]">Institution Type</label>
                   <select
                     value={institutionType}
-                    onChange={(e) => setInstitutionType(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setInstitutionType(e.target.value)}
                     className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
                   >
                     <option value="Commercial Bank">Commercial Bank</option>
@@ -339,6 +344,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                     className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
                   />
                 </div>
+              </div>
 
               <div className="space-y-1">
                 <label className="font-bold text-[#0b1c30]">Institution Contact Phone</label>
@@ -374,6 +380,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                     className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
                   />
                 </div>
+              </div>
             </>
           )}
 
@@ -405,6 +412,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
             Sign In Here
           </button>
         </div>
+      </div>
     </div>
   );
 };
