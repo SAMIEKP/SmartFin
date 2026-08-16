@@ -23,11 +23,7 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [showEmptyState, setShowEmptyState] = useState(false);
-
-  const displayedProducts = showEmptyState
-    ? []
-    : products.filter((p) => {
+  const displayedProducts = products.filter((p) => {
         const matchesSearch =
           p.name.toLowerCase().includes(search.toLowerCase()) ||
           p.code.toLowerCase().includes(search.toLowerCase()) ||
@@ -46,7 +42,7 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-extrabold text-[#0b1c30]">
-              Product Catalog Management
+              Services Catalog Management
             </h1>
             <span className="bg-[#ffddb8] text-[#2a1700] text-[10px] font-bold px-2 py-0.5 rounded-full">
               Provider Dashboard
@@ -70,19 +66,11 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
           </button>
 
           <button
-            onClick={() => setShowEmptyState(!showEmptyState)}
-            className="px-3 py-2 border border-[#bcc9c6] text-[#3d4947] font-bold text-xs rounded-xl hover:bg-gray-100 transition-colors"
-            title="Toggle empty state view for design testing"
-          >
-            {showEmptyState ? "Show Products" : "Simulate Empty State"}
-          </button>
-
-          <button
             onClick={onOpenAddProductModal}
             className="px-5 py-2.5 bg-[#855300] hover:bg-[#653e00] text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
           >
             <span className="material-symbols-outlined text-base">add_box</span>
-            <span>+ Add New Product</span>
+            <span>+ Add New Service</span>
           </button>
         </div>
       </div>
@@ -140,7 +128,7 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
               decoding="async"
             />
             <h3 className="text-lg font-bold text-[#0b1c30]">
-              No Products Found
+              No Services Found
             </h3>
             <p className="text-xs text-[#3d4947] max-w-sm mx-auto">
               {showEmptyState
@@ -151,7 +139,7 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
               onClick={onOpenAddProductModal}
               className="px-6 py-2.5 bg-[#855300] hover:bg-[#653e00] text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
             >
-              + Create First Product
+              + Create First Service
             </button>
           </div>
         ) : (
@@ -159,7 +147,7 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-[#eff4ff] text-[#3d4947] font-bold border-b border-[#bcc9c6]/30">
-                  <th className="p-4">Code & Product</th>
+                  <th className="p-4">Code & Service</th>
                   <th className="p-4">Category</th>
                   <th className="p-4">Interest Rate</th>
                   <th className="p-4">Term & Limit</th>
@@ -246,7 +234,7 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
                           onNavigate("product-details");
                         }}
                         className="p-1.5 text-[#00685f] hover:bg-[#eff4ff] rounded-lg transition-colors"
-                        title="View Product Page"
+                        title="View Service Page"
                       >
                         <span className="material-symbols-outlined text-base">
                           visibility
@@ -256,7 +244,7 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
                       <button
                         onClick={() => onDeleteProduct(p.id)}
                         className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Remove Product"
+                        title="Remove Service"
                       >
                         <span className="material-symbols-outlined text-base">
                           delete

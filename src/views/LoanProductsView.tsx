@@ -46,10 +46,10 @@ export const LoanProductsView: React.FC<LoanProductsViewProps> = ({
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-2xl font-extrabold text-[#0b1c30]">
-              Malawian Financial Product Directory
+              Malawian Financial Services Directory
             </h1>
             <p className="text-xs text-[#3d4947] mt-1">
-              Compare interest rates, loan terms, and eligibility requirements from verified lenders.
+              Compare rates, terms, and eligibility requirements from verified lenders and providers.
             </p>
           </div>
 
@@ -57,7 +57,7 @@ export const LoanProductsView: React.FC<LoanProductsViewProps> = ({
             <span className="material-symbols-outlined text-sm text-[#6d7a77]">search</span>
             <input
               type="text"
-              placeholder="Search by loan name, provider, or tag..."
+              placeholder="Search by service name, provider, or tag..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-transparent border-none outline-none w-full text-xs text-[#0b1c30]"
@@ -72,8 +72,8 @@ export const LoanProductsView: React.FC<LoanProductsViewProps> = ({
 
         {/* Category Pills */}
         <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100 text-xs font-semibold">
-          {[
-            { id: 'all', label: 'All Products' },
+            {[
+            { id: 'all', label: 'All Services' },
             { id: 'loan', label: 'Personal Loans' },
             { id: 'business', label: 'SME & Business' },
             { id: 'agriculture', label: 'Agriculture & Seasonal' },
@@ -202,7 +202,7 @@ export const LoanProductsView: React.FC<LoanProductsViewProps> = ({
         {/* Right 3-Cols: Product Bento Grid */}
         <div className="lg:col-span-3 space-y-4">
           <div className="flex justify-between items-center text-xs font-semibold text-[#3d4947]">
-            <span>Showing {filteredProducts.length} verified products</span>
+            <span>Showing {filteredProducts.length} verified services</span>
             <span>Sorted by Match Relevance</span>
           </div>
 
@@ -217,19 +217,7 @@ export const LoanProductsView: React.FC<LoanProductsViewProps> = ({
                   Try adjusting your search keywords, interest rate threshold, or institution type to see available products.
                 </p>
               </div>
-              <button
-                onClick={() => {
-                  setSelectedCategory('all');
-                  setMaxAmountFilter(50000000);
-                  setMaxInterestFilter(25);
-                  setCollateralOnly(false);
-                  setSearchQuery('');
-                }}
-                className="px-5 py-2.5 bg-[#00685f] hover:bg-[#008378] text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer inline-flex items-center gap-2"
-              >
-                <span className="material-symbols-outlined text-base">restart_alt</span>
-                <span>Reset All Filters</span>
-              </button>
+              {/* Removed reset button per request to avoid simulate/empty-state action */}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

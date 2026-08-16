@@ -196,7 +196,7 @@ export const ProviderDashboardView: React.FC<ProviderDashboardViewProps> = ({
             <span className="material-symbols-outlined text-base">
               inventory_2
             </span>
-            <span>Product Catalog</span>
+            <span>Service Catalog</span>
           </button>
 
           <button
@@ -213,58 +213,36 @@ export const ProviderDashboardView: React.FC<ProviderDashboardViewProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-[#bcc9c6]/30 shadow-xs space-y-2">
           <div className="flex justify-between items-center text-xs text-[#3d4947]">
-            <span className="font-semibold">Applied Loans This Month</span>
-            <span className="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-              <span className="material-symbols-outlined text-xs">arrow_upward</span>
-              <span>12.4%</span>
-            </span>
+            <span className="font-semibold">Applied Loans (Active)</span>
           </div>
-          <div className="text-2xl font-extrabold text-[#0b1c30]">1,284</div>
-          <p className="text-[11px] text-gray-500">{applications.length} active in queue</p>
+          <div className="text-2xl font-extrabold text-[#0b1c30]">{applications.length}</div>
+          <p className="text-[11px] text-gray-500">Active applications in queue</p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-[#bcc9c6]/30 shadow-xs space-y-2">
           <div className="flex justify-between items-center text-xs text-[#3d4947]">
             <span className="font-semibold">Approved Loans This Month</span>
-            <span className="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-              <span className="material-symbols-outlined text-xs">arrow_upward</span>
-              <span>8.1%</span>
-            </span>
           </div>
-          <div className="text-2xl font-extrabold text-[#00685f]">
-            {approvedLoansThisMonth}
-          </div>
-          <p className="text-[11px] text-gray-500">
-            Loans approved in the current month
-          </p>
+          <div className="text-2xl font-extrabold text-[#00685f]">{approvedLoansThisMonth}</div>
+          <p className="text-[11px] text-gray-500">Loans approved in the current month</p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-[#bcc9c6]/30 shadow-xs space-y-2">
           <div className="flex justify-between items-center text-xs text-[#3d4947]">
             <span className="font-semibold">Approval Rate</span>
-            <span className="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-              <span className="material-symbols-outlined text-xs">arrow_upward</span>
-              <span>3.1%</span>
-            </span>
           </div>
           <div className="text-2xl font-extrabold text-[#855300]">
-            {pendingApplications}
+            {applications.length > 0 ? `${Math.round((approvedLoansThisMonth / applications.length) * 100)}%` : '—'}
           </div>
-          <p className="text-[11px] text-gray-500">
-            Applications awaiting review
-          </p>
+          <p className="text-[11px] text-gray-500">Share of approved applications</p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-[#bcc9c6]/30 shadow-xs space-y-2">
           <div className="flex justify-between items-center text-xs text-[#3d4947]">
-            <span className="font-semibold">Approval Rate</span>
-            <span className="text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-              <span className="material-symbols-outlined text-xs">arrow_downward</span>
-              <span>2.1h</span>
-            </span>
+            <span className="font-semibold">Avg. Review Time</span>
           </div>
-          <div className="text-2xl font-extrabold text-[#4648d4]">14.5 Hours</div>
-          <p className="text-[11px] text-gray-500">Target: Under 24.0 hours</p>
+          <div className="text-2xl font-extrabold text-[#4648d4]">—</div>
+          <p className="text-[11px] text-gray-500">Average time from submission to review (TBD)</p>
         </div>
       </div>
 

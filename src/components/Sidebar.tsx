@@ -68,7 +68,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }`}
         >
           <span className="material-symbols-outlined text-base">payments</span>
-          <span>Loan Products</span>
+          <span>Services</span>
         </button>
 
         {role === "provider" && (
