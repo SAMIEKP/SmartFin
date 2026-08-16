@@ -116,6 +116,18 @@ export const ProviderOnboardingView: React.FC<ProviderOnboardingViewProps> = ({
               <span>Next: Document Upload</span>
               <span className="material-symbols-outlined text-sm">arrow_forward</span>
             </button>
+
+            <div className="pt-2 text-center">
+              <button
+                onClick={() => {
+                  localStorage.setItem('openSettingsTab', 'organization');
+                  onNavigate('settings');
+                }}
+                className="mt-2 inline-block px-4 py-2 text-xs bg-[#00685f] text-white rounded-lg hover:bg-[#005a4f]"
+              >
+                Upload Institution Logo (Open Settings)
+              </button>
+            </div>
           </div>
         )}
 

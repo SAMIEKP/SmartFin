@@ -87,31 +87,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
         )}
 
-        <button
-          onClick={() => onNavigate("my-applications")}
-          className={`w-full flex items-center gap-3 p-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-            currentView === "my-applications"
-              ? "bg-[#6bd8cb] text-[#00685f] shadow-xs"
-              : "text-[#3d4947] hover:bg-[#d3e4fe]"
-          }`}
-        >
-          <span className="material-symbols-outlined text-base">
-            assignment_turned_in
-          </span>
-          <span>My Applications</span>
-        </button>
+        {role === 'user' && (
+          <>
+            <button
+              onClick={() => onNavigate("my-applications")}
+              className={`w-full flex items-center gap-3 p-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                currentView === "my-applications"
+                  ? "bg-[#6bd8cb] text-[#00685f] shadow-xs"
+                  : "text-[#3d4947] hover:bg-[#d3e4fe]"
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">
+                assignment_turned_in
+              </span>
+              <span>My Applications</span>
+            </button>
 
-        <button
-          onClick={() => onNavigate("credit-score")}
-          className={`w-full flex items-center gap-3 p-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-            currentView === "credit-score"
-              ? "bg-[#6bd8cb] text-[#00685f] shadow-xs"
-              : "text-[#3d4947] hover:bg-[#d3e4fe]"
-          }`}
-        >
-          <span className="material-symbols-outlined text-base">speed</span>
-          <span>Credit Score</span>
-        </button>
+            <button
+              onClick={() => onNavigate("credit-score")}
+              className={`w-full flex items-center gap-3 p-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                currentView === "credit-score"
+                  ? "bg-[#6bd8cb] text-[#00685f] shadow-xs"
+                  : "text-[#3d4947] hover:bg-[#d3e4fe]"
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">speed</span>
+              <span>Credit Score</span>
+            </button>
+          </>
+        )}
 
         <button
           onClick={() => onNavigate("calculator")}

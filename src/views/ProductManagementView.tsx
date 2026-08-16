@@ -131,9 +131,7 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
               No Services Found
             </h3>
             <p className="text-xs text-[#3d4947] max-w-sm mx-auto">
-              {showEmptyState
-                ? 'Your financial product catalog is currently empty. Click "+ Add New Product" to publish a new loan facility.'
-                : "No products match your search or filter settings."}
+              No products match your search or filter settings.
             </p>
             <button
               onClick={onOpenAddProductModal}

@@ -181,6 +181,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     setTimeout(() => setSaveSuccess(false), 3000);
   };
 
+  // If onboarding or navigation requested opening the organization tab, honor it
+  React.useEffect(() => {
+    const requested = localStorage.getItem('openSettingsTab');
+    if (requested === 'organization') {
+      setActiveTab('organization');
+      localStorage.removeItem('openSettingsTab');
+    }
+  }, []);
+
   return (
     <div className="space-y-6 pb-16">
       {/* Top Header */}
@@ -397,68 +406,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </div>
 
                 {/* Cropping Modal */}
-                {showCropModal && cropImageSrc && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                    <div className="bg-white rounded-2xl w-full max-w-3xl p-4">
-                      <div className="flex justify-between items-center mb-3">
-                        <h3 className="font-bold">Crop Profile Image</h3>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="range"
-                            min={0.5}
-                            max={3}
-                            step={0.01}
-                            value={scale}
-                            onChange={(e) => setScale(Number(e.target.value))}
-                            className="w-40"
-                          />
-                          <button onClick={() => { setShowCropModal(false); setCropImageSrc(null); }} className="text-xs px-3 py-1 rounded bg-gray-100">Cancel</button>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-4">
-                        <div className="flex-1 flex items-center justify-center">
-                          <div
-                            ref={cropRef}
-                            className="w-72 h-72 bg-gray-200 overflow-hidden relative"
-                            onMouseDown={onMouseDown}
-                            onMouseMove={onMouseMove}
-                            onMouseUp={onMouseUp}
-                            onMouseLeave={onMouseUp}
-                          >
-                            <img
-                              ref={imgRef}
-                              src={cropImageSrc}
-                              alt="To crop"
-                              style={{
-                                position: 'absolute',
-                                left: '50%',
-                                top: '50%',
-                                transform: `translate(calc(-50% + ${pos.x}px), calc(-50% + ${pos.y}px)) scale(${scale})`,
-                                cursor: 'grab',
-                                userSelect: 'none',
-                                maxWidth: 'none',
-                              }}
-                              draggable={false}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="w-44 flex flex-col items-center gap-3">
-                          <div className="w-32 h-32 rounded-full overflow-hidden border border-[#bcc9c6]/40">
-                            {avatarUrl ? (
-                              <img src={avatarUrl} alt="Preview" className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-[#00685f]">{name.charAt(0)}</div>
-                            )}
-                          </div>
-                          <div className="text-[12px] text-gray-500">Preview</div>
-                          <button onClick={handleCropSave} className="px-4 py-2 bg-[#00685f] text-white rounded-lg text-xs font-bold">Crop & Save</button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                {/* crop modal moved to shared location */}
               </div>
 
               {/* Grid Fields */}
@@ -1098,6 +1046,56 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     </span>
                   </div>
                 </div>
+
+                {/* Institution Logo Upload (behaves like user avatar) */}
+                <div className="p-4 bg-white rounded-2xl border border-[#bcc9c6]/30 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-20 h-20 rounded-lg overflow-hidden border-2 border-[#00685f] bg-white flex items-center justify-center">
+                      {avatarUrl ? (
+                        <img src={avatarUrl} alt="Institution Logo" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="text-xl font-bold text-[#00685f]">{institutionName.charAt(0)}</div>
+                      )}
+                    </div>
+                    <div>
+                      <div className="font-bold text-sm text-[#0b1c30]">Institution Logo</div>
+                      <div className="text-[11px] text-gray-500">Upload an official logo used across the platform.</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-[#00685f] text-white rounded-lg text-xs font-bold shadow-sm hover:bg-[#005a4f]">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files && e.target.files[0];
+                          if (f) openCropperWithFile(f);
+                        }}
+                      />
+                      Upload / Edit Logo
+                    </label>
+
+                    {avatarUrl ? (
+                      <button
+                        onClick={() => {
+                          setCropImageSrc(avatarUrl);
+                          setShowCropModal(true);
+                        }}
+                        className="px-3 py-2 bg-white border border-[#bcc9c6]/40 rounded-lg text-xs"
+                      >
+                        Edit
+                      </button>
+                    ) : null}
+
+                    {avatarUrl ? (
+                      <button onClick={handleRemoveImage} className="px-3 py-2 bg-white border border-red-200 text-[#ba1a1a] rounded-lg text-xs">
+                        Remove
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
               </div>
 
               <div className="pt-4 border-t border-gray-100 flex justify-end">
@@ -1158,6 +1156,70 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       </div>
 
       {/* Delete Confirmation Modal */}
+      {/* Shared Cropping Modal (used by avatar + institution logo) */}
+      {showCropModal && cropImageSrc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-3xl p-4">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-bold">Crop Image</h3>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min={0.5}
+                  max={3}
+                  step={0.01}
+                  value={scale}
+                  onChange={(e) => setScale(Number(e.target.value))}
+                  className="w-40"
+                />
+                <button onClick={() => { setShowCropModal(false); setCropImageSrc(null); }} className="text-xs px-3 py-1 rounded bg-gray-100">Cancel</button>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <div className="flex-1 flex items-center justify-center">
+                <div
+                  ref={cropRef}
+                  className="w-72 h-72 bg-gray-200 overflow-hidden relative"
+                  onMouseDown={onMouseDown}
+                  onMouseMove={onMouseMove}
+                  onMouseUp={onMouseUp}
+                  onMouseLeave={onMouseUp}
+                >
+                  <img
+                    ref={imgRef}
+                    src={cropImageSrc}
+                    alt="To crop"
+                    style={{
+                      position: 'absolute',
+                      left: '50%',
+                      top: '50%',
+                      transform: `translate(calc(-50% + ${pos.x}px), calc(-50% + ${pos.y}px)) scale(${scale})`,
+                      cursor: 'grab',
+                      userSelect: 'none',
+                      maxWidth: 'none',
+                    }}
+                    draggable={false}
+                  />
+                </div>
+              </div>
+
+              <div className="w-44 flex flex-col items-center gap-3">
+                <div className="w-32 h-32 rounded-full overflow-hidden border border-[#bcc9c6]/40">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-[#00685f]">{name.charAt(0)}</div>
+                  )}
+                </div>
+                <div className="text-[12px] text-gray-500">Preview</div>
+                <button onClick={handleCropSave} className="px-4 py-2 bg-[#00685f] text-white rounded-lg text-xs font-bold">Crop & Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl border border-[#bcc9c6]/30 p-6 max-w-md w-full space-y-4 text-xs">
