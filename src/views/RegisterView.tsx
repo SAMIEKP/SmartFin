@@ -53,7 +53,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
 
       setIsSubmitting(true);
       try {
-        const response = await authAPI.register({
+        const registerData = {
           email,
           password,
           role: 'user',
@@ -61,7 +61,10 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
           phone,
           location,
           incomeRange,
-        });
+        };
+        console.log('Sending registration data:', registerData);
+        const response = await authAPI.register(registerData);
+        console.log('Registration response:', response);
 
         const newUser = mapApiUser(response.user);
 
@@ -89,7 +92,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
 
       setIsSubmitting(true);
       try {
-        const response = await authAPI.register({
+        const registerData = {
           email: providerEmail,
           password: providerPassword,
           role: 'provider',
@@ -97,7 +100,10 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
           contactPerson,
           institutionType,
           registrationNumber,
-        });
+        };
+        console.log('Sending provider registration data:', registerData);
+        const response = await authAPI.register(registerData);
+        console.log('Provider registration response:', response);
 
         const newProvider = mapApiUser(response.user);
 
