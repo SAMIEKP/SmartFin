@@ -30,6 +30,7 @@ import { AddProductModal } from './components/AddProductModal';
 import { SupportModal } from './components/SupportModal';
 
 import { LandingView } from './views/LandingView';
+import { LoginView } from './views/LoginView';
 import { RegisterView } from './views/RegisterView';
 import { UserDashboardView } from './views/UserDashboardView';
 import { ProviderDashboardView } from './views/ProviderDashboardView';
@@ -139,7 +140,7 @@ export function App() {
   const [loginRedirectTarget, setLoginRedirectTarget] = useState<ViewMode | null>(null);
   const [loginInfoMessage, setLoginInfoMessage] = useState<string | null>(null);
 
-  const handleNavigateHistory = (nextView: ViewMode) => {
+  const handleNavigate = (nextView: ViewMode) => {
     if (currentView !== nextView) {
       setViewHistory((prev) => [...prev, currentView]);
       setCurrentView(nextView);
@@ -171,6 +172,55 @@ export function App() {
   const handleSwitchRole = (newRole: Role) => {
     setRole(newRole);
     setViewHistory([]);
+    if (newRole === "provider") {
+      setUserProfile(PROVIDER_PROFILE_PHIRI);
+      if (currentView === "landing") {
+        setLoginDefaultRole("provider");
+        setCurrentView("login");
+      } else if (currentView === "user-dashboard") {
+        setCurrentView("provider-dashboard");
+      }
+    } else {
+      setUserProfile(USER_PROFILE_KWESI);
+      if (currentView === "landing") {
+        setLoginDefaultRole("user");
+        setCurrentView("login");
+      } else if (currentView === "provider-dashboard") {
+        setCurrentView("user-dashboard");
+      }
+    }
+  };
+
+  // Submit new application
+  const handleAddApplication = async (newApp: ApplicationItem) => {
+    try {
+      const { application } = await applicationAPI.createApplication({
+        productId: newApp.productId,
+        answers: {
+          amount: newApp.amount,
+          applicantName: newApp.applicantName,
+          phone: newApp.applicantPhone,
+          location: newApp.applicantLocation,
+        },
+        documents: [],
+      });
+      setUserApplications((prev) => [mapApiApplication(application), ...prev]);
+    } catch (error) {
+      setDataError(error instanceof Error ? error.message : "Unable to submit application.");
+    }
+  };
+
+  // Add new provider product
+  const handleAddProduct = async (newProd: LoanProduct) => {
+    try {
+      const { product } = await productAPI.createProduct({
+        name: newProd.name,
+        category: newProd.category,
+        minAmount: newProd.minAmount,
+        maxAmount: newProd.maxAmount,
+        interestRate: newProd.interestRateMin,
+        tenure: newProd.termDisplay,
+        description: newProd.description,
         eligibilityCriteria: newProd.eligibility,
         requiredDocuments: newProd.documents,
       });
@@ -203,13 +253,31 @@ export function App() {
   };
 
   // Update application status
-  const handleUpdateAppStatus = (applicationId: string, status: ApplicationItem['status']) => {
-    setUserApplications((prev) =>
-      prev.map((app) => (app.id === applicationId ? { ...app, status } : app))
-    );
-    setProviderApplications((prev) =>
-      prev.map((app) => (app.id === applicationId ? { ...app, status } : app))
-    );
+  const handleUpdateAppStatus = async (
+    appId: string,
+    status: ApplicationItem["status"],
+    actionText?: string,
+  ) => {
+    const backendStatus = {
+      "Pending": "pending",
+      "Under Review": "under_review",
+      "In Progress": "under_review",
+      "Approved": "approved",
+      "Declined": "rejected",
+      "Verification Red": "under_review",
+      "Action Required": "under_review",
+    }[status];
+    try {
+      const { application } = await applicationAPI.updateApplicationStatus(appId, {
+        status: backendStatus,
+        notes: actionText,
+      });
+      const updated = mapApiApplication(application);
+      setUserApplications((prev) => prev.map((a) => a.id === appId ? { ...updated, actionRequiredText: actionText } : a));
+      setProviderApplications((prev) => prev.map((a) => a.id === appId ? { ...updated, actionRequiredText: actionText } : a));
+    } catch (error) {
+      setDataError(error instanceof Error ? error.message : "Unable to update application.");
+    }
   };
 
   // Profile update handler
@@ -238,10 +306,36 @@ export function App() {
     currentView === 'provider-onboarding';
 
   // Handle login success
-  const handleLoginSuccess = (profile: UserProfile, newRole: Role) => {
+  const handleLoginSuccess = (profile: UserProfile, newRole: Role, token?: string) => {
     setUserProfile(profile);
     setRole(newRole);
-    setCurrentView(newRole === 'provider' ? 'provider-dashboard' : 'user-dashboard');
+    setIsAuthenticated(true);
+    setViewHistory([]);
+    if (token) localStorage.setItem("token", token);
+    localStorage.setItem("role", newRole);
+    localStorage.setItem("userProfile", JSON.stringify(profile));
+    setCurrentView(newRole === "provider" ? "provider-dashboard" : "user-dashboard");
+  };
+
+  const handleRegistrationSuccess = (profile: UserProfile, newRole: Role, token?: string) => {
+    setUserProfile(profile);
+    setRole(newRole);
+    setIsAuthenticated(true);
+    if (token) localStorage.setItem("token", token);
+    localStorage.setItem("role", newRole);
+    localStorage.setItem("userProfile", JSON.stringify(profile));
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("userProfile");
+    setIsAuthenticated(false);
+    setRole("user");
+    setUserProfile(USER_PROFILE_KWESI);
+    setViewHistory([]);
+    setCurrentView("landing");
   };
 
   return (
@@ -376,6 +470,8 @@ export function App() {
               onUpdateAppStatus={handleUpdateAppStatus}
             />
           )}
+
+          {currentView === "product-details" && (
             <ProductDetailsView
               product={selectedProduct}
               onNavigate={handleNavigate}
@@ -384,6 +480,7 @@ export function App() {
               onOpenSupport={() => setIsSupportModalOpen(true)}
             />
           )}
+
 
           {currentView === "calculator" && (
             <CalculatorView

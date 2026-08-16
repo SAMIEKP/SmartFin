@@ -184,6 +184,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
               </p>
             </button>
           </div>
+        </div>
 
         {errorMessage && (
           <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-medium flex items-center gap-2 animate-in fade-in">
@@ -327,6 +328,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
             Create Account Here
           </button>
         </div>
+      </div>
     </div>
   );
 };

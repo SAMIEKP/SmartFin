@@ -2,7 +2,11 @@ import { ApplicationItem, ApplicationStatus, LoanProduct, Role, UserProfile } fr
 
 // In development, use Vite's same-origin proxy so localhost/127.0.0.1 mismatches
 // do not cause browser fetch failures. Set VITE_API_BASE_URL for production.
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '/api' : 'http://localhost:5001/api')).replace(/\/$/, '');
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '/api' : 'https://finaccess-backend.onrender.com/api')).replace(/\/$/, '');
+
+// Debug: Log the API URL being used
+console.log('API Base URL:', API_BASE_URL);
+console.log('Environment:', import.meta.env.DEV ? 'development' : 'production');
 
 export interface ApiUser {
   id: string;
@@ -72,13 +76,17 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}, includ
 
   let response: Response;
   try {
+    console.log(`API Request: ${API_BASE_URL}${endpoint}`, options);
     response = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
-  } catch {
+    console.log(`API Response status: ${response.status}`);
+  } catch (error) {
+    console.error('API Request failed:', error);
     throw new Error(
       'Unable to connect to the backend API. Start it with "cd backend && npm run dev", then try again.',
     );
   }
   const raw = await response.text();
+  console.log('API Response raw:', raw);
   let data: { message?: string; error?: string } & T;
   try {
     data = raw ? JSON.parse(raw) : ({} as T);
@@ -87,6 +95,7 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}, includ
   }
 
   if (!response.ok) {
+    console.error('API Error:', data);
     if (includeAuth && (response.status === 401 || response.status === 403)) {
       localStorage.removeItem('token');
       localStorage.removeItem('role');
