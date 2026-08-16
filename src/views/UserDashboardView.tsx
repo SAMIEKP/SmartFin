@@ -93,21 +93,7 @@ export const UserDashboardView: React.FC<UserDashboardViewProps> = ({
           </div>
         </div>
 
-        <div className="min-w-55 flex-1 bg-white p-5 rounded-2xl border border-outline-variant/30 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-on-surface-variant block">Credit Score Rating</span>
-            <span className="text-2xl font-extrabold text-tertiary mt-1 block">
-              {userProfile.creditScore} / 850
-            </span>
-          </div>
-          <button
-            onClick={() => onNavigate('credit-score')}
-            className="w-11 h-11 rounded-xl bg-tertiary-fixed text-tertiary flex items-center justify-center hover:bg-tertiary-fixed-dim transition-colors cursor-pointer shrink-0"
-            title="View full credit report"
-          >
-            <span className="material-symbols-outlined text-2xl">speed</span>
-          </button>
-        </div>
+        {/* Credit Score Rating card removed per design (no demo widget) */}
       </div>
 
       {/* Action Required Alert Banner */}
@@ -301,7 +287,7 @@ export const UserDashboardView: React.FC<UserDashboardViewProps> = ({
               </span>
               <h3 className="text-base font-extrabold">Subsidized Agricultural & SME Rates</h3>
               <p className="text-xs text-emerald-100 leading-relaxed">
-                Your 740 score unlocks prime rates starting at 8.5% p.a. with Reserve Bank certified lenders.
+                Access personalized lending rates and offers based on your verified credit profile.
               </p>
             </div>
 
@@ -323,31 +309,9 @@ export const UserDashboardView: React.FC<UserDashboardViewProps> = ({
             </h3>
 
             <div className="space-y-3 text-xs">
-              <div className="flex gap-3 items-start p-2 bg-surface-container-low/50 rounded-xl">
-                <span className="w-2.5 h-2.5 rounded-full bg-primary mt-1 shrink-0"></span>
-                <div>
-                  <p className="font-bold text-on-surface">Utility Bill Requested</p>
-                  <p className="text-on-surface-variant text-[11px]">EcoBank requested residence proof for APP-8950.</p>
-                  <span className="text-[10px] text-gray-400">Today • 10:24 AM</span>
-                </div>
-              </div>
-
-              <div className="flex gap-3 items-start p-2 bg-emerald-50/60 rounded-xl">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 mt-1 shrink-0"></span>
-                <div>
-                  <p className="font-bold text-on-surface">Auto Loan Approved</p>
-                  <p className="text-on-surface-variant text-[11px]">NBS Bank approved APP-8995 for MWK 4,500,000.</p>
-                  <span className="text-[10px] text-gray-400">Oct 21, 2024</span>
-                </div>
-              </div>
-
-              <div className="flex gap-3 items-start p-2 bg-purple-50/60 rounded-xl">
-                <span className="w-2.5 h-2.5 rounded-full bg-tertiary mt-1 shrink-0"></span>
-                <div>
-                  <p className="font-bold text-on-surface">Credit Score Updated</p>
-                  <p className="text-on-surface-variant text-[11px]">CRB rating increased to 740 points.</p>
-                  <span className="text-[10px] text-gray-400">Oct 15, 2024</span>
-                </div>
+              <div className="text-center py-8 text-on-surface-variant">
+                <p className="font-medium">No recent activity to show.</p>
+                <p className="text-[11px]">Live activity will appear here when available.</p>
               </div>
             </div>
           </div>

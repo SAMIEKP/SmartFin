@@ -37,6 +37,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   );
   const [avatarUrl, setAvatarUrl] = useState(userProfile.avatarUrl || "");
 
+  // Handle local file uploads for avatar preview (sets data URL)
+  const handleAvatarFile = (file?: File) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') setAvatarUrl(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
   // Provider Organization Form state
   const [institutionName, setInstitutionName] = useState(
     userProfile.institutionName || "FinAccess Institution",
@@ -293,6 +303,21 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     Paste an image web URL or choose from your uploaded photo
                     library.
                   </span>
+                  <div className="pt-2">
+                    <label className="font-bold block text-[11px] mb-1">Upload Profile Image</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const f = e.target.files && e.target.files[0];
+                        if (f) handleAvatarFile(f);
+                      }}
+                      className="text-xs"
+                    />
+                    <div className="mt-2 text-[10px] text-gray-500">
+                      Uploading sets a local preview. To persist images to a server, implement an upload endpoint and save the returned URL in your profile.
+                    </div>
+                  </div>
                 </div>
               </div>
 
