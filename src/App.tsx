@@ -106,6 +106,7 @@ export function App() {
   const [userApplications, setUserApplications] = useState<ApplicationItem[]>([]);
   const [providerApplications, setProviderApplications] = useState<ApplicationItem[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<LoanProduct | null>(null);
+  const [productBeingEdited, setProductBeingEdited] = useState<LoanProduct | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -209,6 +210,29 @@ export function App() {
       setProducts((prev) => [mapApiProduct(product), ...prev]);
     } catch (error) {
       setDataError(error instanceof Error ? error.message : "Unable to publish product.");
+    }
+  };
+
+  const handleUpdateProduct = async (updatedProduct: LoanProduct) => {
+    try {
+      const { product } = await productAPI.updateProduct(updatedProduct.id, {
+        name: updatedProduct.name,
+        category: updatedProduct.category,
+        minAmount: updatedProduct.minAmount,
+        maxAmount: updatedProduct.maxAmount,
+        interestRate: updatedProduct.interestRateMin,
+        tenure: updatedProduct.termDisplay,
+        description: updatedProduct.description,
+        eligibilityCriteria: updatedProduct.eligibility,
+        requiredDocuments: updatedProduct.documents,
+        applicationQuestions: updatedProduct.applicationQuestions,
+        isActive: updatedProduct.status === "active",
+      });
+      setProducts((prev) => prev.map((item) => item.id === updatedProduct.id ? mapApiProduct(product) : item));
+      setProductBeingEdited(null);
+      setIsAddProductModalOpen(false);
+    } catch (error) {
+      setDataError(error instanceof Error ? error.message : "Unable to update product.");
     }
   };
 
@@ -438,7 +462,7 @@ export function App() {
               criticalVerifications={[]}
               onNavigate={handleNavigate}
               onBack={handleGoBack}
-              onOpenAddProductModal={() => setIsAddProductModalOpen(true)}
+              onOpenAddProductModal={() => { setProductBeingEdited(null); setIsAddProductModalOpen(true); }}
               onUpdateAppStatus={handleUpdateAppStatus}
             />
           )}
@@ -457,7 +481,8 @@ export function App() {
               products={products}
               onNavigate={handleNavigate}
               onBack={handleGoBack}
-              onOpenAddProductModal={() => setIsAddProductModalOpen(true)}
+              onOpenAddProductModal={() => { setProductBeingEdited(null); setIsAddProductModalOpen(true); }}
+              onEditProduct={(product) => { setProductBeingEdited(product); setIsAddProductModalOpen(true); }}
               onToggleStatus={handleToggleProductStatus}
               onDeleteProduct={handleDeleteProduct}
               onSelectProduct={setSelectedProduct}
@@ -480,6 +505,7 @@ export function App() {
               onBack={handleGoBack}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
               onOpenSupport={() => setIsSupportModalOpen(true)}
+              canApply={role !== "provider"}
             />
           )}
 
@@ -539,10 +565,12 @@ export function App() {
 
       <AddProductModal
         isOpen={isAddProductModalOpen}
-        onClose={() => setIsAddProductModalOpen(false)}
+        onClose={() => { setIsAddProductModalOpen(false); setProductBeingEdited(null); }}
         onAddProduct={handleAddProduct}
+        onUpdateProduct={handleUpdateProduct}
         userProfile={userProfile}
         existingProducts={products}
+        productToEdit={productBeingEdited}
       />
 
       <SupportModal

@@ -1,20 +1,24 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { LoanProduct, UserProfile } from "../types";
 
 interface AddProductModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddProduct: (product: LoanProduct) => void;
+  onUpdateProduct?: (product: LoanProduct) => void;
   userProfile?: UserProfile;
   existingProducts?: LoanProduct[];
+  productToEdit?: LoanProduct | null;
 }
 
 export const AddProductModal: React.FC<AddProductModalProps> = ({
   isOpen,
   onClose,
   onAddProduct,
+  onUpdateProduct,
   userProfile,
   existingProducts = [],
+  productToEdit,
 }) => {
   const [name, setName] = useState("");
   const [category, setCategory] = useState<
@@ -44,6 +48,42 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
   const [questionFileName, setQuestionFileName] = useState("");
   const [isDraggingQuestionFile, setIsDraggingQuestionFile] = useState(false);
   const [formError, setFormError] = useState("");
+
+  useEffect(() => {
+    if (!isOpen) return;
+    if (productToEdit) {
+      setName(productToEdit.name);
+      setCategory(productToEdit.category);
+      setMinAmount(productToEdit.minAmount);
+      setMaxAmount(productToEdit.maxAmount);
+      setInterestRateMin(productToEdit.interestRateMin);
+      setInterestRateMax(productToEdit.interestRateMax);
+      setTermMaxMonths(productToEdit.termMaxMonths);
+      setCollateralRequired(productToEdit.collateralRequired);
+      setCollateralText(productToEdit.collateralText);
+      setDescription(productToEdit.description);
+      setEligibilityText(productToEdit.eligibility.join("; "));
+      setRequiredDocuments(productToEdit.documents);
+      setApplicationQuestions(productToEdit.applicationQuestions || []);
+      setQuestionFileName(productToEdit.applicationQuestions?.length ? "Existing questionnaire" : "");
+    } else {
+      setName("");
+      setCategory("loan");
+      setMinAmount(500000);
+      setMaxAmount(10000000);
+      setInterestRateMin(12);
+      setInterestRateMax(16);
+      setTermMaxMonths(36);
+      setCollateralRequired(false);
+      setCollateralText("None");
+      setDescription("");
+      setEligibilityText("Malawian Citizen; Age 21-65; Verifiable Cashflow");
+      setRequiredDocuments([]);
+      setApplicationQuestions([]);
+      setQuestionFileName("");
+    }
+    setFormError("");
+  }, [isOpen, productToEdit]);
 
   const handleQuestionFile = (file?: File) => {
     if (!file) return;
@@ -85,14 +125,14 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       setFormError("Upload a questionnaire with at least one question.");
       return;
     }
-    if (existingProducts.some((product) => product.name.trim().toLowerCase() === normalizedName)) {
+    if (existingProducts.some((product) => product.id !== productToEdit?.id && product.name.trim().toLowerCase() === normalizedName)) {
       setFormError("A service with this name already exists. Please choose a unique service name.");
       return;
     }
     setFormError("");
     const newProd: LoanProduct = {
-      id: `prod-${Date.now().toString().slice(-4)}`,
-      code: `MKW-LN-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+      id: productToEdit?.id || `prod-${Date.now().toString().slice(-4)}`,
+      code: productToEdit?.code || `MKW-LN-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
       name: name || "New Credit Facility",
       provider: provider,
       category: category,
@@ -122,7 +162,8 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       applicationQuestions,
     };
 
-    onAddProduct(newProd);
+    if (productToEdit && onUpdateProduct) onUpdateProduct(newProd);
+    else onAddProduct(newProd);
     onClose();
   };
 
@@ -136,7 +177,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
               Provider Dashboard
             </span>
             <h2 className="text-xl font-bold mt-1">
-              Publish New Financial Product
+              {productToEdit ? "Edit Financial Service" : "Publish New Financial Product"}
             </h2>
           </div>
           <button
@@ -413,7 +454,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
               type="submit"
               className="px-6 py-2 bg-[#00685f] hover:bg-[#008378] text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer"
             >
-              Publish Product
+              {productToEdit ? "Save Changes" : "Publish Product"}
             </button>
           </div>
         </form>

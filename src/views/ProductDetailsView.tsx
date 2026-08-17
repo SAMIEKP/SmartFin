@@ -7,6 +7,7 @@ interface ProductDetailsViewProps {
   onBack?: () => void;
   onOpenApplyModal: () => void;
   onOpenSupport: () => void;
+  canApply?: boolean;
 }
 
 export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
@@ -15,6 +16,7 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
   onBack,
   onOpenApplyModal,
   onOpenSupport,
+  canApply = true,
 }) => {
   if (!product) {
     return (
@@ -139,12 +141,18 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
               {product.rateDisplay}
             </span>
           </div>
-          <button
-            onClick={onOpenApplyModal}
-            className="w-full py-3 bg-[#00685f] hover:bg-[#008378] text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
-          >
-            Apply Now
-          </button>
+          {canApply ? (
+            <button
+              onClick={onOpenApplyModal}
+              className="w-full py-3 bg-[#00685f] hover:bg-[#008378] text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
+            >
+              Apply Now
+            </button>
+          ) : (
+            <div className="w-full rounded-xl bg-[#e5eeff] px-3 py-3 text-xs font-bold text-[#31527d]">
+              Service information only
+            </div>
+          )}
         </div>
       </div>
 
@@ -435,12 +443,14 @@ export const ProductDetailsView: React.FC<ProductDetailsViewProps> = ({
               </span>
             </div>
 
-            <button
-              onClick={onOpenApplyModal}
-              className="w-full py-3 bg-[#00685f] hover:bg-[#008378] text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
-            >
-              Apply for this Loan
-            </button>
+            {canApply && (
+              <button
+                onClick={onOpenApplyModal}
+                className="w-full py-3 bg-[#00685f] hover:bg-[#008378] text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
+              >
+                Apply for this Loan
+              </button>
+            )}
 
             {/* SSL Encryption Security Badge */}
             <div className="p-3 bg-gray-50 rounded-xl flex items-center gap-3 text-xs text-[#3d4947]">

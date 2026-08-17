@@ -12,7 +12,7 @@ router.get('/provider/all', requireRole(['provider']), getProviderApplications);
 router.put('/:applicationId/status', requireRole(['provider']), updateApplicationStatus);
 
 // User routes
-router.post('/', createApplication);
+router.post('/', requireRole(['user']), createApplication);
 router.get('/:applicationId', getApplicationDetails);
 
 export default router;
