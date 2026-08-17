@@ -1,22 +1,26 @@
 import React, { useState } from "react";
-import { LoanProduct } from "../types";
+import { LoanProduct, UserProfile } from "../types";
 
 interface AddProductModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddProduct: (product: LoanProduct) => void;
+  userProfile?: UserProfile;
+  existingProducts?: LoanProduct[];
 }
 
 export const AddProductModal: React.FC<AddProductModalProps> = ({
   isOpen,
   onClose,
   onAddProduct,
+  userProfile,
+  existingProducts = [],
 }) => {
   const [name, setName] = useState("");
   const [category, setCategory] = useState<
     "loan" | "savings" | "mortgage" | "business" | "insurance" | "agriculture"
   >("loan");
-  const [provider, setProvider] = useState("FinAccess Partner Institution");
+  const provider = userProfile?.institutionName || "FinAccess Partner Institution";
   const [minAmount, setMinAmount] = useState<number>(500000);
   const [maxAmount, setMaxAmount] = useState<number>(10000000);
   const [interestRateMin, setInterestRateMin] = useState<number>(12.0);
@@ -28,11 +32,25 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
   const [eligibilityText, setEligibilityText] = useState(
     "Malawian Citizen; Age 21-65; Verifiable Cashflow",
   );
+  const documentOptions = [
+    "National ID",
+    "Student ID",
+    "Driving Licence",
+    "Passport",
+    "ID Photo",
+  ];
+  const [requiredDocuments, setRequiredDocuments] = useState<string[]>([]);
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const normalizedName = name.trim().toLowerCase();
+    if (!normalizedName) return;
+    if (existingProducts.some((product) => product.name.trim().toLowerCase() === normalizedName)) {
+      window.alert("A service with this name already exists. Please choose a unique service name.");
+      return;
+    }
     const newProd: LoanProduct = {
       id: `prod-${Date.now().toString().slice(-4)}`,
       code: `MKW-LN-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
@@ -61,11 +79,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       description:
         description || "New financial product offered by institution.",
       eligibility: eligibilityText.split(";").map((s) => s.trim()),
-      documents: [
-        "National ID",
-        "Proof of Residence",
-        "Bank Statements (3 months)",
-      ],
+      documents: requiredDocuments,
     };
 
     onAddProduct(newProd);
@@ -127,6 +141,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 <option value="agriculture">Agriculture Loan</option>
                 <option value="mortgage">Mortgage / Property</option>
                 <option value="savings">Savings Account</option>
+                <option value="insurance">Insurance</option>
               </select>
             </div>
             <div>
@@ -137,8 +152,9 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 type="text"
                 required
                 value={provider}
-                onChange={(e) => setProvider(e.target.value)}
-                className="w-full p-2.5 bg-[#eff4ff] border border-[#bcc9c6]/50 rounded-xl text-xs text-[#0b1c30] font-medium"
+                readOnly
+                aria-readonly="true"
+                className="w-full p-2.5 bg-[#e3ebe9] border border-[#bcc9c6]/50 rounded-xl text-xs text-[#3d4947] font-medium cursor-not-allowed"
               />
             </div>
           </div>
@@ -234,6 +250,27 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 className="w-full p-2 bg-[#eff4ff] border border-[#bcc9c6]/50 rounded-lg text-xs text-[#0b1c30]"
               />
             )}
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-[#0b1c30] uppercase mb-2">
+              Required Documents
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-xl border border-[#bcc9c6]/50 bg-[#f8fbfa] p-3">
+              {documentOptions.map((document) => (
+                <label key={document} className="flex items-center gap-2 cursor-pointer text-xs font-medium text-[#0b1c30]">
+                  <input
+                    type="checkbox"
+                    checked={requiredDocuments.includes(document)}
+                    onChange={(e) => setRequiredDocuments((current) => e.target.checked
+                      ? [...current, document]
+                      : current.filter((item) => item !== document))}
+                    className="accent-[#00685f] w-4 h-4 rounded"
+                  />
+                  <span>{document}</span>
+                </label>
+              ))}
+            </div>
           </div>
 
           <div>

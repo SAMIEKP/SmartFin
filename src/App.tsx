@@ -431,6 +431,7 @@ export function App() {
 
           {currentView === "provider-dashboard" && (
             <ProviderDashboardView
+              userProfile={userProfile}
               applications={providerApplications}
               criticalVerifications={[]}
               onNavigate={handleNavigate}
@@ -538,6 +539,8 @@ export function App() {
         isOpen={isAddProductModalOpen}
         onClose={() => setIsAddProductModalOpen(false)}
         onAddProduct={handleAddProduct}
+        userProfile={userProfile}
+        existingProducts={products}
       />
 
       <SupportModal

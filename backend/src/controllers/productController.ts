@@ -16,14 +16,37 @@ export const createProduct = async (req: any, res: Response) => {
       requiredDocuments
     } = req.body;
 
+    if (!name || !category) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Service name and category are required'
+      });
+    }
+
+    const duplicate = await query(
+      'SELECT id FROM loan_products WHERE provider_id = $1 AND LOWER(name) = LOWER($2)',
+      [providerId, name.trim()]
+    );
+    if (duplicate.rows.length > 0) {
+      return res.status(409).json({
+        error: 'Conflict',
+        message: 'A service with this name already exists for this provider'
+      });
+    }
+
     const result = await query(
-      `INSERT INTO loan_products 
+      `WITH inserted AS (
+       INSERT INTO loan_products 
        (provider_id, name, category, min_amount, max_amount, interest_rate, tenure, description, eligibility_criteria, required_documents)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-       RETURNING *`,
+       RETURNING *
+       )
+       SELECT inserted.*, u.institution_name AS provider_name
+       FROM inserted
+       JOIN users u ON u.id = inserted.provider_id`,
       [
         providerId,
-        name,
+        name.trim(),
         category,
         minAmount,
         maxAmount,
@@ -40,8 +63,14 @@ export const createProduct = async (req: any, res: Response) => {
       product: result.rows[0]
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Create product error:', error);
+    if (error?.code === '23505') {
+      return res.status(409).json({
+        error: 'Conflict',
+        message: 'A service with this name already exists for this provider'
+      });
+    }
     res.status(500).json({ 
       error: 'Internal Server Error',
       message: 'Failed to create loan product' 
@@ -54,9 +83,11 @@ export const getProviderProducts = async (req: any, res: Response) => {
     const providerId = req.user.id;
 
     const result = await query(
-      `SELECT * FROM loan_products 
-       WHERE provider_id = $1
-       ORDER BY created_at DESC`,
+      `SELECT p.*, u.institution_name AS provider_name
+       FROM loan_products p
+       JOIN users u ON u.id = p.provider_id
+       WHERE p.provider_id = $1
+       ORDER BY p.created_at DESC`,
       [providerId]
     );
 
@@ -126,9 +157,12 @@ export const updateProduct = async (req: any, res: Response) => {
       });
     }
 
+    const product = result.rows[0];
+    const provider = await query('SELECT institution_name AS provider_name FROM users WHERE id = $1', [providerId]);
+
     res.status(200).json({
       message: 'Product updated successfully',
-      product: result.rows[0]
+      product: { ...product, provider_name: provider.rows[0]?.provider_name }
     });
 
   } catch (error) {
