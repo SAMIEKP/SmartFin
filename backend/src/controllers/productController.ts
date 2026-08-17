@@ -1,6 +1,8 @@
 import { Response } from 'express';
 import { query } from '../config/database';
 
+const jsonValue = (value: unknown) => value == null ? null : JSON.stringify(value);
+
 export const createProduct = async (req: any, res: Response) => {
   try {
     const providerId = req.user.id;
@@ -54,9 +56,9 @@ export const createProduct = async (req: any, res: Response) => {
         interestRate,
         tenure,
         description,
-        eligibilityCriteria,
-        requiredDocuments,
-        applicationQuestions
+        jsonValue(eligibilityCriteria),
+        jsonValue(requiredDocuments),
+        jsonValue(applicationQuestions)
       ]
     );
 
@@ -146,9 +148,9 @@ export const updateProduct = async (req: any, res: Response) => {
         interestRate,
         tenure,
         description,
-        eligibilityCriteria,
-        requiredDocuments,
-        applicationQuestions,
+        jsonValue(eligibilityCriteria),
+        jsonValue(requiredDocuments),
+        jsonValue(applicationQuestions),
         isActive,
         productId,
         providerId
