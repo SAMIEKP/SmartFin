@@ -60,13 +60,34 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
           </div>
         </div>
 
-        <button
-          onClick={() => onNavigate('settings')}
-          className="w-full md:w-auto px-5 py-2.5 bg-primary hover:bg-primary-container text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-        >
-          <span className="material-symbols-outlined text-base">edit</span>
-          <span>Edit Profile in Settings</span>
-        </button>
+        <div className="flex gap-3 w-full md:w-auto">
+          <button
+            onClick={() => onNavigate('settings')}
+            className="px-5 py-2.5 bg-primary hover:bg-primary-container text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-base">edit</span>
+            <span>Edit Profile in Settings</span>
+          </button>
+
+          <button
+            onClick={() => {
+              // Confirmation before logout
+              const ok = window.confirm('Are you sure you want to log out of your account?');
+              if (ok) {
+                try {
+                  localStorage.removeItem('authToken');
+                } catch (e) {
+                  // ignore
+                }
+                onNavigate('login');
+              }
+            }}
+            className="px-4 py-2.5 bg-white hover:bg-gray-100 text-[#ba1a1a] border border-[#f1c6c6] font-bold text-xs rounded-xl shadow-none transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-base">logout</span>
+            <span>Log out</span>
+          </button>
+        </div>
       </div>
 
       {/* Main Grid: Details + Activity Summary */}

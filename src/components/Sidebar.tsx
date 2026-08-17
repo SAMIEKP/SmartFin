@@ -7,7 +7,6 @@ interface SidebarProps {
   role: Role;
   userProfile: UserProfile;
   onOpenSupport: () => void;
-  onSwitchRole?: (newRole: Role) => void;
   onLogout?: () => void;
 }
 
@@ -17,7 +16,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   role,
   userProfile,
   onOpenSupport,
-  onSwitchRole,
   onLogout,
 }) => {
   return (
@@ -70,7 +68,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }`}
         >
           <span className="material-symbols-outlined text-base">payments</span>
-          <span>Loan Products</span>
+          <span>Services</span>
         </button>
 
         {role === "provider" && (
@@ -89,31 +87,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
         )}
 
-        <button
-          onClick={() => onNavigate("my-applications")}
-          className={`w-full flex items-center gap-3 p-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-            currentView === "my-applications"
-              ? "bg-[#6bd8cb] text-[#00685f] shadow-xs"
-              : "text-[#3d4947] hover:bg-[#d3e4fe]"
-          }`}
-        >
-          <span className="material-symbols-outlined text-base">
-            assignment_turned_in
-          </span>
-          <span>My Applications</span>
-        </button>
+        {role === 'user' && (
+          <>
+            <button
+              onClick={() => onNavigate("my-applications")}
+              className={`w-full flex items-center gap-3 p-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                currentView === "my-applications"
+                  ? "bg-[#6bd8cb] text-[#00685f] shadow-xs"
+                  : "text-[#3d4947] hover:bg-[#d3e4fe]"
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">
+                assignment_turned_in
+              </span>
+              <span>My Applications</span>
+            </button>
 
-        <button
-          onClick={() => onNavigate("credit-score")}
-          className={`w-full flex items-center gap-3 p-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-            currentView === "credit-score"
-              ? "bg-[#6bd8cb] text-[#00685f] shadow-xs"
-              : "text-[#3d4947] hover:bg-[#d3e4fe]"
-          }`}
-        >
-          <span className="material-symbols-outlined text-base">speed</span>
-          <span>Credit Score</span>
-        </button>
+            <button
+              onClick={() => onNavigate("credit-score")}
+              className={`w-full flex items-center gap-3 p-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                currentView === "credit-score"
+                  ? "bg-[#6bd8cb] text-[#00685f] shadow-xs"
+                  : "text-[#3d4947] hover:bg-[#d3e4fe]"
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">speed</span>
+              <span>Credit Score</span>
+            </button>
+          </>
+        )}
 
         <button
           onClick={() => onNavigate("calculator")}
@@ -162,31 +164,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </nav>
 
-      {/* Role Switcher Pill */}
-      {onSwitchRole && (
-        <div className="bg-[#d3e4fe]/50 p-1.5 rounded-xl flex gap-1 text-xs mb-2">
-          <button
-            onClick={() => onSwitchRole("user")}
-            className={`flex-1 py-1.5 px-2 rounded-lg font-bold transition-colors cursor-pointer ${
-              role === "user"
-                ? "bg-[#00685f] text-white shadow-xs"
-                : "text-[#3d4947] hover:text-[#00685f]"
-            }`}
-          >
-            Individual
-          </button>
-          <button
-            onClick={() => onSwitchRole("provider")}
-            className={`flex-1 py-1.5 px-2 rounded-lg font-bold transition-colors cursor-pointer ${
-              role === "provider"
-                ? "bg-[#00685f] text-white shadow-xs"
-                : "text-[#3d4947] hover:text-[#00685f]"
-            }`}
-          >
-            Provider
-          </button>
-        </div>
-      )}
+      {/* Role Indicator */}
+      <div className="bg-[#d3e4fe]/50 px-3 py-1.5 rounded-xl text-xs font-semibold text-[#00685f] mb-2 text-center">
+        {role === "user" ? "Member" : "Provider"}
+      </div>
 
       {/* Expert Help Box */}
       <div className="mt-auto p-4 bg-[#008378] rounded-2xl text-[#f4fffc] flex flex-col items-center gap-2 text-center shadow-xs">

@@ -7,9 +7,10 @@ interface CalculatorViewProps {
 }
 
 export const CalculatorView: React.FC<CalculatorViewProps> = ({ onNavigate, onOpenApplyModal }) => {
-  const [principal, setPrincipal] = useState<number>(5000000);
-  const [rateAnnual, setRateAnnual] = useState<number>(12.5);
-  const [termMonths, setTermMonths] = useState<number>(36);
+  // Start with neutral/minimum values to avoid showing demo data by default
+  const [principal, setPrincipal] = useState<number>(250000);
+  const [rateAnnual, setRateAnnual] = useState<number>(5.0);
+  const [termMonths, setTermMonths] = useState<number>(6);
 
   const monthlyRate = rateAnnual / 100 / 12;
   const monthlyPayment = Math.round(
@@ -130,42 +131,7 @@ export const CalculatorView: React.FC<CalculatorViewProps> = ({ onNavigate, onOp
             </div>
           </div>
 
-          {/* Quick Preset Buttons */}
-          <div className="pt-2 border-t border-gray-100 space-y-2">
-            <span className="text-[11px] font-bold text-[#0b1c30] uppercase block">Popular Presets</span>
-            <div className="flex flex-wrap gap-2 text-xs">
-              <button
-                onClick={() => {
-                  setPrincipal(2500000);
-                  setRateAnnual(8.5);
-                  setTermMonths(24);
-                }}
-                className="px-3 py-1.5 bg-[#eff4ff] hover:bg-[#d3e4fe] text-[#00685f] font-bold rounded-lg transition-colors"
-              >
-                Agri Crop Loan (8.5%)
-              </button>
-              <button
-                onClick={() => {
-                  setPrincipal(10000000);
-                  setRateAnnual(15.0);
-                  setTermMonths(36);
-                }}
-                className="px-3 py-1.5 bg-[#eff4ff] hover:bg-[#d3e4fe] text-[#00685f] font-bold rounded-lg transition-colors"
-              >
-                SME Capital (15.0%)
-              </button>
-              <button
-                onClick={() => {
-                  setPrincipal(15000000);
-                  setRateAnnual(9.5);
-                  setTermMonths(120);
-                }}
-                className="px-3 py-1.5 bg-[#eff4ff] hover:bg-[#d3e4fe] text-[#00685f] font-bold rounded-lg transition-colors"
-              >
-                Housing Loan (9.5%)
-              </button>
-            </div>
-          </div>
+          {/* Presets removed to avoid demo data defaults */}
         </div>
 
         {/* Right Column: Calculations & Amortization */}

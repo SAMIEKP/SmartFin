@@ -14,8 +14,8 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [location, setLocation] = useState('Lilongwe, Central Region');
-  const [incomeRange, setIncomeRange] = useState('MWK 250,000 - MWK 750,000');
+  const [location, setLocation] = useState('');
+  const [incomeRange, setIncomeRange] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -200,7 +200,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Kwesi Banda"
+                    placeholder="Enter your full name"
                     className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
                   />
                 </div>
@@ -308,7 +308,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                     required
                     value={contactPerson}
                     onChange={(e) => setContactPerson(e.target.value)}
-                    placeholder="e.g. M. Phiri"
+                    placeholder="Enter contact person name"
                     className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
                   />
                 </div>

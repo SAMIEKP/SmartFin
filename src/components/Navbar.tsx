@@ -56,30 +56,10 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Right Controls */}
       {currentView !== 'login' && currentView !== 'register' && (
         <div className="flex items-center gap-3">
-          {/* Role toggle badge - Navigate to Login */}
-          <div className="hidden sm:flex bg-[#e5eeff] p-1 rounded-full text-xs font-semibold">
-            <button
-              onClick={() => onNavigateLogin ? onNavigateLogin('user') : onNavigate('login')}
-              className={`px-3 py-1 rounded-full transition-all ${
-                role === 'user'
-                  ? 'bg-[#00685f] text-white shadow-xs'
-                  : 'text-[#3d4947] hover:text-[#00685f]'
-              }`}
-            >
-              Member
-            </button>
-            <button
-              onClick={() => onNavigateLogin ? onNavigateLogin('provider') : onNavigate('login')}
-              className={`px-3 py-1 rounded-full transition-all ${
-                role === 'provider'
-                  ? 'bg-[#00685f] text-white shadow-xs'
-                  : 'text-[#3d4947] hover:text-[#00685f]'
-              }`}
-            >
-              Provider
-            </button>
+          {/* Role indicator - Display only */}
+          <div className="hidden sm:flex bg-[#e5eeff] px-3 py-1 rounded-full text-xs font-semibold text-[#00685f]">
+            {role === 'user' ? 'Member' : 'Provider'}
           </div>
-
         </div>
       )}
     </header>

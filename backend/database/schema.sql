@@ -53,10 +53,11 @@ CREATE TABLE IF NOT EXISTS applications (
 
 CREATE INDEX IF NOT EXISTS loan_products_provider_id_idx ON loan_products(provider_id);
 CREATE INDEX IF NOT EXISTS loan_products_active_idx ON loan_products(is_active);
+CREATE UNIQUE INDEX IF NOT EXISTS loan_products_provider_name_unique_idx
+  ON loan_products(provider_id, LOWER(name));
 CREATE INDEX IF NOT EXISTS applications_user_id_idx ON applications(user_id);
 CREATE INDEX IF NOT EXISTS applications_product_id_idx ON applications(product_id);
 CREATE INDEX IF NOT EXISTS applications_status_idx ON applications(status);
 CREATE UNIQUE INDEX IF NOT EXISTS applications_pending_product_user_idx
   ON applications(user_id, product_id)
   WHERE status IN ('pending', 'under_review');
-
