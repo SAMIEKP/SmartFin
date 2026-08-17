@@ -33,10 +33,13 @@ CREATE TABLE IF NOT EXISTS loan_products (
   description TEXT,
   eligibility_criteria JSONB,
   required_documents JSONB,
+  application_questions JSONB,
   is_active BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE loan_products ADD COLUMN IF NOT EXISTS application_questions JSONB;
 
 CREATE TABLE IF NOT EXISTS applications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

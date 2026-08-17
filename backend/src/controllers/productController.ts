@@ -13,7 +13,8 @@ export const createProduct = async (req: any, res: Response) => {
       tenure,
       description,
       eligibilityCriteria,
-      requiredDocuments
+      requiredDocuments,
+      applicationQuestions
     } = req.body;
 
     if (!name || !category) {
@@ -37,8 +38,8 @@ export const createProduct = async (req: any, res: Response) => {
     const result = await query(
       `WITH inserted AS (
        INSERT INTO loan_products 
-       (provider_id, name, category, min_amount, max_amount, interest_rate, tenure, description, eligibility_criteria, required_documents)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       (provider_id, name, category, min_amount, max_amount, interest_rate, tenure, description, eligibility_criteria, required_documents, application_questions)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING *
        )
        SELECT inserted.*, u.institution_name AS provider_name
@@ -54,7 +55,8 @@ export const createProduct = async (req: any, res: Response) => {
         tenure,
         description,
         eligibilityCriteria,
-        requiredDocuments
+        requiredDocuments,
+        applicationQuestions
       ]
     );
 
@@ -116,6 +118,7 @@ export const updateProduct = async (req: any, res: Response) => {
       description,
       eligibilityCriteria,
       requiredDocuments,
+      applicationQuestions,
       isActive
     } = req.body;
 
@@ -130,9 +133,10 @@ export const updateProduct = async (req: any, res: Response) => {
            description = COALESCE($7, description),
            eligibility_criteria = COALESCE($8, eligibility_criteria),
            required_documents = COALESCE($9, required_documents),
-           is_active = COALESCE($10, is_active),
+           application_questions = COALESCE($10, application_questions),
+           is_active = COALESCE($11, is_active),
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $11 AND provider_id = $12
+       WHERE id = $12 AND provider_id = $13
        RETURNING *`,
       [
         name,
@@ -144,6 +148,7 @@ export const updateProduct = async (req: any, res: Response) => {
         description,
         eligibilityCriteria,
         requiredDocuments,
+        applicationQuestions,
         isActive,
         productId,
         providerId

@@ -25,7 +25,7 @@ export interface LoanProduct {
   name: string;
   provider: string;
   providerLogo?: string;
-  category: 'loan' | 'savings' | 'mortgage' | 'business' | 'insurance' | 'agriculture';
+  category: 'loan' | 'student' | 'savings' | 'mortgage' | 'business' | 'insurance' | 'agriculture';
   categoryLabel: string;
   interestRateMin: number;
   interestRateMax: number;
@@ -47,6 +47,7 @@ export interface LoanProduct {
   description: string;
   eligibility: string[];
   documents: string[];
+  applicationQuestions?: string[];
   repaymentScheduleSample?: {
     month: number;
     principal: number;
@@ -91,6 +92,7 @@ export interface ApplicationItem {
   timeline?: ApplicationTimelineEvent[];
   requestedDocuments?: string[];
   uploadedDocuments?: { name: string; url: string; date: string }[];
+  answers?: Record<string, unknown>;
 }
 
 export interface UserProfile {

@@ -37,6 +37,7 @@ export interface ApiLoanProduct {
   description?: string;
   eligibility_criteria?: string[] | string;
   required_documents?: string[] | string;
+  application_questions?: string[] | string;
   is_active: boolean;
   created_at?: string;
 }
@@ -145,6 +146,7 @@ export const mapApiProduct = (product: ApiLoanProduct): LoanProduct => {
   const minRate = numberValue(product.interest_rate);
   const eligibility = listValue(product.eligibility_criteria);
   const documents = listValue(product.required_documents);
+  const applicationQuestions = listValue(product.application_questions);
   const term = product.tenure || 'Flexible';
   return {
     id: product.id,
@@ -169,6 +171,7 @@ export const mapApiProduct = (product: ApiLoanProduct): LoanProduct => {
     description: product.description || '',
     eligibility,
     documents,
+    applicationQuestions,
   };
 };
 

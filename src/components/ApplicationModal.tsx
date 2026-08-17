@@ -26,6 +26,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
   const [location, setLocation] = useState<string>('');
   const [employmentStatus, setEmploymentStatus] = useState<string>('');
   const [purpose, setPurpose] = useState<string>('');
+  const [customAnswers, setCustomAnswers] = useState<Record<string, string>>({});
   const [step, setStep] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -54,6 +55,13 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
         status: 'Pending',
         date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         monthlyRepayment: estimatedMonthly,
+        answers: {
+          monthlyIncome,
+          nationalId,
+          employmentStatus,
+          purpose,
+          ...customAnswers,
+        },
       };
 
       onSubmitApplication(newApp);
@@ -284,6 +292,32 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
                   />
                 </div>
               </div>
+
+              {currentProd && (currentProd.applicationQuestions || []).length > 0 && (
+                <div className="space-y-3 rounded-xl border border-[#008378]/30 bg-[#f4fffc] p-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-[#00685f]">Additional Questions</p>
+                    <p className="mt-1 text-[11px] text-[#3d4947]">Please answer all questions required by this provider.</p>
+                  </div>
+                  {(currentProd.applicationQuestions || []).map((question, index) => {
+                    const answerKey = `question_${index + 1}`;
+                    return (
+                      <div key={`${answerKey}-${question}`}>
+                        <label className="block text-[11px] font-bold text-[#0b1c30] mb-1">
+                          {question}
+                        </label>
+                        <textarea
+                          required
+                          rows={2}
+                          value={customAnswers[answerKey] || ''}
+                          onChange={(e) => setCustomAnswers((current) => ({ ...current, [answerKey]: e.target.value }))}
+                          className="w-full p-2.5 bg-white border border-[#bcc9c6]/50 rounded-xl text-xs text-[#0b1c30] font-medium"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
               <div className="p-3 bg-[#e5eeff] rounded-xl text-xs text-[#0b1c30] space-y-1">
                 <div className="flex items-center gap-2 font-bold text-[#00685f]">

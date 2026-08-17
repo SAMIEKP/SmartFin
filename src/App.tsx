@@ -181,6 +181,7 @@ export function App() {
           applicantName: newApp.applicantName,
           phone: newApp.applicantPhone,
           location: newApp.applicantLocation,
+          ...(newApp.answers || {}),
         },
         documents: [],
       });
@@ -203,6 +204,7 @@ export function App() {
         description: newProd.description,
         eligibilityCriteria: newProd.eligibility,
         requiredDocuments: newProd.documents,
+        applicationQuestions: newProd.applicationQuestions,
       });
       setProducts((prev) => [mapApiProduct(product), ...prev]);
     } catch (error) {

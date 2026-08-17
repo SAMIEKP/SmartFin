@@ -18,7 +18,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
 }) => {
   const [name, setName] = useState("");
   const [category, setCategory] = useState<
-    "loan" | "savings" | "mortgage" | "business" | "insurance" | "agriculture"
+    "loan" | "student" | "savings" | "mortgage" | "business" | "insurance" | "agriculture"
   >("loan");
   const provider = userProfile?.institutionName || "FinAccess Partner Institution";
   const [minAmount, setMinAmount] = useState<number>(500000);
@@ -40,6 +40,27 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
     "ID Photo",
   ];
   const [requiredDocuments, setRequiredDocuments] = useState<string[]>([]);
+  const [applicationQuestions, setApplicationQuestions] = useState<string[]>([]);
+  const [questionFileName, setQuestionFileName] = useState("");
+
+  const handleQuestionFile = (file?: File) => {
+    if (!file) return;
+    const isSupported = /\.(md|txt)$/i.test(file.name);
+    if (!isSupported) {
+      window.alert("Please upload a Markdown (.md) or text (.txt) file.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const questions = String(reader.result || "")
+        .split(/\r?\n/)
+        .map((line) => line.replace(/^\s*(?:[-*+]\s+|\d+[.)]\s+|#+\s*)/, "").trim())
+        .filter(Boolean);
+      setApplicationQuestions(questions);
+      setQuestionFileName(file.name);
+    };
+    reader.readAsText(file);
+  };
 
   if (!isOpen) return null;
 
@@ -80,6 +101,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
         description || "New financial product offered by institution.",
       eligibility: eligibilityText.split(";").map((s) => s.trim()),
       documents: requiredDocuments,
+      applicationQuestions,
     };
 
     onAddProduct(newProd);
@@ -91,6 +113,27 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
       <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-[#bcc9c6]/40 overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="bg-[#00685f] text-white p-5 flex items-center justify-between">
+          <div>
+            <label className="block text-xs font-bold text-[#0b1c30] uppercase mb-2">
+              Application Questions (.md or .txt)
+            </label>
+            <input
+              type="file"
+              accept=".md,.txt,text/markdown,text/plain"
+              onChange={(e) => handleQuestionFile(e.target.files?.[0])}
+              className="w-full p-2 bg-[#eff4ff] border border-[#bcc9c6]/50 rounded-xl text-xs text-[#0b1c30]"
+            />
+            <p className="mt-1 text-[11px] text-[#6d7a77]">
+              Add one question per line. These questions will be required when an individual applies.
+            </p>
+            {questionFileName && (
+              <div className="mt-2 rounded-xl bg-[#f4fffc] border border-[#008378]/30 p-3 text-xs text-[#00201d]">
+                <p className="font-bold">{questionFileName}</p>
+                <p className="mt-1">{applicationQuestions.length} question{applicationQuestions.length === 1 ? "" : "s"} loaded</p>
+              </div>
+            )}
+          </div>
+
           <div>
             <span className="text-[10px] font-bold uppercase tracking-wider bg-[#89f5e7] text-[#00201d] px-2 py-0.5 rounded-full">
               Provider Dashboard
@@ -137,6 +180,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 className="w-full p-2.5 bg-[#eff4ff] border border-[#bcc9c6]/50 rounded-xl text-xs text-[#0b1c30] font-medium"
               >
                 <option value="loan">Personal Loan</option>
+                <option value="student">Student Loan</option>
                 <option value="business">SME / Business Loan</option>
                 <option value="agriculture">Agriculture Loan</option>
                 <option value="mortgage">Mortgage / Property</option>
