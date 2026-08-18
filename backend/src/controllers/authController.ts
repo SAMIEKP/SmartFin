@@ -62,10 +62,10 @@ export const register = async (req: Request, res: Response) => {
       );
     } else {
       user = await query(
-        `INSERT INTO users (email, password, role, institution_name, contact_person, institution_type, registration_number)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
-         RETURNING id, email, role, institution_name, contact_person, institution_type, registration_number, created_at`,
-        [email.toLowerCase(), hashedPassword, role, institutionName, contactPerson, institutionType, registrationNumber]
+        `INSERT INTO users (email, password, role, institution_name, phone, contact_person, institution_type, registration_number)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         RETURNING id, email, role, institution_name, phone, contact_person, institution_type, registration_number, created_at`,
+        [email.toLowerCase(), hashedPassword, role, institutionName, phone, contactPerson, institutionType, registrationNumber]
       );
     }
 
@@ -91,7 +91,10 @@ export const register = async (req: Request, res: Response) => {
         email: newUser.email,
         role: newUser.role,
         name: newUser.name || newUser.contact_person,
-        institutionName: newUser.institution_name
+        phone: newUser.phone,
+        institutionName: newUser.institution_name,
+        institutionType: newUser.institution_type,
+        registrationNumber: newUser.registration_number
       }
     });
 

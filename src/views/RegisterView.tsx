@@ -2,6 +2,18 @@ import React, { useState } from 'react';
 import { ViewMode, Role, UserProfile } from '../types';
 import { authAPI, mapApiUser } from '../services/api';
 
+const passwordStrength = (value: string) => [
+  value.length >= 8,
+  /[A-Z]/.test(value),
+  /[a-z]/.test(value),
+  /\d/.test(value),
+  /[^A-Za-z0-9]/.test(value),
+].filter(Boolean).length;
+
+const validEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+const validPhoneList = (value: string) => value.split(/[,;\n]+/).map((phone) => phone.trim()).filter(Boolean)
+  .every((phone) => /^\+?[0-9][0-9\s()-]{6,}$/.test(phone));
+
 interface RegisterViewProps {
   onNavigate: (view: ViewMode) => void;
   onSelectUser: (user: UserProfile, role: Role, token?: string) => void;
@@ -21,13 +33,16 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
 
   // Provider fields
   const [institutionName, setInstitutionName] = useState('');
-  const [contactPerson, setContactPerson] = useState('');
   const [providerEmail, setProviderEmail] = useState('');
   const [providerPhone, setProviderPhone] = useState('');
+  const [providerSecondPhone, setProviderSecondPhone] = useState('');
+  const [showSecondPhone, setShowSecondPhone] = useState(false);
   const [institutionType, setInstitutionType] = useState('MFI');
   const [registrationNumber, setRegistrationNumber] = useState('');
   const [providerPassword, setProviderPassword] = useState('');
   const [providerConfirmPassword, setProviderConfirmPassword] = useState('');
+  const [showProviderPassword, setShowProviderPassword] = useState(false);
+  const [showProviderConfirmPassword, setShowProviderConfirmPassword] = useState(false);
 
   // Validation
   const [errorMessage, setErrorMessage] = useState('');
@@ -77,8 +92,16 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
       }
 
     } else {
-      if (!institutionName || !contactPerson || !providerEmail || !providerPassword) {
+      if (!institutionName || !providerEmail || !providerPassword) {
         setErrorMessage('Please fill in all required institution fields.');
+        return;
+      }
+      if (!validEmail(providerEmail)) {
+        setErrorMessage('Please enter a valid institution email address.');
+        return;
+      }
+      if (!providerPhone.trim() || !validPhoneList(providerPhone) || (providerSecondPhone.trim() && !validPhoneList(providerSecondPhone))) {
+        setErrorMessage('Enter a valid primary phone number. The second phone number is optional.');
         return;
       }
       if (providerPassword !== providerConfirmPassword) {
@@ -97,7 +120,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
           password: providerPassword,
           role: 'provider',
           institutionName,
-          contactPerson,
+          phone: [providerPhone.trim(), providerSecondPhone.trim()].filter(Boolean).join(', '),
           institutionType,
           registrationNumber,
         };
@@ -302,17 +325,6 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-[#0b1c30]">Contact Person Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={contactPerson}
-                    onChange={(e) => setContactPerson(e.target.value)}
-                    placeholder="Enter contact person name"
-                    className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
-                  />
-                </div>
-                <div className="space-y-1">
                   <label className="font-bold text-[#0b1c30]">Work Email Address *</label>
                   <input
                     type="email"
@@ -322,6 +334,9 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                     placeholder="m.phiri@institution.mw"
                     className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
                   />
+                  {providerEmail && !validEmail(providerEmail) && (
+                    <p className="text-[11px] text-red-600">Enter a valid email address.</p>
+                  )}
                 </div>
               </div>
 
@@ -353,38 +368,81 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-[#0b1c30]">Institution Contact Phone</label>
+                <label className="font-bold text-[#0b1c30]">Institution Contact Phone *</label>
                 <input
-                  type="tel"
+                  type="text"
                   value={providerPhone}
                   onChange={(e) => setProviderPhone(e.target.value)}
-                    placeholder="Enter institution phone"
+                  placeholder="+265 888 123 456"
+                  inputMode="tel"
                   className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
                 />
+                <p className="text-[11px] text-[#6d7a77]">Primary number is required.</p>
+                {providerPhone.trim() && !validPhoneList(providerPhone) && (
+                  <p className="text-[11px] text-red-600">Check the phone number format.</p>
+                )}
+                {!showSecondPhone ? (
+                  <button type="button" onClick={() => setShowSecondPhone(true)} className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-[#855300] hover:text-[#653e00]">
+                    <span className="material-symbols-outlined text-sm">add_circle</span>
+                    Add second phone number (optional)
+                  </button>
+                ) : (
+                  <>
+                    <div className="mt-2 flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={providerSecondPhone}
+                        onChange={(e) => setProviderSecondPhone(e.target.value)}
+                        placeholder="Second phone number (optional)"
+                        inputMode="tel"
+                        className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
+                      />
+                    </div>
+                    {providerSecondPhone.trim() && !validPhoneList(providerSecondPhone) && (
+                      <p className="text-[11px] text-red-600">Check the second phone number format.</p>
+                    )}
+                  </>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="font-bold text-[#0b1c30]">Password *</label>
+                  <div className="relative">
                   <input
-                    type="password"
+                    type={showProviderPassword ? 'text' : 'password'}
                     required
                     value={providerPassword}
                     onChange={(e) => setProviderPassword(e.target.value)}
                     placeholder="At least 6 chars"
                     className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
                   />
+                  <button type="button" onClick={() => setShowProviderPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6d7a77]" aria-label={showProviderPassword ? 'Hide password' : 'Show password'}>
+                    <span className="material-symbols-outlined text-base">{showProviderPassword ? 'visibility_off' : 'visibility'}</span>
+                  </button>
+                  </div>
+                  {providerPassword && (
+                    <div className="space-y-1 pt-1">
+                      <div className="flex gap-1">{[1, 2, 3, 4, 5].map((level) => <span key={level} className={`h-1 flex-1 rounded-full ${level <= passwordStrength(providerPassword) ? (passwordStrength(providerPassword) <= 2 ? 'bg-red-400' : passwordStrength(providerPassword) <= 4 ? 'bg-amber-400' : 'bg-emerald-500') : 'bg-gray-200'}`} />)}</div>
+                      <p className="text-[11px] text-[#6d7a77]">Strength: {passwordStrength(providerPassword) <= 2 ? 'Weak' : passwordStrength(providerPassword) <= 4 ? 'Good' : 'Strong'}</p>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <label className="font-bold text-[#0b1c30]">Confirm Password *</label>
+                  <div className="relative">
                   <input
-                    type="password"
+                    type={showProviderConfirmPassword ? 'text' : 'password'}
                     required
                     value={providerConfirmPassword}
                     onChange={(e) => setProviderConfirmPassword(e.target.value)}
                     placeholder="Repeat password"
                     className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
                   />
+                  <button type="button" onClick={() => setShowProviderConfirmPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6d7a77]" aria-label={showProviderConfirmPassword ? 'Hide password' : 'Show password'}>
+                    <span className="material-symbols-outlined text-base">{showProviderConfirmPassword ? 'visibility_off' : 'visibility'}</span>
+                  </button>
+                  </div>
                 </div>
               </div>
             </>

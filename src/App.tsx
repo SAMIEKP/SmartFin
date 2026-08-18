@@ -298,10 +298,14 @@ export function App() {
 
       // Send update to backend (include avatarUrl if present)
       const payload: Record<string, unknown> = {
+        email: updated.email,
         name: updated.name,
         phone: updated.phone,
         location: updated.location,
         income_range: updated.incomeRange,
+        institutionName: updated.institutionName,
+        institutionType: updated.institutionType,
+        registrationNumber: updated.registrationNumber,
       };
       if (updated.avatarUrl) payload.avatar_url = updated.avatarUrl;
 

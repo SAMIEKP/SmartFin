@@ -4,18 +4,22 @@ import { query } from '../config/database';
 export const updateProfile = async (req: any, res: Response) => {
   try {
     const userId = req.user.id;
-    const { name, phone, location, incomeRange } = req.body;
+    const { email, name, phone, location, incomeRange, institutionName, institutionType, registrationNumber } = req.body;
 
     const result = await query(
       `UPDATE users 
-       SET name = COALESCE($1, name),
-           phone = COALESCE($2, phone),
-           location = COALESCE($3, location),
-           income_range = COALESCE($4, income_range),
+       SET email = COALESCE($1, email),
+           name = COALESCE($2, name),
+           phone = COALESCE($3, phone),
+           location = COALESCE($4, location),
+           income_range = COALESCE($5, income_range),
+           institution_name = COALESCE($6, institution_name),
+           institution_type = COALESCE($7, institution_type),
+           registration_number = COALESCE($8, registration_number),
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $5
-       RETURNING id, email, role, name, phone, location, income_range, updated_at`,
-      [name, phone, location, incomeRange, userId]
+       WHERE id = $9
+       RETURNING id, email, role, name, phone, location, income_range, institution_name, institution_type, registration_number, updated_at`,
+      [email, name, phone, location, incomeRange, institutionName, institutionType, registrationNumber, userId]
     );
 
     if (result.rows.length === 0) {
