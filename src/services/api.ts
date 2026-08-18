@@ -1,4 +1,4 @@
-import { ApplicationItem, ApplicationStatus, LoanProduct, Role, UserProfile } from '../types';
+import { ApplicationItem, ApplicationStatus, LoanProduct, Role, UserProfile, UserNotification, ApprovedLoan } from '../types';
 
 // In development, use Vite's same-origin proxy so localhost/127.0.0.1 mismatches
 // do not cause browser fetch failures. Set VITE_API_BASE_URL for production.
@@ -20,6 +20,18 @@ export interface ApiUser {
   contact_person?: string;
   institution_type?: string;
   registration_number?: string;
+  segment?: string;
+  district?: string;
+  city_village?: string;
+  language?: string;
+  needs?: string[];
+  profile_status?: string;
+  provider_status?: string;
+  lending_policy?: string;
+  interest_policy?: string;
+  late_payment_policy?: string;
+  data_privacy_statement?: string;
+  notification_preferences?: { sms?: boolean; email?: boolean; in_app?: boolean };
   is_verified?: boolean;
   created_at?: string;
 }
@@ -38,6 +50,9 @@ export interface ApiLoanProduct {
   eligibility_criteria?: string[] | string;
   required_documents?: string[] | string;
   application_questions?: string[] | string;
+  interest_type?: 'fixed' | 'variable';
+  repayment_schedule?: 'monthly' | 'weekly';
+  fees?: string[] | string;
   is_active: boolean;
   created_at?: string;
 }
@@ -60,6 +75,7 @@ export interface ApiApplication {
   product_category?: string;
   institution_name?: string;
   provider_name?: string;
+  required_documents?: string[] | string;
 }
 
 export class ApiError extends Error {
@@ -126,7 +142,9 @@ const listValue = (value: string[] | string | undefined, fallback: string[] = []
   return fallback;
 };
 
-export const mapApiUser = (user: ApiUser): UserProfile => ({
+export const mapApiUser = (user: ApiUser): UserProfile => {
+  if (user.language) localStorage.setItem('finaccess:language', user.language);
+  return ({
   id: user.id,
   name: user.name || user.contact_person || user.institution_name || 'FinAccess member',
   role: user.role,
@@ -136,11 +154,24 @@ export const mapApiUser = (user: ApiUser): UserProfile => ({
   incomeRange: user.income_range || '',
   institutionName: user.institution_name,
   institutionType: user.institution_type,
-  registrationNumber: user.registration_number,
+    registrationNumber: user.registration_number,
+    language: user.language || localStorage.getItem('finaccess:language') || 'en',
+    segment: user.segment,
+    district: user.district,
+    cityVillage: user.city_village,
+    needs: user.needs || [],
+    profileStatus: user.profile_status,
+    providerStatus: user.provider_status,
+    lendingPolicy: user.lending_policy,
+    interestPolicy: user.interest_policy,
+    latePaymentPolicy: user.late_payment_policy,
+    dataPrivacyStatement: user.data_privacy_statement,
+    notificationPreferences: user.notification_preferences,
   memberStatus: user.is_verified ? 'Verified member' : 'Pending verification',
   isPendingVerification: user.is_verified === false,
   creditScore: 0,
-});
+  });
+};
 
 export const mapApiProduct = (product: ApiLoanProduct): LoanProduct => {
   const minRate = numberValue(product.interest_rate);
@@ -172,6 +203,9 @@ export const mapApiProduct = (product: ApiLoanProduct): LoanProduct => {
     eligibility,
     documents,
     applicationQuestions,
+    interestType: product.interest_type,
+    repaymentSchedule: product.repayment_schedule,
+    fees: listValue(product.fees),
   };
 };
 
@@ -198,6 +232,9 @@ export const mapApiApplication = (application: ApiApplication): ApplicationItem 
     status: statusMap[application.status],
     date: application.created_at ? new Date(application.created_at).toLocaleDateString() : 'Recently',
     notes: application.notes ? [application.notes] : undefined,
+    uploadedDocuments: Array.isArray(application.documents) ? application.documents as { name: string; url: string; date: string }[] : undefined,
+    requestedDocuments: listValue(application.required_documents),
+    answers: application.answers,
   };
 };
 
@@ -215,6 +252,9 @@ export const userAPI = {
     Object.entries(params || {}).forEach(([key, value]) => value !== undefined && search.set(key, String(value)));
     return apiRequest<{ products: ApiLoanProduct[] }>(`/users/products${search.toString() ? `?${search}` : ''}`);
   },
+  getNotifications: () => apiRequest<{ notifications: UserNotification[] }>('/applications/user/notifications'),
+  markNotificationRead: (id: string) => apiRequest<{ message: string }>(`/applications/user/notifications/${id}/read`, { method: 'PUT' }),
+  getLoans: () => apiRequest<{ loans: ApprovedLoan[] }>('/applications/user/loans'),
 };
 
 export const productAPI = {

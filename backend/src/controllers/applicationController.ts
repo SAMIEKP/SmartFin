@@ -61,7 +61,7 @@ export const getProviderApplications = async (req: any, res: Response) => {
 
     let queryText = `
       SELECT a.*, u.name as user_name, u.email as user_email, u.phone as user_phone,
-             p.name as product_name, p.category as product_category
+             p.name as product_name, p.category as product_category, p.required_documents
       FROM applications a
       JOIN users u ON a.user_id = u.id
       JOIN loan_products p ON a.product_id = p.id
@@ -95,6 +95,10 @@ export const updateApplicationStatus = async (req: any, res: Response) => {
     const { applicationId } = req.params;
     const { status, notes } = req.body;
 
+    if (!['pending', 'under_review', 'approved', 'rejected'].includes(status)) {
+      return res.status(400).json({ error: 'Bad Request', message: 'Invalid application status' });
+    }
+
     // Verify that the application belongs to a product from this provider
     const verifyResult = await query(
       `SELECT a.id FROM applications a
@@ -120,9 +124,44 @@ export const updateApplicationStatus = async (req: any, res: Response) => {
       [status, notes, applicationId]
     );
 
+    const application = result.rows[0];
+    if (status === 'approved' || status === 'rejected') {
+      const product = await query(
+        'SELECT name, interest_rate, tenure, repayment_schedule FROM loan_products WHERE id = $1',
+        [application.product_id]
+      );
+      const productName = product.rows[0]?.name || 'your application';
+      const title = status === 'approved' ? 'Loan application approved' : 'Loan application decision';
+      const message = status === 'approved'
+        ? `Your application for ${productName} has been approved.`
+        : `Your application for ${productName} was rejected.${notes ? ` ${notes}` : ''}`;
+      await query(
+        `INSERT INTO notifications (user_id, type, title, message) VALUES ($1, $2, $3, $4)`,
+        [application.user_id, status === 'approved' ? 'approval' : 'rejection', title, message]
+      );
+
+      if (status === 'approved') {
+        const amount = Number(application.answers?.amount || 0);
+        const termMatch = String(product.rows[0]?.tenure || '12').match(/\d+/);
+        const term = Math.max(1, Number(termMatch?.[0] || 12));
+        const payment = Math.round(amount / term);
+        const schedule = Array.from({ length: term }, (_, index) => ({
+          period: index + 1,
+          amount: payment,
+          status: 'upcoming'
+        }));
+        await query(
+          `INSERT INTO approved_loans (application_id, user_id, product_id, outstanding_balance, next_payment_due, payment_amount, payment_frequency, schedule)
+           VALUES ($1, $2, $3, $4, CURRENT_DATE + INTERVAL '30 days', $5, $6, $7)
+           ON CONFLICT (application_id) DO NOTHING`,
+          [applicationId, application.user_id, application.product_id, amount, payment, product.rows[0]?.repayment_schedule || 'monthly', JSON.stringify(schedule)]
+        );
+      }
+    }
+
     res.status(200).json({
       message: 'Application status updated successfully',
-      application: result.rows[0]
+      application
     });
 
   } catch (error) {
@@ -132,6 +171,31 @@ export const updateApplicationStatus = async (req: any, res: Response) => {
       message: 'Failed to update application status' 
     });
   }
+};
+
+export const getUserNotifications = async (req: any, res: Response) => {
+  const result = await query(
+    'SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50',
+    [req.user.id]
+  );
+  res.status(200).json({ notifications: result.rows });
+};
+
+export const markNotificationRead = async (req: any, res: Response) => {
+  await query('UPDATE notifications SET read_at = CURRENT_TIMESTAMP WHERE id = $1 AND user_id = $2', [req.params.notificationId, req.user.id]);
+  res.status(200).json({ message: 'Notification marked as read' });
+};
+
+export const getUserLoans = async (req: any, res: Response) => {
+  const result = await query(
+    `SELECT l.*, p.name AS product_name, u.institution_name AS provider_name
+     FROM approved_loans l
+     JOIN loan_products p ON p.id = l.product_id
+     JOIN users u ON u.id = p.provider_id
+     WHERE l.user_id = $1 ORDER BY l.created_at DESC`,
+    [req.user.id]
+  );
+  res.status(200).json({ loans: result.rows });
 };
 
 export const getApplicationDetails = async (req: any, res: Response) => {

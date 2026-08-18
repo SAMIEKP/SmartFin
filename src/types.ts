@@ -48,6 +48,9 @@ export interface LoanProduct {
   eligibility: string[];
   documents: string[];
   applicationQuestions?: string[];
+  interestType?: 'fixed' | 'variable';
+  repaymentSchedule?: 'monthly' | 'weekly';
+  fees?: string[];
   repaymentScheduleSample?: {
     month: number;
     principal: number;
@@ -117,8 +120,39 @@ export interface UserProfile {
   preferredCategories?: string[];
   twoFactorEnabled?: boolean;
   language?: string;
+  segment?: string;
+  district?: string;
+  cityVillage?: string;
+  needs?: string[];
+  profileStatus?: string;
+  providerStatus?: string;
+  lendingPolicy?: string;
+  interestPolicy?: string;
+  latePaymentPolicy?: string;
+  dataPrivacyStatement?: string;
+  notificationPreferences?: { sms?: boolean; email?: boolean; in_app?: boolean };
   theme?: 'light' | 'dark';
   fontSize?: 'small' | 'default' | 'large';
+}
+
+export interface UserNotification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  read_at?: string;
+  created_at: string;
+}
+
+export interface ApprovedLoan {
+  id: string;
+  product_name: string;
+  provider_name: string;
+  outstanding_balance: number | string;
+  next_payment_due?: string;
+  payment_amount: number | string;
+  payment_frequency: string;
+  schedule?: Array<{ period: number; amount: number; status: string }>;
 }
 
 export interface CriticalVerification {

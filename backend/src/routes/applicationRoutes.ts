@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createApplication, getProviderApplications, updateApplicationStatus, getApplicationDetails } from '../controllers/applicationController';
+import { createApplication, getProviderApplications, updateApplicationStatus, getApplicationDetails, getUserNotifications, markNotificationRead, getUserLoans } from '../controllers/applicationController';
 import { authenticateToken, requireRole } from '../middleware/auth';
 
 const router = Router();
@@ -13,6 +13,9 @@ router.put('/:applicationId/status', requireRole(['provider']), updateApplicatio
 
 // User routes
 router.post('/', requireRole(['user']), createApplication);
+router.get('/user/notifications', requireRole(['user']), getUserNotifications);
+router.put('/user/notifications/:notificationId/read', requireRole(['user']), markNotificationRead);
+router.get('/user/loans', requireRole(['user']), getUserLoans);
 router.get('/:applicationId', getApplicationDetails);
 
 export default router;

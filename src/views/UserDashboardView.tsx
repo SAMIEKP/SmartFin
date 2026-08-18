@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { JSX } from 'react';
-import { ViewMode, LoanProduct, ApplicationItem, UserProfile } from '../types';
+import { ViewMode, LoanProduct, ApplicationItem, UserProfile, UserNotification, ApprovedLoan } from '../types';
 
 interface UserDashboardViewProps {
   userProfile: UserProfile;
@@ -9,6 +9,8 @@ interface UserDashboardViewProps {
   onNavigate: (view: ViewMode) => void;
   onSelectProduct: (product: LoanProduct) => void;
   onOpenApplyModal: () => void;
+  notifications?: UserNotification[];
+  loans?: ApprovedLoan[];
 }
 
 export const UserDashboardView: React.FC<UserDashboardViewProps> = ({
@@ -18,6 +20,8 @@ export const UserDashboardView: React.FC<UserDashboardViewProps> = ({
   onNavigate,
   onSelectProduct,
   onOpenApplyModal,
+  notifications = [],
+  loans = [],
 }) => {
   const [savedProductsCount] = useState(0);
   const pendingApps = applications.filter(
@@ -97,6 +101,12 @@ export const UserDashboardView: React.FC<UserDashboardViewProps> = ({
       </div>
 
       {/* Action Required Alert Banner */}
+      {loans.length > 0 && (
+        <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl space-y-2">
+          <h3 className="font-extrabold text-sm text-emerald-900 flex items-center gap-2"><span className="material-symbols-outlined">account_balance</span>Approved loans & repayments</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">{loans.map((loan) => <div key={loan.id} className="bg-white rounded-xl p-3 text-xs border border-emerald-100"><p className="font-bold text-[#0b1c30]">{loan.product_name} · {loan.provider_name}</p><p className="mt-1 text-[#3d4947]">Outstanding: <strong>MWK {Number(loan.outstanding_balance).toLocaleString()}</strong></p><p className="text-[#3d4947]">Next payment: <strong>MWK {Number(loan.payment_amount).toLocaleString()}</strong> due {loan.next_payment_due || 'scheduled soon'}</p></div>)}</div>
+        </div>
+      )}
       {actionRequiredApp && (
         <div className="bg-error-container border border-error/40 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-on-error-container">
           <div className="flex items-center gap-3">
@@ -310,8 +320,7 @@ export const UserDashboardView: React.FC<UserDashboardViewProps> = ({
 
             <div className="space-y-3 text-xs">
               <div className="text-center py-8 text-on-surface-variant">
-                <p className="font-medium">No recent activity to show.</p>
-                <p className="text-[11px]">Live activity will appear here when available.</p>
+              {notifications.length === 0 ? <><p className="font-medium">No recent activity to show.</p><p className="text-[11px]">Live activity will appear here when available.</p></> : notifications.slice(0, 5).map((notification) => <div key={notification.id} className="rounded-xl bg-surface-container-low p-3 text-left"><p className="font-bold text-on-surface">{notification.title}</p><p className="text-[11px] text-on-surface-variant mt-1">{notification.message}</p><p className="text-[10px] text-gray-400 mt-1">{new Date(notification.created_at).toLocaleString()}</p></div>)}
               </div>
             </div>
           </div>

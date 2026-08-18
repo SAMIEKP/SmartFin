@@ -18,6 +18,9 @@ export const UserOnboardingView: React.FC<UserOnboardingViewProps> = ({
   const [name, setName] = useState(userProfile.name || '');
   const [location, setLocation] = useState(userProfile.location || '');
   const [phone, setPhone] = useState(userProfile.phone || '');
+  const [segment, setSegment] = useState(userProfile.segment || '');
+  const [district, setDistrict] = useState(userProfile.district || '');
+  const [cityVillage, setCityVillage] = useState(userProfile.cityVillage || '');
 
   // Step 2: Financial goals
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
@@ -34,6 +37,7 @@ export const UserOnboardingView: React.FC<UserOnboardingViewProps> = ({
   };
 
   const handleFinish = () => {
+    if (!segment || !district || !cityVillage || selectedGoals.length === 0) return;
     const goalsText = selectedGoals.map(g => {
       if (g === 'small_loan') return 'Personal & Agri Loans';
       if (g === 'save') return 'High-Yield Savings';
@@ -51,6 +55,11 @@ export const UserOnboardingView: React.FC<UserOnboardingViewProps> = ({
       employmentType,
       channelPreference,
       preferredCategories: selectedGoals,
+      segment,
+      district,
+      cityVillage,
+      needs: selectedGoals,
+      profileStatus: 'complete',
     });
 
     onNavigate('loan-products');
@@ -130,6 +139,22 @@ export const UserOnboardingView: React.FC<UserOnboardingViewProps> = ({
                 onChange={(e) => setPhone(e.target.value)}
                 className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none"
               />
+            </div>
+
+            <div className="space-y-1">
+              <label className="font-bold text-[#0b1c30]">I am a *</label>
+              <select value={segment} onChange={(e) => setSegment(e.target.value)} className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none">
+                <option value="">Select your segment</option>
+                <option value="student">Student</option><option value="farmer">Farmer</option>
+                <option value="microbusiness">Microbusiness</option><option value="small_business">Small business</option><option value="household">Household</option>
+              </select>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1"><label className="font-bold text-[#0b1c30]">District *</label>
+                <select value={district} onChange={(e) => setDistrict(e.target.value)} className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none"><option value="">Select district</option>{['Blantyre','Lilongwe','Mzuzu','Zomba','Kasungu','Mangochi','Mchinji','Mulanje','Salima','Thyolo'].map((item) => <option key={item} value={item}>{item}</option>)}</select>
+              </div>
+              <div className="space-y-1"><label className="font-bold text-[#0b1c30]">City / village *</label><input value={cityVillage} onChange={(e) => setCityVillage(e.target.value)} placeholder="e.g. Area 25" className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none" /></div>
             </div>
 
             <button
@@ -266,6 +291,7 @@ export const UserOnboardingView: React.FC<UserOnboardingViewProps> = ({
               <button
                 type="button"
                 onClick={handleFinish}
+                disabled={!segment || !district || !cityVillage || selectedGoals.length === 0}
                 className="flex-1 py-3 bg-[#00685f] hover:bg-[#008378] text-white font-extrabold text-xs rounded-xl shadow-md transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>Complete Setup & Discover Services</span>

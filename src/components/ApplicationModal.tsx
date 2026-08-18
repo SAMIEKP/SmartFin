@@ -27,6 +27,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
   const [employmentStatus, setEmploymentStatus] = useState<string>('');
   const [purpose, setPurpose] = useState<string>('');
   const [customAnswers, setCustomAnswers] = useState<Record<string, string>>({});
+  const [uploadedDocuments, setUploadedDocuments] = useState<{ name: string; url: string; date: string }[]>([]);
   const [step, setStep] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -62,6 +63,7 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
           purpose,
           ...customAnswers,
         },
+        uploadedDocuments,
       };
 
       onSubmitApplication(newApp);
@@ -318,6 +320,13 @@ export const ApplicationModal: React.FC<ApplicationModalProps> = ({
                   })}
                 </div>
               )}
+
+              <div className="space-y-2 rounded-xl border border-[#855300]/30 bg-[#fffaf4] p-4">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#855300]">Required Documents</p>
+                <p className="text-[11px] text-[#3d4947]">Attach the documents requested by the provider. Files are recorded with this application.</p>
+                {(currentProd?.documents || []).map((document) => <label key={document} className="flex items-center gap-2 text-[11px] font-semibold text-[#0b1c30]"><input type="file" required className="max-w-full text-[11px]" onChange={(e) => { const file = e.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => setUploadedDocuments((current) => [...current.filter((item) => item.name !== document), { name: `${document}: ${file.name}`, url: String(reader.result || ''), date: new Date().toISOString() }]); reader.readAsDataURL(file); }} />{document}</label>)}
+                {uploadedDocuments.length > 0 && <p className="text-[11px] text-emerald-700">{uploadedDocuments.length} document(s) attached.</p>}
+              </div>
 
               <div className="p-3 bg-[#e5eeff] rounded-xl text-xs text-[#0b1c30] space-y-1">
                 <div className="flex items-center gap-2 font-bold text-[#00685f]">

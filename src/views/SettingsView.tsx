@@ -154,10 +154,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [policiesSaved, setPoliciesSaved] = useState(false);
 
   // Policies state (provider only)
-  const [lendingPolicy, setLendingPolicy] = useState("");
-  const [interestPolicy, setInterestPolicy] = useState("");
-  const [latePaymentPolicy, setLatePaymentPolicy] = useState("");
-  const [dataPrivacyStatement, setDataPrivacyStatement] = useState("");
+  const [lendingPolicy, setLendingPolicy] = useState(userProfile.lendingPolicy || "");
+  const [interestPolicy, setInterestPolicy] = useState(userProfile.interestPolicy || "");
+  const [latePaymentPolicy, setLatePaymentPolicy] = useState(userProfile.latePaymentPolicy || "");
+  const [dataPrivacyStatement, setDataPrivacyStatement] = useState(userProfile.dataPrivacyStatement || "");
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -724,6 +724,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <div className="pt-4 border-t border-gray-100 flex justify-end">
                 <button
                   onClick={() => {
+                    onUpdateProfile({ lendingPolicy, interestPolicy, latePaymentPolicy, dataPrivacyStatement });
                     setPoliciesSaved(true);
                     setTimeout(() => setPoliciesSaved(false), 3000);
                   }}
@@ -739,8 +740,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     check_circle
                   </span>
                   <span>
-                    Policies saved locally (persisting to backend not
-                    implemented).
+                    Policies saved to your provider profile.
                   </span>
                 </div>
               )}
@@ -837,6 +837,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <div className="pt-4 border-t border-gray-100 flex justify-end">
                 <button
                   onClick={() => {
+                    onUpdateProfile({ notificationPreferences: { sms: notifSms, email: notifAppUpdates, in_app: notifSecurity } });
                     setSaveSuccess(true);
                     setTimeout(() => setSaveSuccess(false), 3000);
                   }}

@@ -76,7 +76,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
         const userProfile = mapApiUser(response.user);
 
         onLoginSuccess(userProfile, response.user.role as Role, response.token);
-        onNavigate(response.user.role === 'provider' ? 'provider-dashboard' : 'user-dashboard');
+        onNavigate(response.user.role === 'provider' ? 'provider-dashboard' : userProfile.profileStatus === 'complete' && userProfile.segment && userProfile.district ? 'user-dashboard' : 'user-onboarding');
       } catch (error: any) {
         setErrorMessage(error.message || 'Invalid email or password.');
       } finally {
@@ -102,7 +102,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
         const userProfile = mapApiUser(response.user);
 
         onLoginSuccess(userProfile, response.user.role as Role, response.token);
-        onNavigate(response.user.role === 'provider' ? 'provider-dashboard' : 'user-dashboard');
+        onNavigate(response.user.role === 'provider' ? 'provider-dashboard' : userProfile.profileStatus === 'complete' && userProfile.segment && userProfile.district ? 'user-dashboard' : 'user-onboarding');
       } catch (error: any) {
         setErrorMessage(error.message || 'Invalid email or password.');
       } finally {

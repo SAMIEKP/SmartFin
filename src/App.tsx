@@ -6,6 +6,7 @@ import {
   ApplicationItem,
   UserProfile,
 } from "./types";
+import { UserNotification, ApprovedLoan } from "./types";
 import {
   applicationAPI,
   authAPI,
@@ -105,6 +106,8 @@ export function App() {
   const [products, setProducts] = useState<LoanProduct[]>([]);
   const [userApplications, setUserApplications] = useState<ApplicationItem[]>([]);
   const [providerApplications, setProviderApplications] = useState<ApplicationItem[]>([]);
+  const [notifications, setNotifications] = useState<UserNotification[]>([]);
+  const [approvedLoans, setApprovedLoans] = useState<ApprovedLoan[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<LoanProduct | null>(null);
   const [productBeingEdited, setProductBeingEdited] = useState<LoanProduct | null>(null);
 
@@ -122,12 +125,16 @@ export function App() {
           setProducts(products.map(mapApiProduct));
           setProviderApplications(applications.map(mapApiApplication));
         } else {
-          const [{ products }, { applications }] = await Promise.all([
+          const [{ products }, { applications }, { notifications: accountNotifications }, { loans }] = await Promise.all([
             userAPI.getProducts(),
             userAPI.getApplications(),
+            userAPI.getNotifications(),
+            userAPI.getLoans(),
           ]);
           setProducts(products.map(mapApiProduct));
           setUserApplications(applications.map(mapApiApplication));
+          setNotifications(accountNotifications);
+          setApprovedLoans(loans);
         }
       } catch (error) {
         if (error instanceof Error && "status" in error && (error as { status: number }).status === 403) {
@@ -184,7 +191,7 @@ export function App() {
           location: newApp.applicantLocation,
           ...(newApp.answers || {}),
         },
-        documents: [],
+        documents: newApp.uploadedDocuments || [],
       });
       setUserApplications((prev) => [mapApiApplication(application), ...prev]);
     } catch (error) {
@@ -289,6 +296,7 @@ export function App() {
   // Profile update handler
   const handleUpdateProfile = async (updated: Partial<UserProfile>) => {
     try {
+      if (updated.language) localStorage.setItem('finaccess:language', updated.language);
       // Apply optimistic local update so avatar and profile changes show immediately
       setUserProfile((prev) => {
         const merged = { ...prev, ...updated } as UserProfile;
@@ -306,6 +314,17 @@ export function App() {
         institutionName: updated.institutionName,
         institutionType: updated.institutionType,
         registrationNumber: updated.registrationNumber,
+        segment: updated.segment,
+        district: updated.district,
+        cityVillage: updated.cityVillage,
+        needs: updated.needs,
+        language: updated.language,
+        lendingPolicy: updated.lendingPolicy,
+        interestPolicy: updated.interestPolicy,
+        latePaymentPolicy: updated.latePaymentPolicy,
+        dataPrivacyStatement: updated.dataPrivacyStatement,
+        notificationPreferences: updated.notificationPreferences,
+        twoFactorEnabled: updated.twoFactorEnabled,
       };
       if (updated.avatarUrl) payload.avatar_url = updated.avatarUrl;
 
@@ -337,7 +356,11 @@ export function App() {
     if (token) localStorage.setItem("token", token);
     localStorage.setItem("role", newRole);
     localStorage.setItem("userProfile", JSON.stringify(profile));
-    setCurrentView(newRole === "provider" ? "provider-dashboard" : "user-dashboard");
+    setCurrentView(newRole === "provider"
+      ? "provider-dashboard"
+      : profile.profileStatus === "complete" && profile.segment && profile.district
+        ? "user-dashboard"
+        : "user-onboarding");
   };
 
   const handleRegistrationSuccess = (profile: UserProfile, newRole: Role, token?: string) => {
@@ -411,6 +434,8 @@ export function App() {
               products={products}
               onSelectProduct={setSelectedProduct}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
+              notifications={notifications}
+              loans={approvedLoans}
             />
           )}
 

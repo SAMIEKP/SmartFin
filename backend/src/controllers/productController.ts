@@ -16,7 +16,10 @@ export const createProduct = async (req: any, res: Response) => {
       description,
       eligibilityCriteria,
       requiredDocuments,
-      applicationQuestions
+      applicationQuestions,
+      interestType,
+      repaymentSchedule,
+      fees
     } = req.body;
 
     if (!name || !category) {
@@ -40,8 +43,8 @@ export const createProduct = async (req: any, res: Response) => {
     const result = await query(
       `WITH inserted AS (
        INSERT INTO loan_products 
-       (provider_id, name, category, min_amount, max_amount, interest_rate, tenure, description, eligibility_criteria, required_documents, application_questions)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       (provider_id, name, category, min_amount, max_amount, interest_rate, tenure, description, eligibility_criteria, required_documents, application_questions, interest_type, repayment_schedule, fees)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, COALESCE($12, 'fixed'), COALESCE($13, 'monthly'), COALESCE($14, '[]'))
        RETURNING *
        )
        SELECT inserted.*, u.institution_name AS provider_name
@@ -58,7 +61,10 @@ export const createProduct = async (req: any, res: Response) => {
         description,
         jsonValue(eligibilityCriteria),
         jsonValue(requiredDocuments),
-        jsonValue(applicationQuestions)
+        jsonValue(applicationQuestions),
+        interestType,
+        repaymentSchedule,
+        jsonValue(fees)
       ]
     );
 
@@ -121,7 +127,10 @@ export const updateProduct = async (req: any, res: Response) => {
       eligibilityCriteria,
       requiredDocuments,
       applicationQuestions,
-      isActive
+      isActive,
+      interestType,
+      repaymentSchedule,
+      fees
     } = req.body;
 
     const result = await query(
@@ -137,8 +146,11 @@ export const updateProduct = async (req: any, res: Response) => {
            required_documents = COALESCE($9, required_documents),
            application_questions = COALESCE($10, application_questions),
            is_active = COALESCE($11, is_active),
+           interest_type = COALESCE($12, interest_type),
+           repayment_schedule = COALESCE($13, repayment_schedule),
+           fees = COALESCE($14, fees),
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $12 AND provider_id = $13
+       WHERE id = $15 AND provider_id = $16
        RETURNING *`,
       [
         name,
@@ -152,6 +164,9 @@ export const updateProduct = async (req: any, res: Response) => {
         jsonValue(requiredDocuments),
         jsonValue(applicationQuestions),
         isActive,
+        interestType,
+        repaymentSchedule,
+        jsonValue(fees),
         productId,
         providerId
       ]

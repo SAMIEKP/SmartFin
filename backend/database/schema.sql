@@ -17,6 +17,18 @@ CREATE TABLE IF NOT EXISTS users (
   institution_type VARCHAR(100),
   registration_number VARCHAR(100),
   is_verified BOOLEAN NOT NULL DEFAULT false,
+  segment VARCHAR(50),
+  district VARCHAR(100),
+  city_village VARCHAR(150),
+  language VARCHAR(10) NOT NULL DEFAULT 'en',
+  needs JSONB NOT NULL DEFAULT '[]'::jsonb,
+  profile_status VARCHAR(30) NOT NULL DEFAULT 'incomplete',
+  provider_status VARCHAR(30) NOT NULL DEFAULT 'pending_review',
+  lending_policy TEXT,
+  interest_policy TEXT,
+  late_payment_policy TEXT,
+  data_privacy_statement TEXT,
+  notification_preferences JSONB NOT NULL DEFAULT '{"sms":true,"email":true,"in_app":true}'::jsonb,
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -34,6 +46,9 @@ CREATE TABLE IF NOT EXISTS loan_products (
   eligibility_criteria JSONB,
   required_documents JSONB,
   application_questions JSONB,
+  interest_type VARCHAR(20) NOT NULL DEFAULT 'fixed',
+  repayment_schedule VARCHAR(20) NOT NULL DEFAULT 'monthly',
+  fees JSONB NOT NULL DEFAULT '[]'::jsonb,
   is_active BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
