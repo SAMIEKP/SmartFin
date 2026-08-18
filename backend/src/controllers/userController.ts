@@ -68,7 +68,8 @@ export const getApplications = async (req: any, res: Response) => {
     const userId = req.user.id;
 
     const result = await query(
-      `SELECT a.*, p.name as product_name, u.institution_name as provider_name
+            `SELECT a.*, p.name as product_name, u.institution_name as provider_name,
+              COALESCE((SELECT json_agg(json_build_object('id', m.id, 'name', m.name, 'mimeType', m.mime_type, 'sizeBytes', m.size_bytes, 'url', '/api/applications/media/' || m.id)) FROM application_media m WHERE m.application_id = a.id), '[]'::json) AS media
        FROM applications a
        JOIN loan_products p ON a.product_id = p.id
        JOIN users u ON p.provider_id = u.id
