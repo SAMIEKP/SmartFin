@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createApplication, getProviderApplications, updateApplicationStatus, getApplicationDetails, getUserNotifications, markNotificationRead, getUserLoans } from '../controllers/applicationController';
+import { createApplication, getProviderApplications, updateApplicationStatus, getApplicationDetails, getUserNotifications, markNotificationRead, getUserLoans, getApplicationMedia } from '../controllers/applicationController';
 import { authenticateToken, requireRole } from '../middleware/auth';
 
 const router = Router();
@@ -9,6 +9,7 @@ router.use(authenticateToken);
 
 // Provider routes
 router.get('/provider/all', requireRole(['provider']), getProviderApplications);
+router.get('/media/:mediaId', getApplicationMedia);
 router.put('/:applicationId/status', requireRole(['provider']), updateApplicationStatus);
 
 // User routes

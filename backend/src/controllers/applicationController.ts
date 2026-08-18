@@ -40,6 +40,17 @@ export const createApplication = async (req: any, res: Response) => {
       [userId, productId, answers, documents]
     );
 
+    const uploadedDocuments = Array.isArray(documents) ? documents : [];
+    for (const document of uploadedDocuments) {
+      const match = typeof document?.url === 'string' ? document.url.match(/^data:([^;]+);base64,(.+)$/) : null;
+      if (!match) continue;
+      await query(
+        `INSERT INTO application_media (application_id, owner_user_id, name, mime_type, size_bytes, content_base64)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [result.rows[0].id, userId, document.name || 'Application document', match[1], Buffer.from(match[2], 'base64').length, match[2]]
+      );
+    }
+
     res.status(201).json({
       message: 'Application submitted successfully',
       application: result.rows[0]
@@ -61,7 +72,8 @@ export const getProviderApplications = async (req: any, res: Response) => {
 
     let queryText = `
       SELECT a.*, u.name as user_name, u.email as user_email, u.phone as user_phone,
-             p.name as product_name, p.category as product_category, p.required_documents
+              p.name as product_name, p.category as product_category, p.required_documents,
+              COALESCE((SELECT json_agg(json_build_object('id', m.id, 'name', m.name, 'mimeType', m.mime_type, 'sizeBytes', m.size_bytes, 'url', '/api/applications/media/' || m.id)) FROM application_media m WHERE m.application_id = a.id), '[]'::json) AS media
       FROM applications a
       JOIN users u ON a.user_id = u.id
       JOIN loan_products p ON a.product_id = p.id
@@ -241,4 +253,19 @@ export const getApplicationDetails = async (req: any, res: Response) => {
       message: 'Failed to fetch application details' 
     });
   }
+};
+
+export const getApplicationMedia = async (req: any, res: Response) => {
+  const result = await query(
+    `SELECT m.* FROM application_media m
+     JOIN applications a ON a.id = m.application_id
+     JOIN loan_products p ON p.id = a.product_id
+     WHERE m.id = $1 AND (m.owner_user_id = $2 OR p.provider_id = $2)`,
+    [req.params.mediaId, req.user.id]
+  );
+  if (!result.rows.length) return res.status(404).json({ error: 'Not Found', message: 'Document not found' });
+  const media = result.rows[0];
+  res.setHeader('Content-Type', media.mime_type);
+  res.setHeader('Content-Disposition', `${req.query.download === 'true' ? 'attachment' : 'inline'}; filename="${media.name.replace(/"/g, '')}"`);
+  res.send(Buffer.from(media.content_base64, 'base64'));
 };

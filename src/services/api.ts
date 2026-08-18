@@ -49,6 +49,7 @@ export interface ApiLoanProduct {
   description?: string;
   eligibility_criteria?: string[] | string;
   required_documents?: string[] | string;
+  media?: { id: string; name: string; mimeType: string; sizeBytes: number; url: string }[];
   application_questions?: string[] | string;
   interest_type?: 'fixed' | 'variable';
   repayment_schedule?: 'monthly' | 'weekly';
@@ -232,14 +233,15 @@ export const mapApiApplication = (application: ApiApplication): ApplicationItem 
     status: statusMap[application.status],
     date: application.created_at ? new Date(application.created_at).toLocaleDateString() : 'Recently',
     notes: application.notes ? [application.notes] : undefined,
-    uploadedDocuments: Array.isArray(application.documents) ? application.documents as { name: string; url: string; date: string }[] : undefined,
+    uploadedDocuments: application.media?.map((media) => ({ name: media.name, url: media.url, date: application.created_at || new Date().toISOString() })) || (Array.isArray(application.documents) ? application.documents as { name: string; url: string; date: string }[] : undefined),
     requestedDocuments: listValue(application.required_documents),
     answers: application.answers,
   };
 };
 
 export const authAPI = {
-  register: (userData: Record<string, unknown>) => apiRequest<{ token: string; user: ApiUser }>('/auth/register', { method: 'POST', body: JSON.stringify(userData) }, false),
+  register: (userData: Record<string, unknown>) => apiRequest<{ verificationId: string; message: string; verificationCode?: string }>('/auth/register', { method: 'POST', body: JSON.stringify(userData) }, false),
+  verifyRegistration: (verificationId: string, code: string) => apiRequest<{ token: string; user: ApiUser; message: string }>('/auth/verify-registration', { method: 'POST', body: JSON.stringify({ verificationId, code }) }, false),
   login: (credentials: { email: string; password: string }) => apiRequest<{ token: string; user: ApiUser }>('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }, false),
   getProfile: () => apiRequest<{ user: ApiUser }>('/auth/profile'),
 };

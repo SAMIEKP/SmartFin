@@ -3,6 +3,14 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { query } from '../config/database';
 
+const verificationChannels = ['email', 'sms', 'call', 'whatsapp'];
+
+const issueToken = (user: any) => jwt.sign(
+  { id: user.id, email: user.email, role: user.role },
+  process.env.JWT_SECRET || 'your-secret-key-change-in-production',
+  { expiresIn: '7d' },
+);
+
 export const register = async (req: Request, res: Response) => {
   try {
     const { 
@@ -38,7 +46,12 @@ export const register = async (req: Request, res: Response) => {
       });
     }
 
-    // Check if user already exists
+    const verificationChannel = req.body.verificationChannel || 'email';
+    if (!verificationChannels.includes(verificationChannel)) {
+      return res.status(400).json({ error: 'Bad Request', message: 'Choose email, SMS, call, or WhatsApp verification' });
+    }
+
+    // Do not create a login-capable account until the verification challenge succeeds.
     const existingUser = await query(
       'SELECT id FROM users WHERE email = $1',
       [email.toLowerCase()]
@@ -55,54 +68,22 @@ export const register = async (req: Request, res: Response) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Insert user based on role
-    let user;
-    if (role === 'user') {
-      user = await query(
-        `INSERT INTO users (email, password, role, name, phone, location, income_range, segment, district, city_village, language)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, COALESCE($11, 'en'))
-         RETURNING id, email, role, name, phone, location, income_range, segment, district, city_village, language, profile_status, created_at`,
-        [email.toLowerCase(), hashedPassword, role, name, phone, location, incomeRange, segment, district, cityVillage, language]
-      );
-    } else {
-      user = await query(
-        `INSERT INTO users (email, password, role, institution_name, phone, contact_person, institution_type, registration_number, language)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, COALESCE($9, 'en'))
-         RETURNING id, email, role, institution_name, phone, contact_person, institution_type, registration_number, language, provider_status, created_at`,
-        [email.toLowerCase(), hashedPassword, role, institutionName, phone, contactPerson, institutionType, registrationNumber, language]
-      );
-    }
-
-    const newUser = user.rows[0];
-
-    // Generate JWT token
-    const secret = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
-    const token = jwt.sign(
-      { 
-        id: newUser.id, 
-        email: newUser.email, 
-        role: newUser.role 
-      },
-      secret,
-      { expiresIn: '7d' }
+    const verificationCode = String(Math.floor(100000 + Math.random() * 900000));
+    const pending = await query(
+      `INSERT INTO pending_registrations
+       (email, password, role, profile_data, verification_channel, verification_code_hash, verification_expires_at)
+       VALUES ($1, $2, $3, $4, $5, crypt($6, gen_salt('bf')), CURRENT_TIMESTAMP + INTERVAL '15 minutes')
+       ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password, role = EXCLUDED.role,
+         profile_data = EXCLUDED.profile_data, verification_channel = EXCLUDED.verification_channel,
+         verification_code_hash = EXCLUDED.verification_code_hash, verification_expires_at = EXCLUDED.verification_expires_at
+       RETURNING id, email, role`,
+      [email.toLowerCase(), hashedPassword, role, JSON.stringify({ name, phone, location, incomeRange, institutionName, contactPerson, institutionType, registrationNumber, segment, district, cityVillage, language }), verificationChannel, verificationCode]
     );
 
-    res.status(201).json({
-      message: 'User registered successfully',
-      token,
-      user: {
-        id: newUser.id,
-        email: newUser.email,
-        role: newUser.role,
-        name: newUser.name || newUser.contact_person,
-        phone: newUser.phone,
-        institutionName: newUser.institution_name,
-        institutionType: newUser.institution_type,
-        registrationNumber: newUser.registration_number,
-        language: newUser.language,
-        profile_status: newUser.profile_status,
-        provider_status: newUser.provider_status
-      }
+    res.status(202).json({
+      message: `Verification code sent by ${verificationChannel}. Complete verification to activate your account.`,
+      verificationId: pending.rows[0].id,
+      ...(process.env.NODE_ENV === 'development' ? { verificationCode } : {}),
     });
 
   } catch (error) {
@@ -111,6 +92,41 @@ export const register = async (req: Request, res: Response) => {
       error: 'Internal Server Error',
       message: 'Failed to register user' 
     });
+  }
+};
+
+export const verifyRegistration = async (req: Request, res: Response) => {
+  try {
+    const { verificationId, code } = req.body;
+    const pendingResult = await query(
+      `SELECT * FROM pending_registrations
+       WHERE id = $1 AND verification_expires_at > CURRENT_TIMESTAMP AND crypt($2, verification_code_hash) = verification_code_hash`,
+      [verificationId, code]
+    );
+    if (!pendingResult.rows.length) return res.status(400).json({ error: 'Bad Request', message: 'Invalid or expired verification code' });
+
+    const pending = pendingResult.rows[0];
+    const profile = pending.profile_data;
+    const providerPending = pending.role === 'provider';
+    const userResult = await query(
+      `INSERT INTO users (email, password, role, name, phone, location, income_range, institution_name, contact_person, institution_type, registration_number, segment, district, city_village, language, is_verified, provider_status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, COALESCE($15, 'en'), true, $16)
+       RETURNING *`,
+      [pending.email, pending.password, pending.role, profile.name, profile.phone, profile.location, profile.incomeRange, profile.institutionName, profile.contactPerson, profile.institutionType, profile.registrationNumber, profile.segment, profile.district, profile.cityVillage, profile.language, providerPending ? 'pending_review' : 'active']
+    );
+    const user = userResult.rows[0];
+    if (pending.role === 'user') {
+      await query(`INSERT INTO individual_profiles (user_id, full_name, location, income_range, segment, district, city_village) VALUES ($1, $2, $3, $4, $5, $6, $7)`, [user.id, profile.name, profile.location, profile.incomeRange, profile.segment, profile.district, profile.cityVillage]);
+    } else {
+      await query(`INSERT INTO provider_profiles (user_id, institution_name, contact_person, institution_type, registration_number, status, available_at) VALUES ($1, $2, $3, $4, $5, 'pending_review', CURRENT_TIMESTAMP + INTERVAL '12 hours')`, [user.id, profile.institutionName, profile.contactPerson, profile.institutionType, profile.registrationNumber]);
+    }
+    await query('INSERT INTO verification_events (pending_registration_id, channel, verified_at) VALUES ($1, $2, CURRENT_TIMESTAMP)', [pending.id, pending.verification_channel]);
+    await query('DELETE FROM pending_registrations WHERE id = $1', [pending.id]);
+
+    res.status(201).json({ message: providerPending ? 'Provider verified. Account activation is being processed and confirmation will be emailed within 12 hours.' : 'Account verified and created successfully', token: issueToken(user), user });
+  } catch (error) {
+    console.error('Registration verification error:', error);
+    res.status(500).json({ error: 'Internal Server Error', message: 'Failed to verify registration' });
   }
 };
 
@@ -128,7 +144,9 @@ export const login = async (req: Request, res: Response) => {
 
     // Find user
     const result = await query(
-      'SELECT * FROM users WHERE email = $1',
+      `SELECT u.*, pp.available_at
+       FROM users u LEFT JOIN provider_profiles pp ON pp.user_id = u.id
+       WHERE u.email = $1`,
       [email.toLowerCase()]
     );
 
@@ -141,6 +159,16 @@ export const login = async (req: Request, res: Response) => {
 
     const user = result.rows[0];
 
+    if (!user.is_verified) return res.status(403).json({ error: 'Forbidden', message: 'Verify your account before logging in' });
+    if (user.role === 'provider' && user.provider_status !== 'active') {
+      if (!user.available_at || new Date(user.available_at) > new Date()) {
+        return res.status(403).json({ error: 'Forbidden', message: 'Provider account is still being processed. Please wait for the confirmation email.' });
+      }
+      await query(`UPDATE users SET provider_status = 'active', updated_at = CURRENT_TIMESTAMP WHERE id = $1`, [user.id]);
+      await query(`UPDATE provider_profiles SET status = 'active', updated_at = CURRENT_TIMESTAMP WHERE user_id = $1`, [user.id]);
+      user.provider_status = 'active';
+    }
+
     // Check password
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
@@ -152,16 +180,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     // Generate JWT token
-    const secret = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
-    const token = jwt.sign(
-      { 
-        id: user.id, 
-        email: user.email, 
-        role: user.role 
-      },
-      secret,
-      { expiresIn: '7d' }
-    );
+    const token = issueToken(user);
 
     res.status(200).json({
       message: 'Login successful',

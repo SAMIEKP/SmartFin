@@ -47,6 +47,10 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
   // Validation
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [verificationId, setVerificationId] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationMessage, setVerificationMessage] = useState('');
+  const [verificationChannel, setVerificationChannel] = useState('email');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,6 +76,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
           email,
           password,
           role: 'user',
+          verificationChannel,
           name,
           phone,
           location,
@@ -79,12 +84,8 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
         };
         console.log('Sending registration data:', registerData);
         const response = await authAPI.register(registerData);
-        console.log('Registration response:', response);
-
-        const newUser = mapApiUser(response.user);
-
-        onSelectUser(newUser, 'user', response.token);
-        onNavigate('user-onboarding');
+        setVerificationId(response.verificationId);
+        setVerificationMessage(`${response.message}${response.verificationCode ? ` Development code: ${response.verificationCode}` : ''}`);
       } catch (error: any) {
         setErrorMessage(error.message || 'Registration failed. Please try again.');
       } finally {
@@ -119,6 +120,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
           email: providerEmail,
           password: providerPassword,
           role: 'provider',
+          verificationChannel,
           institutionName,
           phone: [providerPhone.trim(), providerSecondPhone.trim()].filter(Boolean).join(', '),
           institutionType,
@@ -126,17 +128,28 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
         };
         console.log('Sending provider registration data:', registerData);
         const response = await authAPI.register(registerData);
-        console.log('Provider registration response:', response);
-
-        const newProvider = mapApiUser(response.user);
-
-        onSelectUser(newProvider, 'provider', response.token);
-        onNavigate('provider-onboarding');
+        setVerificationId(response.verificationId);
+        setVerificationMessage(`${response.message}${response.verificationCode ? ` Development code: ${response.verificationCode}` : ''}`);
       } catch (error: any) {
         setErrorMessage(error.message || 'Registration failed. Please try again.');
       } finally {
         setIsSubmitting(false);
       }
+    }
+  };
+
+  const handleVerify = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const response = await authAPI.verifyRegistration(verificationId, verificationCode);
+      const verifiedUser = mapApiUser(response.user);
+      onSelectUser(verifiedUser, response.user.role as Role, response.token);
+      onNavigate(response.user.role === 'provider' ? 'provider-onboarding' : 'user-onboarding');
+    } catch (error: any) {
+      setErrorMessage(error.message || 'Verification failed. Please check the code and try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -210,8 +223,25 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
           </div>
         )}
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        {verificationId ? (
+          <form onSubmit={handleVerify} className="space-y-4 text-xs">
+            <div className="rounded-xl border border-[#008378]/30 bg-[#f4fffc] p-4 text-[#0b1c30]">
+              <h3 className="font-bold text-[#00685f]">Verify your account</h3>
+              <p className="mt-1">{verificationMessage}</p>
+            </div>
+            <input required value={verificationCode} onChange={(event) => setVerificationCode(event.target.value)} placeholder="Enter verification code" className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30" />
+            <button type="submit" disabled={isSubmitting} className="w-full px-4 py-3 bg-[#00685f] text-white rounded-xl font-bold disabled:opacity-50">{isSubmitting ? 'Verifying...' : 'Verify and create account'}</button>
+          </form>
+        ) : <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+          <div className="space-y-1">
+            <label className="font-bold text-[#0b1c30]">Verify account using</label>
+            <select value={verificationChannel} onChange={(event) => setVerificationChannel(event.target.value)} className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30">
+              <option value="email">Email</option>
+              <option value="sms">SMS</option>
+              <option value="call">Phone call</option>
+              <option value="whatsapp">WhatsApp</option>
+            </select>
+          </div>
           {selectedRole === 'user' ? (
             /* Individual User Fields */
             <>
@@ -464,7 +494,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
               </>
             )}
           </button>
-        </form>
+        </form>}
 
         {/* Footer link to Login */}
         <div className="text-center pt-2 border-t border-gray-100 text-xs text-[#3d4947]">
