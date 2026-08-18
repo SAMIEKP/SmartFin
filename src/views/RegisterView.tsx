@@ -50,7 +50,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
   const [verificationId, setVerificationId] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [verificationMessage, setVerificationMessage] = useState('');
-  const [verificationChannel, setVerificationChannel] = useState('email');
+  const [verificationChannel, setVerificationChannel] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -235,7 +235,8 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
         ) : <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div className="space-y-1">
             <label className="font-bold text-[#0b1c30]">Verify account using</label>
-            <select value={verificationChannel} onChange={(event) => setVerificationChannel(event.target.value)} className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30">
+            <select required value={verificationChannel} onChange={(event) => setVerificationChannel(event.target.value)} className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30">
+              <option value="">Select a verification channel</option>
               <option value="email">Email</option>
               <option value="sms">SMS</option>
               <option value="call">Phone call</option>

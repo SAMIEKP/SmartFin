@@ -46,7 +46,7 @@ export const register = async (req: Request, res: Response) => {
       });
     }
 
-    const verificationChannel = req.body.verificationChannel || 'email';
+    const verificationChannel = req.body.verificationChannel;
     if (!verificationChannels.includes(verificationChannel)) {
       return res.status(400).json({ error: 'Bad Request', message: 'Choose email, SMS, call, or WhatsApp verification' });
     }
