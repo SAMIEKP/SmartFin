@@ -209,6 +209,70 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
+export const requestPasswordReset = async (req: Request, res: Response) => {
+  try {
+    const email = String(req.body.email || '').trim().toLowerCase();
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const userResult = await query('SELECT id FROM users WHERE email = $1', [email]);
+
+    if (userResult.rows.length > 0) {
+      const reset = await query(
+        `INSERT INTO password_resets (email, code_hash, expires_at)
+         VALUES ($1, crypt($2, gen_salt('bf')), CURRENT_TIMESTAMP + INTERVAL '15 minutes')
+         RETURNING id`,
+        [email, code],
+      );
+      return res.status(202).json({
+        message: 'If an account exists for that email, a password reset code has been sent.',
+        resetId: reset.rows[0].id,
+        ...(process.env.NODE_ENV === 'development' ? { resetCode: code } : {}),
+      });
+    }
+
+    return res.status(202).json({ message: 'If an account exists for that email, a password reset code has been sent.' });
+  } catch (error) {
+    console.error('Password reset request error:', error);
+    return res.status(500).json({ error: 'Internal Server Error', message: 'Unable to start password reset' });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { resetId, code, password } = req.body;
+    const resetResult = await query(
+      `SELECT * FROM password_resets
+       WHERE id = $1 AND used_at IS NULL AND expires_at > CURRENT_TIMESTAMP
+         AND crypt($2, code_hash) = code_hash`,
+      [resetId, code],
+    );
+    if (!resetResult.rows.length) return res.status(400).json({ error: 'Bad Request', message: 'Invalid or expired reset code' });
+
+    const hashedPassword = await bcrypt.hash(password, await bcrypt.genSalt(10));
+    await query('UPDATE users SET password = $1, updated_at = CURRENT_TIMESTAMP WHERE email = $2', [hashedPassword, resetResult.rows[0].email]);
+    await query('UPDATE password_resets SET used_at = CURRENT_TIMESTAMP WHERE id = $1', [resetId]);
+    return res.status(200).json({ message: 'Password reset successfully. You can now sign in.' });
+  } catch (error) {
+    console.error('Password reset error:', error);
+    return res.status(500).json({ error: 'Internal Server Error', message: 'Unable to reset password' });
+  }
+};
+
+export const changePassword = async (req: any, res: Response) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userResult = await query('SELECT password FROM users WHERE id = $1', [req.user.id]);
+    if (!userResult.rows.length || !(await bcrypt.compare(currentPassword, userResult.rows[0].password))) {
+      return res.status(400).json({ error: 'Bad Request', message: 'Current password is incorrect' });
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, await bcrypt.genSalt(10));
+    await query('UPDATE users SET password = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', [hashedPassword, req.user.id]);
+    return res.status(200).json({ message: 'Password updated successfully' });
+  } catch (error) {
+    console.error('Change password error:', error);
+    return res.status(500).json({ error: 'Internal Server Error', message: 'Unable to update password' });
+  }
+};
+
 export const getProfile = async (req: any, res: Response) => {
   try {
     const userId = req.user.id;

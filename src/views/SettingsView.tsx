@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import { ViewMode, Role, UserProfile } from "../types";
+import { authAPI } from "../services/api";
 
 interface SettingsViewProps {
   userProfile: UserProfile;
@@ -130,6 +131,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordMessage, setPasswordMessage] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [twoFactor, setTwoFactor] = useState(
     userProfile.twoFactorEnabled ?? true,
   );
@@ -179,6 +183,31 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     });
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 3000);
+  };
+
+  const handleChangePassword = async () => {
+    setPasswordMessage("");
+    setPasswordError("");
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setPasswordError("Complete all password fields.");
+      return;
+    }
+    if (newPassword.length < 6 || newPassword !== confirmPassword) {
+      setPasswordError(newPassword.length < 6 ? "Password must be at least 6 characters." : "New passwords do not match.");
+      return;
+    }
+    setIsChangingPassword(true);
+    try {
+      const response = await authAPI.changePassword(currentPassword, newPassword);
+      setPasswordMessage(response.message);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
+      setPasswordError(error.message || "Unable to update password.");
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
   // If onboarding or navigation requested opening the organization tab, honor it
@@ -569,11 +598,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </div>
 
                 <button
-                  onClick={() => alert("Password successfully updated!")}
+                  type="button"
+                  onClick={handleChangePassword}
+                  disabled={isChangingPassword}
                   className="px-4 py-2 bg-[#00685f] text-white font-bold rounded-xl hover:bg-[#008378] transition-colors cursor-pointer"
                 >
-                  Update Password
+                  {isChangingPassword ? "Updating..." : "Update Password"}
                 </button>
+                {passwordError && <p className="text-red-700 font-semibold">{passwordError}</p>}
+                {passwordMessage && <p className="text-emerald-700 font-semibold">{passwordMessage}</p>}
               </div>
 
               {/* Two-Factor Toggle */}

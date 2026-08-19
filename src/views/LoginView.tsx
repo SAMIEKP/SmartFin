@@ -25,6 +25,11 @@ export const LoginView: React.FC<LoginViewProps> = ({
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showProviderPassword, setShowProviderPassword] = useState(false);
+  const [resetMode, setResetMode] = useState(false);
+  const [resetId, setResetId] = useState('');
+  const [resetCode, setResetCode] = useState('');
+  const [resetPassword, setResetPassword] = useState('');
+  const [resetMessage, setResetMessage] = useState('');
 
   useEffect(() => {
     try {
@@ -52,6 +57,47 @@ export const LoginView: React.FC<LoginViewProps> = ({
       );
     } catch {
       // Ignore storage failures.
+    }
+  };
+
+  const resetEmail = selectedRole === 'user' ? email : providerEmail;
+
+  const handlePasswordResetRequest = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setErrorMessage('');
+    setIsSubmitting(true);
+    try {
+      const response = await authAPI.requestPasswordReset(resetEmail);
+      setResetId(response.resetId || '');
+      setResetMessage(`${response.message}${response.resetCode ? ` Development code: ${response.resetCode}` : ''}`);
+    } catch (error: any) {
+      setErrorMessage(error.message || 'Unable to start password reset.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePasswordReset = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setErrorMessage('');
+    if (resetPassword.length < 6) {
+      setErrorMessage('Password must be at least 6 characters long.');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const response = await authAPI.resetPassword(resetId, resetCode, resetPassword);
+      setResetMessage(response.message);
+      setResetMode(false);
+      setResetId('');
+      setResetCode('');
+      setResetPassword('');
+      setPassword('');
+      setProviderPassword('');
+    } catch (error: any) {
+      setErrorMessage(error.message || 'Unable to reset password.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -193,131 +239,44 @@ export const LoginView: React.FC<LoginViewProps> = ({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-          {selectedRole === "user" ? (
-            <>
-              <div className="space-y-1">
-                <label className="font-bold text-[#0b1c30]">
-                  Email Address *
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="kwesi@example.mw"
-                  className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex justify-between items-center">
-                  <label className="font-bold text-[#0b1c30]">Password *</label>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      alert(
-                        "Password reset link sent to your registered email.",
-                      )
-                    }
-                    className="text-[11px] font-bold text-[#00685f] hover:underline"
-                  >
-                    Forgot Password?
-                  </button>
-                </div>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
-                />
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="space-y-1">
-                <label className="font-bold text-[#0b1c30]">
-                  Institution Email Address *
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={providerEmail}
-                  onChange={(e) => setProviderEmail(e.target.value)}
-                  placeholder="admin@institution.mw"
-                  className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex justify-between items-center">
-                  <label className="font-bold text-[#0b1c30]">Password *</label>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      alert(
-                        "Password reset link sent to your registered email.",
-                      )
-                    }
-                    className="text-[11px] font-bold text-[#855300] hover:underline"
-                  >
-                    Forgot Password?
-                  </button>
-                </div>
-                <input
-                  type={showProviderPassword ? "text" : "password"}
-                  required
-                  value={providerPassword}
-                  onChange={(e) => setProviderPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
-                />
-              </div>
-
-              <div className="flex items-center gap-2 text-xs text-[#3d4947]">
-                <input
-                  id="show-provider-password"
-                  type="checkbox"
-                  checked={showProviderPassword}
-                  onChange={(e) => setShowProviderPassword(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-[#855300] focus:ring-[#855300]"
-                />
-                <label
-                  htmlFor="show-provider-password"
-                  className="font-semibold"
-                >
-                  Show provider password
-                </label>
-              </div>
-            </>
-          )}
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className={`w-full py-3.5 text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 ${
-              selectedRole === "provider"
-                ? "bg-[#855300] hover:bg-[#653e00]"
-                : "bg-[#00685f] hover:bg-[#008378]"
-            }`}
-          >
-            {isSubmitting ? (
-              <span>Signing In...</span>
+        {resetMode ? (
+          <div className="space-y-4 text-xs">
+            <div>
+              <h3 className="font-bold text-[#0b1c30]">Reset your password</h3>
+              <p className="mt-1 text-[#3d4947]">Enter your registered email to receive a six-digit reset code.</p>
+            </div>
+            {!resetId ? (
+              <form onSubmit={handlePasswordResetRequest} className="space-y-3">
+                <input type="email" required value={resetEmail} onChange={(event) => selectedRole === 'user' ? setEmail(event.target.value) : setProviderEmail(event.target.value)} placeholder="Email address" className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl text-[#0b1c30]" />
+                <button type="submit" disabled={isSubmitting} className="w-full py-3 bg-[#00685f] text-white rounded-xl font-bold disabled:opacity-50">{isSubmitting ? 'Sending code...' : 'Send reset code'}</button>
+              </form>
             ) : (
-              <>
-                <span>
-                  Sign In as{" "}
-                  {selectedRole === "provider" ? "Provider" : "Individual"}
-                </span>
-                <span className="material-symbols-outlined text-sm">
-                  arrow_forward
-                </span>
-              </>
+              <form onSubmit={handlePasswordReset} className="space-y-3">
+                <input required inputMode="numeric" value={resetCode} onChange={(event) => setResetCode(event.target.value)} placeholder="Six-digit reset code" className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl text-[#0b1c30]" />
+                <input required type="password" value={resetPassword} onChange={(event) => setResetPassword(event.target.value)} placeholder="New password" className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl text-[#0b1c30]" />
+                <button type="submit" disabled={isSubmitting} className="w-full py-3 bg-[#00685f] text-white rounded-xl font-bold disabled:opacity-50">{isSubmitting ? 'Updating password...' : 'Set new password'}</button>
+              </form>
             )}
-          </button>
-        </form>
+            {resetMessage && <p className="rounded-xl bg-[#f4fffc] p-3 text-[#00685f]">{resetMessage}</p>}
+            <button type="button" onClick={() => { setResetMode(false); setResetMessage(''); setResetId(''); }} className="font-bold text-[#00685f] hover:underline">Back to sign in</button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+            <div className="space-y-1">
+              <label className="font-bold text-[#0b1c30]">{selectedRole === 'provider' ? 'Institution Email Address *' : 'Email Address *'}</label>
+              <input type="email" required value={selectedRole === 'provider' ? providerEmail : email} onChange={(event) => selectedRole === 'provider' ? setProviderEmail(event.target.value) : setEmail(event.target.value)} placeholder={selectedRole === 'provider' ? 'admin@institution.mw' : 'kwesi@example.mw'} className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex justify-between items-center">
+                <label className="font-bold text-[#0b1c30]">Password *</label>
+                <button type="button" onClick={() => setResetMode(true)} className={`text-[11px] font-bold hover:underline ${selectedRole === 'provider' ? 'text-[#855300]' : 'text-[#00685f]'}`}>Forgot Password?</button>
+              </div>
+              <input type={selectedRole === 'provider' && showProviderPassword ? 'text' : 'password'} required value={selectedRole === 'provider' ? providerPassword : password} onChange={(event) => selectedRole === 'provider' ? setProviderPassword(event.target.value) : setPassword(event.target.value)} placeholder="Enter your password" className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30" />
+            </div>
+            {selectedRole === 'provider' && <label className="flex items-center gap-2 text-xs text-[#3d4947]"><input type="checkbox" checked={showProviderPassword} onChange={(event) => setShowProviderPassword(event.target.checked)} className="h-4 w-4" />Show provider password</label>}
+            <button type="submit" disabled={isSubmitting} className={`w-full py-3.5 text-white font-extrabold text-xs rounded-xl shadow-xs disabled:opacity-50 ${selectedRole === 'provider' ? 'bg-[#855300]' : 'bg-[#00685f]'}`}>{isSubmitting ? 'Signing In...' : `Sign In as ${selectedRole === 'provider' ? 'Provider' : 'Individual'}`}</button>
+          </form>
+        )}
 
         <div className="text-center pt-2 border-t border-gray-100 text-xs text-[#3d4947]">
           <span>Don't have an account yet? </span>

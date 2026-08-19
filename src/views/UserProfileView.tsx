@@ -117,6 +117,20 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
               </div>
 
               <div className="p-3 bg-surface-container-low rounded-xl">
+                <span className="text-[10px] text-gray-500 block uppercase font-bold">Registered Location</span>
+                <span className="font-bold text-on-surface text-sm block mt-0.5">
+                  {userProfile.location || 'Not provided'}
+                </span>
+              </div>
+
+              <div className="p-3 bg-surface-container-low rounded-xl">
+                <span className="text-[10px] text-gray-500 block uppercase font-bold">Monthly Income Range</span>
+                <span className="font-bold text-on-surface text-sm block mt-0.5">
+                  {userProfile.incomeRange || 'Not provided'}
+                </span>
+              </div>
+
+              <div className="p-3 bg-surface-container-low rounded-xl">
                 <span className="text-[10px] text-gray-500 block uppercase font-bold">NRIS Identity Check</span>
                 <span className="font-bold text-emerald-600 text-xs flex items-center gap-1 mt-0.5">
                   <span className="material-symbols-outlined text-sm">verified</span>
