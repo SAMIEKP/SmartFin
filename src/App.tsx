@@ -40,7 +40,10 @@ import { UserOnboardingView } from './views/UserOnboardingView';
 import { ProviderOnboardingView } from './views/ProviderOnboardingView';
 
 export function App() {
-  const [currentView, setCurrentView] = useState<ViewMode>("landing");
+  const [currentView, setCurrentView] = useState<ViewMode>(() => {
+    const savedView = localStorage.getItem("currentView");
+    return (savedView as ViewMode) || "landing";
+  });
   const [viewHistory, setViewHistory] = useState<ViewMode[]>([]);
   const [role, setRole] = useState<Role>("user");
   const [userProfile, setUserProfile] =
@@ -57,10 +60,34 @@ export function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [dataError, setDataError] = useState("");
 
+  // Save current view to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("currentView", currentView);
+  }, [currentView]);
+
   // Restore the session from the backend on mount.
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
+
+    // Check for activity timeout before restoring session
+    const lastActivity = localStorage.getItem("lastActivity");
+    const fiveDaysInMs = 5 * 24 * 60 * 60 * 1000; // 5 days in milliseconds
+    
+    if (lastActivity) {
+      const timeSinceLastActivity = Date.now() - parseInt(lastActivity, 10);
+      if (timeSinceLastActivity > fiveDaysInMs) {
+        // Auto logout due to inactivity
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        localStorage.removeItem("userProfile");
+        localStorage.removeItem("lastActivity");
+        localStorage.removeItem("currentView");
+        setCurrentView("login");
+        setDataError("Your session has expired due to inactivity. Please sign in again.");
+        return;
+      }
+    }
 
     authAPI.getProfile()
       .then(({ user }) => {
@@ -70,12 +97,21 @@ export function App() {
         setUserProfile(profile);
         localStorage.setItem("role", user.role);
         localStorage.setItem("userProfile", JSON.stringify(profile));
-        setCurrentView(user.role === "provider" ? "provider-dashboard" : "user-dashboard");
+        // Update last activity on successful session restore
+        localStorage.setItem("lastActivity", Date.now().toString());
+        // Preserve the current view instead of defaulting to dashboard
+        const savedView = localStorage.getItem("currentView") as ViewMode;
+        if (savedView && savedView !== "landing" && savedView !== "login" && savedView !== "register") {
+          setCurrentView(savedView);
+        } else {
+          setCurrentView(user.role === "provider" ? "provider-dashboard" : "user-dashboard");
+        }
       })
       .catch(() => {
         localStorage.removeItem("token");
         localStorage.removeItem("role");
         localStorage.removeItem("userProfile");
+        localStorage.removeItem("lastActivity");
       });
   }, []);
 
@@ -95,6 +131,8 @@ export function App() {
       });
       setViewHistory([]);
       setCurrentView("login");
+      localStorage.removeItem("currentView");
+      localStorage.removeItem("lastActivity");
       setDataError("Your session is no longer valid. Please sign in again.");
     };
 
@@ -326,7 +364,7 @@ export function App() {
         notificationPreferences: updated.notificationPreferences,
         twoFactorEnabled: updated.twoFactorEnabled,
       };
-      if (updated.avatarUrl) payload.avatar_url = updated.avatarUrl;
+      if (updated.avatarUrl !== undefined) payload.avatar_url = updated.avatarUrl;
 
       const { user } = await userAPI.updateProfile(payload);
       const profileFromServer = mapApiUser(user);
@@ -356,6 +394,7 @@ export function App() {
     if (token) localStorage.setItem("token", token);
     localStorage.setItem("role", newRole);
     localStorage.setItem("userProfile", JSON.stringify(profile));
+    localStorage.setItem("lastActivity", Date.now().toString());
     setCurrentView(newRole === "provider"
       ? "provider-dashboard"
       : profile.profileStatus === "complete" && profile.segment && profile.district
@@ -370,13 +409,16 @@ export function App() {
     if (token) localStorage.setItem("token", token);
     localStorage.setItem("role", newRole);
     localStorage.setItem("userProfile", JSON.stringify(profile));
+    localStorage.setItem("lastActivity", Date.now().toString());
   };
 
   // Handle logout
-  const handleLogout = () => {
+  const handleLogout = (redirectTo: "landing" | "login" = "landing") => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("userProfile");
+    localStorage.removeItem("currentView");
+    localStorage.removeItem("lastActivity");
     setIsAuthenticated(false);
     setRole("user");
     setUserProfile({
@@ -390,8 +432,49 @@ export function App() {
       creditScore: 0,
     });
     setViewHistory([]);
-    setCurrentView("landing");
+    setCurrentView(redirectTo);
   };
+
+  // Track user activity for auto-logout after 5 days
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const updateLastActivity = () => {
+      localStorage.setItem("lastActivity", Date.now().toString());
+    };
+
+    // Update last activity timestamp on mount
+    updateLastActivity();
+
+    // Set up activity listeners
+    const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+    activityEvents.forEach(event => {
+      window.addEventListener(event, updateLastActivity);
+    });
+
+    // Set up interval to check for inactivity
+    const checkInactivity = setInterval(() => {
+      const lastActivity = localStorage.getItem("lastActivity");
+      const fiveDaysInMs = 5 * 24 * 60 * 60 * 1000; // 5 days in milliseconds
+      
+      if (lastActivity) {
+        const timeSinceLastActivity = Date.now() - parseInt(lastActivity, 10);
+        if (timeSinceLastActivity > fiveDaysInMs) {
+          // Auto logout due to inactivity
+          setDataError("Your session has expired due to inactivity. Please sign in again.");
+          handleLogout("login");
+        }
+      }
+    }, 60000); // Check every minute
+
+    // Clean up event listeners and interval
+    return () => {
+      activityEvents.forEach(event => {
+        window.removeEventListener(event, updateLastActivity);
+      });
+      clearInterval(checkInactivity);
+    };
+  }, [isAuthenticated]);
 
   return (
     <div className="flex h-screen">

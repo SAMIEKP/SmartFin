@@ -20,6 +20,7 @@ export interface ApiUser {
   contact_person?: string;
   institution_type?: string;
   registration_number?: string;
+  avatar_url?: string;
   segment?: string;
   district?: string;
   city_village?: string;
@@ -156,6 +157,7 @@ export const mapApiUser = (user: ApiUser): UserProfile => {
   institutionName: user.institution_name,
   institutionType: user.institution_type,
     registrationNumber: user.registration_number,
+    avatarUrl: user.avatar_url,
     language: user.language || localStorage.getItem('finaccess:language') || 'en',
     segment: user.segment,
     district: user.district,

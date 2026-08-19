@@ -7,7 +7,7 @@ export const updateProfile = async (req: any, res: Response) => {
     const {
       email, name, phone, location, incomeRange, income_range,
       segment, district, cityVillage, city_village, needs,
-      language, institutionName, institutionType, registrationNumber,
+      language, institutionName, institutionType, registrationNumber, avatarUrl, avatar_url,
       lendingPolicy, interestPolicy, latePaymentPolicy, dataPrivacyStatement,
       notificationPreferences, twoFactorEnabled
     } = req.body;
@@ -27,6 +27,7 @@ export const updateProfile = async (req: any, res: Response) => {
            institution_name = COALESCE($12, institution_name),
            institution_type = COALESCE($13, institution_type),
            registration_number = COALESCE($14, registration_number),
+           avatar_url = COALESCE($20, avatar_url),
            lending_policy = COALESCE($15, lending_policy),
            interest_policy = COALESCE($16, interest_policy),
            late_payment_policy = COALESCE($17, late_payment_policy),
@@ -35,11 +36,12 @@ export const updateProfile = async (req: any, res: Response) => {
            profile_status = CASE WHEN $6 IS NOT NULL OR $7 IS NOT NULL OR $8 IS NOT NULL OR $9 IS NOT NULL THEN 'needs_verification' ELSE profile_status END,
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $11
-       RETURNING id, email, role, name, phone, location, income_range, segment, district, city_village, language, needs, profile_status, provider_status, institution_name, institution_type, registration_number, is_verified, updated_at`,
+      RETURNING id, email, role, name, phone, location, income_range, segment, district, city_village, language, needs, profile_status, provider_status, institution_name, institution_type, registration_number, avatar_url, is_verified, updated_at`,
       [email, name, phone, location, incomeRange ?? income_range, segment, district, cityVillage ?? city_village,
         needs == null ? null : JSON.stringify(needs), language, userId, institutionName, institutionType, registrationNumber,
         lendingPolicy, interestPolicy, latePaymentPolicy, dataPrivacyStatement,
-        notificationPreferences == null ? null : JSON.stringify({ ...notificationPreferences, two_factor: twoFactorEnabled })]
+        notificationPreferences == null ? null : JSON.stringify({ ...notificationPreferences, two_factor: twoFactorEnabled }),
+        avatarUrl ?? avatar_url]
     );
 
     if (result.rows.length === 0) {

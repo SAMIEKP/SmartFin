@@ -4,8 +4,15 @@ import { ViewMode, UserProfile } from '../types';
 interface ProviderOnboardingViewProps {
   userProfile: UserProfile;
   onNavigate: (view: ViewMode) => void;
-  onUpdateProfile: (updated: Partial<UserProfile>) => void;
+  onUpdateProfile: (updated: Partial<UserProfile>) => Promise<void>;
 }
+
+const fileToDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => typeof reader.result === 'string' ? resolve(reader.result) : reject(new Error('Unable to read logo'));
+  reader.onerror = () => reject(reader.error || new Error('Unable to read logo'));
+  reader.readAsDataURL(file);
+});
 
 export const ProviderOnboardingView: React.FC<ProviderOnboardingViewProps> = ({
   userProfile,
@@ -31,22 +38,29 @@ export const ProviderOnboardingView: React.FC<ProviderOnboardingViewProps> = ({
     { key: 'incorporation', label: 'Certificate of Incorporation / Registration' },
   ];
 
-  const handleFinish = (target: 'dashboard' | 'add-product') => {
+  const handleFinish = async (target: 'dashboard' | 'add-product') => {
     if (!requiredDocuments.every(({ key }) => verificationFiles[key]) || !logoFile) {
       setErrorMessage('Upload all required verification files and the institution logo before continuing.');
       return;
     }
-    onUpdateProfile({
-      institutionName,
-      institutionType,
-      registrationNumber,
-      phone: [primaryPhone, secondaryPhone].filter(Boolean).join(', '),
-      isPendingVerification: true,
-    });
+    try {
+      const logoUrl = await fileToDataUrl(logoFile);
+      await onUpdateProfile({
+        institutionName,
+        institutionType,
+        registrationNumber,
+        phone: [primaryPhone, secondaryPhone].filter(Boolean).join(', '),
+        avatarUrl: logoUrl,
+        isPendingVerification: true,
+      });
+    } catch {
+      setErrorMessage('Unable to read the institution logo. Please choose the file again.');
+      return;
+    }
 
     setIsComplete(true);
 
-    window.setTimeout(() => onNavigate(target === 'add-product' ? 'product-management' : 'provider-dashboard'), 900);
+    window.setTimeout(() => onNavigate(target === 'add-product' ? 'product-management' : 'provider-dashboard'), 300);
   };
 
   return (

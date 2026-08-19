@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS users (
   contact_person VARCHAR(255),
   institution_type VARCHAR(100),
   registration_number VARCHAR(100),
+  avatar_url TEXT,
   is_verified BOOLEAN NOT NULL DEFAULT false,
   segment VARCHAR(50),
   district VARCHAR(100),
