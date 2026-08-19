@@ -108,10 +108,26 @@ export function App() {
         }
       })
       .catch(() => {
+        // Clear all session data on authentication failure
         localStorage.removeItem("token");
         localStorage.removeItem("role");
         localStorage.removeItem("userProfile");
         localStorage.removeItem("lastActivity");
+        localStorage.removeItem("currentView");
+        setIsAuthenticated(false);
+        setRole("user");
+        setUserProfile({
+          id: '',
+          name: '',
+          email: '',
+          phone: '',
+          location: '',
+          role: 'user',
+          memberStatus: 'Pending verification',
+          creditScore: 0,
+        });
+        setCurrentView("login");
+        setDataError("Your session is no longer valid. Please sign in again.");
       });
   }, []);
 
@@ -175,11 +191,18 @@ export function App() {
           setApprovedLoans(loans);
         }
       } catch (error) {
+        console.error('Error loading account data:', error);
         if (error instanceof Error && "status" in error && (error as { status: number }).status === 403) {
           window.dispatchEvent(new Event("finaccess:unauthorized"));
           return;
         }
-        setDataError(error instanceof Error ? error.message : "Unable to load account data.");
+        // Provide more specific error message
+        const errorMessage = error instanceof Error ? error.message : "Unable to load account data.";
+        if (errorMessage.includes('connect to the backend API')) {
+          setDataError("Unable to connect to the backend server. Please ensure the backend is running on port 5000.");
+        } else {
+          setDataError(errorMessage);
+        }
       }
     };
 
@@ -414,6 +437,12 @@ export function App() {
 
   // Handle logout
   const handleLogout = (redirectTo: "landing" | "login" = "landing") => {
+    // Call logout API to invalidate server-side session (fire and forget)
+    authAPI.logout().catch(error => {
+      console.error('Logout API call failed:', error);
+    });
+    
+    // Clear all local storage and state
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("userProfile");
@@ -462,7 +491,29 @@ export function App() {
         if (timeSinceLastActivity > fiveDaysInMs) {
           // Auto logout due to inactivity
           setDataError("Your session has expired due to inactivity. Please sign in again.");
-          handleLogout("login");
+          // Perform direct logout to avoid dependency issues
+          authAPI.logout().catch(error => {
+            console.error('Logout API call failed:', error);
+          });
+          localStorage.removeItem("token");
+          localStorage.removeItem("role");
+          localStorage.removeItem("userProfile");
+          localStorage.removeItem("lastActivity");
+          localStorage.removeItem("currentView");
+          setIsAuthenticated(false);
+          setRole("user");
+          setUserProfile({
+            id: '',
+            name: '',
+            email: '',
+            phone: '',
+            location: '',
+            role: 'user',
+            memberStatus: 'Pending verification',
+            creditScore: 0,
+          });
+          setViewHistory([]);
+          setCurrentView("login");
         }
       }
     }, 60000); // Check every minute
@@ -519,6 +570,10 @@ export function App() {
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
               notifications={notifications}
               loans={approvedLoans}
+              onNavigateToRegister={(role) => {
+                setLoginDefaultRole(role);
+                setCurrentView('register');
+              }}
             />
           )}
 
@@ -537,6 +592,7 @@ export function App() {
               onSelectUser={(u, newRole, token) => {
                 handleRegistrationSuccess(u, newRole, token);
               }}
+              defaultRole={loginDefaultRole}
             />
           )}
 

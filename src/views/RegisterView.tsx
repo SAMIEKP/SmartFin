@@ -17,10 +17,11 @@ const validPhoneList = (value: string) => value.split(/[,;\n]+/).map((phone) => 
 interface RegisterViewProps {
   onNavigate: (view: ViewMode) => void;
   onSelectUser: (user: UserProfile, role: Role, token?: string) => void;
+  defaultRole?: Role;
 }
 
-export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelectUser }) => {
-  const [selectedRole, setSelectedRole] = useState<Role>('user');
+export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelectUser, defaultRole = 'user' }) => {
+  const [selectedRole, setSelectedRole] = useState<Role>(defaultRole);
   
   // Individual fields
   const [name, setName] = useState('');

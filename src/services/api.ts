@@ -245,6 +245,7 @@ export const authAPI = {
   register: (userData: Record<string, unknown>) => apiRequest<{ verificationId: string; message: string; verificationCode?: string }>('/auth/register', { method: 'POST', body: JSON.stringify(userData) }, false),
   verifyRegistration: (verificationId: string, code: string) => apiRequest<{ token: string; user: ApiUser; message: string }>('/auth/verify-registration', { method: 'POST', body: JSON.stringify({ verificationId, code }) }, false),
   login: (credentials: { email: string; password: string }) => apiRequest<{ token: string; user: ApiUser }>('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }, false),
+  logout: () => apiRequest<{ message: string }>('/auth/logout', { method: 'POST' }),
   getProfile: () => apiRequest<{ user: ApiUser }>('/auth/profile'),
   requestPasswordReset: (email: string) => apiRequest<{ message: string; resetId?: string; resetCode?: string }>('/auth/password-reset/request', { method: 'POST', body: JSON.stringify({ email }) }, false),
   resetPassword: (resetId: string, code: string, password: string) => apiRequest<{ message: string }>('/auth/password-reset/confirm', { method: 'POST', body: JSON.stringify({ resetId, code, password }) }, false),
