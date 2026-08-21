@@ -17,7 +17,7 @@ import {
   userAPI,
 } from "./services/api";
 import { Navbar } from './components/Navbar';
-import { Sidebar } from './components/Sidebar';
+import { MobileBottomNav, Sidebar } from './components/Sidebar';
 import { ApplicationModal } from './components/ApplicationModal';
 import { AddProductModal } from './components/AddProductModal';
 import { SupportModal } from './components/SupportModal';
@@ -213,6 +213,7 @@ export function App() {
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Login default role (pre-select Member or Provider tab)
   const [loginDefaultRole, setLoginDefaultRole] = useState<Role>("user");
@@ -537,13 +538,14 @@ export function App() {
           role={role}
           userProfile={userProfile}
           onOpenSupport={() => setIsSupportModalOpen(true)}
-          onLogout={handleLogout}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed((value) => !value)}
         />
       )}
 
       {/* Main Page Area */}
       <div
-        className={`flex-1 flex flex-col ${!isFullScreenLayout ? "lg:pl-64" : ""}`}
+        className={`flex-1 flex flex-col ${!isFullScreenLayout ? (sidebarCollapsed ? "lg:pl-20" : "lg:pl-64") : ""}`}
       >
         {/* Top Navbar */}
         {!isRegistrationFlow && currentView !== 'login' && (
@@ -553,6 +555,7 @@ export function App() {
             role={role}
             userProfile={userProfile}
             onOpenApplyModal={() => setIsApplyModalOpen(true)}
+            notifications={notifications}
             onNavigateToRegister={(registerRole) => {
               setLoginDefaultRole(registerRole);
               setCurrentView('register');
@@ -562,7 +565,7 @@ export function App() {
 
         {/* View Content Renderer */}
         <main
-          className={`flex-1 ${!isFullScreenLayout ? "p-4 md:p-8 max-w-7xl mx-auto w-full" : ""}`}
+          className={`flex-1 ${!isFullScreenLayout ? "p-4 pb-24 md:p-8 md:pb-8 max-w-7xl mx-auto w-full" : ""}`}
         >
           {dataError && (
             <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-700">
@@ -627,6 +630,7 @@ export function App() {
               onNavigate={handleNavigate}
               onSelectProduct={setSelectedProduct}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
+              onOpenSupport={() => setIsSupportModalOpen(true)}
             />
           )}
 
@@ -727,6 +731,9 @@ export function App() {
             />
           )}
         </main>
+        {!isFullScreenLayout && role === 'user' && (
+          <MobileBottomNav currentView={currentView} onNavigate={handleNavigate} />
+        )}
       </div>
 
       {/* Modals */}

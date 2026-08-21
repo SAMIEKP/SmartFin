@@ -9,6 +9,7 @@ interface UserDashboardViewProps {
   onNavigate: (view: ViewMode) => void;
   onSelectProduct: (product: LoanProduct) => void;
   onOpenApplyModal: () => void;
+  onOpenSupport: () => void;
   notifications?: UserNotification[];
   loans?: ApprovedLoan[];
 }
@@ -20,9 +21,11 @@ export const UserDashboardView: React.FC<UserDashboardViewProps> = ({
   onNavigate,
   onSelectProduct,
   onOpenApplyModal,
+  onOpenSupport,
   notifications = [],
   loans = [],
 }) => {
+  const smartFinUpdates: Array<{ date: string; tag: string; title: string; summary: string }> = [];
   const [savedProductsCount] = useState(0);
   const pendingApps = applications.filter(
     (a) => a.status === 'Pending' || a.status === 'Action Required' || a.status === 'In Progress'
@@ -31,9 +34,9 @@ export const UserDashboardView: React.FC<UserDashboardViewProps> = ({
   const actionRequiredApp = applications.find((a) => a.status === 'Action Required');
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="user-dashboard-view space-y-6 pb-12">
       {/* Header section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl border border-outline-variant/30 shadow-xs">
+      <div className="user-dashboard-welcome flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl border border-outline-variant/30 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-extrabold text-on-surface">
@@ -61,7 +64,7 @@ export const UserDashboardView: React.FC<UserDashboardViewProps> = ({
 
       {/* KPI/stat cards row (4 compact cards) */}
       <div className="flex overflow-x-auto gap-4 pb-2 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:pb-0 scrollbar-none">
-        <div className="min-w-55 flex-1 bg-white p-5 rounded-2xl border border-outline-variant/30 shadow-xs flex items-center justify-between">
+        <div className="user-dashboard-stat min-w-55 flex-1 bg-white p-5 rounded-2xl border border-outline-variant/30 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-on-surface-variant block">Applications in Progress</span>
             <span className="text-2xl font-extrabold text-primary mt-1 block">
@@ -73,7 +76,7 @@ export const UserDashboardView: React.FC<UserDashboardViewProps> = ({
           </div>
         </div>
 
-        <div className="min-w-55 flex-1 bg-white p-5 rounded-2xl border border-outline-variant/30 shadow-xs flex items-center justify-between">
+        <div className="user-dashboard-stat min-w-55 flex-1 bg-white p-5 rounded-2xl border border-outline-variant/30 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-on-surface-variant block">Approved Loans</span>
             <span className="text-2xl font-extrabold text-emerald-600 mt-1 block">
@@ -85,7 +88,7 @@ export const UserDashboardView: React.FC<UserDashboardViewProps> = ({
           </div>
         </div>
 
-        <div className="min-w-55 flex-1 bg-white p-5 rounded-2xl border border-outline-variant/30 shadow-xs flex items-center justify-between">
+        <div className="user-dashboard-stat min-w-55 flex-1 bg-white p-5 rounded-2xl border border-outline-variant/30 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-on-surface-variant block">Saved Products</span>
             <span className="text-2xl font-extrabold text-secondary mt-1 block">
@@ -102,13 +105,13 @@ export const UserDashboardView: React.FC<UserDashboardViewProps> = ({
 
       {/* Action Required Alert Banner */}
       {loans.length > 0 && (
-        <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl space-y-2">
+        <div className="user-dashboard-loans bg-emerald-50 border border-emerald-200 p-4 rounded-2xl space-y-2">
           <h3 className="font-extrabold text-sm text-emerald-900 flex items-center gap-2"><span className="material-symbols-outlined">account_balance</span>Approved loans & repayments</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">{loans.map((loan) => <div key={loan.id} className="bg-white rounded-xl p-3 text-xs border border-emerald-100"><p className="font-bold text-[#0b1c30]">{loan.product_name} · {loan.provider_name}</p><p className="mt-1 text-[#3d4947]">Outstanding: <strong>MWK {Number(loan.outstanding_balance).toLocaleString()}</strong></p><p className="text-[#3d4947]">Next payment: <strong>MWK {Number(loan.payment_amount).toLocaleString()}</strong> due {loan.next_payment_due || 'scheduled soon'}</p></div>)}</div>
         </div>
       )}
       {actionRequiredApp && (
-        <div className="bg-error-container border border-error/40 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-on-error-container">
+        <div className="user-dashboard-action bg-error-container border border-error/40 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-on-error-container">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-error text-white flex items-center justify-center shrink-0">
               <span className="material-symbols-outlined text-lg">warning</span>
@@ -132,7 +135,7 @@ export const UserDashboardView: React.FC<UserDashboardViewProps> = ({
         {/* Left 2-Cols: Current Applications + Recommendations */}
         <div className="lg:col-span-2 space-y-6">
           {/* Current Applications Panel */}
-          <div className="bg-white rounded-2xl p-6 border border-outline-variant/30 shadow-xs space-y-4">
+          <div className="user-dashboard-panel bg-white rounded-2xl p-6 border border-outline-variant/30 shadow-xs space-y-4">
             <div className="flex justify-between items-center pb-2 border-b border-gray-100">
               <h2 className="font-extrabold text-lg text-on-surface flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">assignment</span>
@@ -224,7 +227,7 @@ export const UserDashboardView: React.FC<UserDashboardViewProps> = ({
           </div>
 
           {/* Recommendations Panel */}
-          <div className="bg-white rounded-2xl p-6 border border-outline-variant/30 shadow-xs space-y-4">
+          <div className="user-dashboard-panel bg-white rounded-2xl p-6 border border-outline-variant/30 shadow-xs space-y-4">
             <div className="flex justify-between items-center pb-2 border-b border-gray-100">
               <h2 className="font-extrabold text-base text-on-surface flex items-center gap-2">
                 <span className="material-symbols-outlined text-secondary">thumb_up</span>
@@ -282,35 +285,15 @@ export const UserDashboardView: React.FC<UserDashboardViewProps> = ({
 
         {/* Right 1-Col: Member Insight + Recent Activity & Notifications */}
         <div className="space-y-6">
-          {/* Advisory Hero Banner */}
-          <div className="relative rounded-2xl overflow-hidden shadow-md text-white p-6 bg-surface-container-high min-h-[200px] flex flex-col justify-between">
-            <img
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMkeEuPpmmzKQpkQB5rNK_FjU_AjlZFp6ULorYRy-N61J_GNkhmq4dX3TazjatopsKZQZf-jJg-JziCMYnc6WTfo0oBn75ACeTduoSETcn6FcseTN4zjbkoaY9PBIAx50NJOVc1XVDRgSr9tI5DIMYtWBJP7AvmOgscJDtT0xEs3S_y1wSCH5FC1wjZpYV8Dnz7mCP7_FqWiLeXHqC8mSL9r2Zn8cSrbOlTXLjy7AMloowqkH80-4X6yRtY_yhSyVrvmHrhDEVbL0"
-              alt="Financial City Insights"
-              className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-overlay"
-              loading="lazy"
-              decoding="async"
-            />
-            <div className="relative z-10 space-y-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider bg-primary-fixed text-on-primary-fixed px-2.5 py-0.5 rounded-full">
-                Credit Rating Advantage
-              </span>
-              <h3 className="text-base font-extrabold">Subsidized Agricultural & SME Rates</h3>
-              <p className="text-xs text-emerald-100 leading-relaxed">
-                Access personalized lending rates and offers based on your verified credit profile.
-              </p>
-            </div>
-
-            <button
-              onClick={() => onNavigate('calculator')}
-              className="relative z-10 mt-3 py-2 px-4 bg-primary-fixed text-on-primary-fixed font-bold text-xs rounded-xl hover:bg-white transition-colors cursor-pointer w-fit"
-            >
-              Simulate Repayments
-            </button>
+          {/* SmartFin Access Connect updates */}
+          <div className="user-dashboard-updates bg-[#ebe5dc] p-5 rounded-2xl border border-[#ded7cd] shadow-sm text-[#132d3a] space-y-4">
+            <div className="flex items-center justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[.18em] text-[#e56f5d]">SmartFin updates</p><h3 className="mt-1 font-serif text-2xl font-normal">News & platform updates</h3></div><span className="material-symbols-outlined text-[#e56f5d]">campaign</span></div>
+            {smartFinUpdates.length > 0 ? <div className="space-y-3">{smartFinUpdates.map((update) => <article key={update.title} className="border-t border-[#c9c0b5] pt-3"><div className="flex items-center justify-between gap-2"><span className="text-[10px] font-bold uppercase tracking-wider text-[#e56f5d]">{update.tag}</span><span className="text-[10px] text-[#9aa3a1]">{update.date}</span></div><h4 className="mt-1 text-sm font-bold text-[#132d3a]">{update.title}</h4><p className="mt-1 text-[11px] leading-5 text-[#69777a]">{update.summary}</p></article>)}</div> : <div className="border-t border-[#c9c0b5] py-8 text-center"><span className="material-symbols-outlined text-3xl text-[#b6aaa0]">campaign</span><p className="mt-2 text-sm font-bold text-[#132d3a]">No new updates</p><p className="mt-1 text-[11px] leading-5 text-[#69777a]">SmartFin Access Connect announcements will appear here when available.</p></div>}
+            <button type="button" onClick={onOpenSupport} className="inline-flex items-center gap-2 text-xs font-bold text-[#132d3a] transition-colors hover:text-[#e56f5d]">Ask SmartFin Support <span className="material-symbols-outlined text-sm">arrow_forward</span></button>
           </div>
 
           {/* Activity Timeline & Notifications Feed */}
-          <div className="bg-white p-5 rounded-2xl border border-outline-variant/30 shadow-xs space-y-4">
+          <div className="user-dashboard-panel bg-white p-5 rounded-2xl border border-outline-variant/30 shadow-xs space-y-4">
             <h3 className="font-extrabold text-sm text-on-surface flex items-center justify-between">
               <span>Recent Activity Feed</span>
               <span className="text-[10px] bg-surface-container text-primary px-2 py-0.5 rounded-full font-bold">

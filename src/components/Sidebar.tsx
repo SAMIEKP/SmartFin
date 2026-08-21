@@ -7,7 +7,8 @@ interface SidebarProps {
   role: Role;
   userProfile: UserProfile;
   onOpenSupport: () => void;
-  onLogout?: () => void;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -16,21 +17,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
   role,
   userProfile,
   onOpenSupport,
-  onLogout,
+  collapsed = false,
+  onToggleCollapse,
 }) => {
   return (
-    <aside className="h-screen w-64 fixed left-0 top-0 bg-[#eff4ff] flex flex-col p-4 gap-2 border-r border-[#bcc9c6]/20 z-50 overflow-y-auto custom-scrollbar">
+    <aside className={`${role === 'user' ? 'user-app-sidebar hidden lg:flex' : 'flex'} ${collapsed ? 'sidebar-collapsed w-20' : 'w-64'} h-screen fixed left-0 top-0 bg-[#eff4ff] flex-col p-4 gap-2 border-r border-[#bcc9c6]/20 z-50 overflow-y-auto custom-scrollbar transition-[width] duration-200`}>
       {/* Brand Header */}
-      <div className="mb-6 px-2">
+      <div className={`sidebar-brand mb-6 px-2 ${collapsed ? 'text-center' : ''}`}>
         <h1
-          onClick={() => onNavigate("landing")}
-          className="font-bold text-2xl text-[#00685f] cursor-pointer hover:opacity-80 transition-opacity tracking-tight"
+          className="sidebar-logo"
         >
-          FinAccess
+          {collapsed ? 'FA' : 'FinAccess'}
         </h1>
-        <p className="text-xs text-[#3d4947] font-medium mt-0.5">
-          {userProfile.memberStatus ||
-            (role === "provider" ? "Provider Dashboard" : "Verified Member")}
+        <p className="sidebar-label text-xs text-[#3d4947] font-medium mt-0.5">
+          Clear finance. Better decisions.
         </p>
       </div>
 
@@ -50,7 +50,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }`}
         >
           <span className="material-symbols-outlined text-base">dashboard</span>
-          <span>Dashboard</span>
+          <span className="sidebar-label">Dashboard</span>
         </button>
 
         <button
@@ -68,7 +68,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }`}
         >
           <span className="material-symbols-outlined text-base">payments</span>
-          <span>Services</span>
+          <span className="sidebar-label">Services</span>
         </button>
 
         {role === "provider" && (
@@ -83,7 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span className="material-symbols-outlined text-base">
               inventory
             </span>
-            <span>Application Management</span>
+            <span className="sidebar-label">Application Management</span>
           </button>
         )}
 
@@ -100,7 +100,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span className="material-symbols-outlined text-base">
                 assignment_turned_in
               </span>
-              <span>My Applications</span>
+              <span className="sidebar-label">My Applications</span>
             </button>
 
             <button
@@ -112,7 +112,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }`}
             >
               <span className="material-symbols-outlined text-base">speed</span>
-              <span>Credit Score</span>
+              <span className="sidebar-label">Credit Score</span>
             </button>
           </>
         )}
@@ -126,7 +126,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }`}
         >
           <span className="material-symbols-outlined text-base">calculate</span>
-          <span>Calculator</span>
+          <span className="sidebar-label">Calculator</span>
         </button>
 
         <button
@@ -138,7 +138,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }`}
         >
           <span className="material-symbols-outlined text-base">person</span>
-          <span>Profile</span>
+          <span className="sidebar-label">Profile</span>
         </button>
 
         <button
@@ -150,7 +150,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }`}
         >
           <span className="material-symbols-outlined text-base">settings</span>
-          <span>Settings</span>
+          <span className="sidebar-label">Settings</span>
         </button>
 
         <button
@@ -160,35 +160,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <span className="material-symbols-outlined text-base">
             contact_support
           </span>
-          <span>Support</span>
+          <span className="sidebar-label">Support</span>
         </button>
       </nav>
 
       {/* Role Indicator */}
-      <div className="bg-[#d3e4fe]/50 px-3 py-1.5 rounded-xl text-xs font-semibold text-[#00685f] mb-2 text-center">
+      <div className="sidebar-label bg-[#d3e4fe]/50 px-3 py-1.5 rounded-xl text-xs font-semibold text-[#00685f] mb-2 text-center">
         {role === "user" ? "Member" : "Provider"}
-      </div>
-
-      {/* Expert Help Box */}
-      <div className="mt-auto p-4 bg-[#008378] rounded-2xl text-[#f4fffc] flex flex-col items-center gap-2 text-center shadow-xs">
-        <span className="material-symbols-outlined text-2xl">lightbulb</span>
-        <p className="text-xs font-medium">
-          {role === "provider"
-            ? "Need performance insights?"
-            : "Need guidance on interest rates?"}
-        </p>
-        <button
-          onClick={onOpenSupport}
-          className="w-full py-2 px-3 bg-[#f4fffc] text-[#008378] rounded-xl text-xs font-bold hover:bg-white transition-colors cursor-pointer"
-        >
-          Get Expert Help
-        </button>
       </div>
 
       {/* User Profile Bar */}
       <div
         onClick={() => onNavigate("user-profile")}
-        className="mt-3 flex items-center gap-2.5 px-2 pt-2 border-t border-[#bcc9c6]/30 cursor-pointer hover:opacity-90 transition-opacity"
+        className={`sidebar-profile mt-3 flex items-center gap-2.5 px-2 pt-2 border-t border-[#bcc9c6]/30 cursor-pointer hover:opacity-90 transition-opacity ${collapsed ? 'justify-center' : ''}`}
       >
         <div className="w-9 h-9 rounded-full bg-[#d3e4fe] flex items-center justify-center overflow-hidden shrink-0 border border-[#00685f]/20">
           {userProfile.avatarUrl ? (
@@ -205,7 +189,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </span>
           )}
         </div>
-        <div className="flex flex-col min-w-0">
+        <div className="sidebar-label flex flex-col min-w-0">
           <span className="text-xs font-bold text-[#0b1c30] truncate">
             {userProfile.name}
           </span>
@@ -215,16 +199,40 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Logout Button */}
-      {onLogout && (
-        <button
-          onClick={onLogout}
-          className="mt-2 w-full flex items-center justify-center gap-2 p-3 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 transition-all duration-200 cursor-pointer border border-red-200"
-        >
-          <span className="material-symbols-outlined text-base">logout</span>
-          <span>Logout</span>
+      {onToggleCollapse && (
+        <button type="button" onClick={onToggleCollapse} aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} className="sidebar-toggle mt-2 flex items-center justify-center gap-2 rounded-xl border border-[#bcc9c6]/30 p-3 text-xs font-bold text-[#3d4947] transition-colors hover:bg-[#d3e4fe]">
+          <span className="material-symbols-outlined text-base">{collapsed ? 'chevron_right' : 'chevron_left'}</span>
+          <span className="sidebar-label">{collapsed ? 'Expand' : 'Collapse'}</span>
         </button>
       )}
     </aside>
+  );
+};
+
+interface MobileBottomNavProps {
+  currentView: ViewMode;
+  onNavigate: (view: ViewMode) => void;
+}
+
+export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ currentView, onNavigate }) => {
+  const items: Array<{ view: ViewMode; label: string; icon: string }> = [
+    { view: 'user-dashboard', label: 'Home', icon: 'home' },
+    { view: 'loan-products', label: 'Explore', icon: 'explore' },
+    { view: 'my-applications', label: 'Applications', icon: 'assignment_turned_in' },
+    { view: 'user-profile', label: 'Profile', icon: 'person' },
+  ];
+
+  return (
+    <nav className="user-mobile-nav lg:hidden" aria-label="Member navigation">
+      {items.map((item) => {
+        const isActive = currentView === item.view || (item.view === 'loan-products' && currentView === 'product-details');
+        return (
+          <button key={item.view} type="button" onClick={() => onNavigate(item.view)} className={isActive ? 'is-active' : ''} aria-label={item.label}>
+            <span className="material-symbols-outlined">{item.icon}</span>
+            <span>{item.label}</span>
+          </button>
+        );
+      })}
+    </nav>
   );
 };
