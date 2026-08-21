@@ -53,7 +53,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
               </h1>
               <p className="mt-8 max-w-120 text-base leading-8 text-[#53636a] sm:text-lg">Compare trusted loan products, understand the terms, and take your next step with confidence.</p>
               <div className="mt-9 flex flex-wrap items-center gap-5">
-                <button onClick={() => onNavigate('loan-products')} className="landing-primary-button">Explore loan options <ArrowRight size={17} /></button>
+                <button onClick={() => register('user')} className="landing-primary-button">Explore loan options <ArrowRight size={17} /></button>
                 <button onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })} className="landing-text-button"><span className="landing-play"><Play size={12} fill="currentColor" /></span> How it works</button>
               </div>
               <div className="mt-10 flex items-center gap-3 text-xs text-[#69777a]"><ShieldCheck size={17} className="text-[#e56f5d]" /> Secure, transparent and built for real life.</div>
@@ -89,7 +89,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
         </div>
       </section>
 
-      <section id="how-it-works" className="mx-auto max-w-310 px-6 py-24 sm:px-10 lg:px-12 lg:py-32">
+      <section id="what-we-do" className="mx-auto max-w-310 px-6 py-24 sm:px-10 lg:px-12 lg:py-32">
         <div className="grid gap-14 lg:grid-cols-[.8fr_1.2fr] lg:gap-24">
           <div><p className="landing-kicker">What we do</p><h2 className="landing-section-title">Finance that meets you where you are.</h2><p className="mt-7 text-base leading-8 text-[#53636a]">From your first search to your final repayment, SmartFin Access Connect makes the process easier to see, understand and manage.</p><button onClick={() => register('user')} className="landing-outline-button mt-8">Start your journey <ArrowRight size={16} /></button></div>
           <div className="grid gap-0 border-t border-[#c9c0b5]">{categories.map((category) => <div key={category.label} className="group flex items-center justify-between border-b border-[#c9c0b5] py-7"><div className="flex items-center gap-6"><span className={`landing-index ${category.tone}`}>{category.icon}</span><h3 className="font-serif text-2xl">{category.label}</h3></div><ArrowRight className="text-[#9ba4a2] transition-transform group-hover:translate-x-2" size={20} /></div>)}</div>
@@ -105,7 +105,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
         </div>
       </section>
 
-      <section className="mx-auto max-w-310 px-6 py-24 sm:px-10 lg:px-12 lg:py-32">
+      <section id="how-it-works" className="mx-auto max-w-310 px-6 py-24 sm:px-10 lg:px-12 lg:py-32">
         <div className="mb-14 max-w-2xl"><p className="landing-kicker">How it works</p><h2 className="landing-section-title">Two simple journeys, one trusted platform.</h2><p className="mt-6 text-base leading-8 text-[#53636a]">Each path is designed around the steps that matter most, whether you are looking for financial support or providing it.</p></div>
         <div className="grid gap-16 lg:grid-cols-2 lg:gap-20">
           {[['For individuals', individualSteps, 'landing-index coral'], ['For loan providers', providerSteps, 'landing-index blue']].map(([title, steps, indexClass]) => <div key={title as string}><h3 className="mb-7 font-serif text-3xl">{title as string}</h3><div className="space-y-8">{(steps as string[][]).map(([number, stepTitle, copy]) => <div key={number} className="flex gap-5"><span className={indexClass as string}>{number}</span><div><h4 className="text-base font-bold">{stepTitle}</h4><p className="mt-2 text-sm leading-6 text-[#69777a]">{copy}</p></div></div>)}</div></div>)}

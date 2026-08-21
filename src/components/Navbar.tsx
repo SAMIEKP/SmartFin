@@ -32,8 +32,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={() => onNavigate('landing')}
           className="flex items-center gap-2 text-left group"
         >
-          <span className="font-serif text-xl font-bold tracking-[-.03em] text-[#132d3a] group-hover:text-[#e56f5d] transition-colors">
-            smartfin<span className="text-[#e56f5d]">.</span>
+          <span className="font-great-vibes text-4xl text-[#132d3a] group-hover:text-[#e56f5d] transition-colors">
+            SmartFin Connect
           </span>
         </button>
 
@@ -42,7 +42,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       {currentView === 'landing' && (
         <nav className="hidden items-center gap-8 text-[11px] font-bold uppercase tracking-[.14em] text-[#53636a] lg:flex">
           <button onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-[#e56f5d]">How it works</button>
-          <button onClick={() => onNavigate('loan-products')} className="hover:text-[#e56f5d]">Loan options</button>
+          <button onClick={() => document.getElementById('what-we-do')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-[#e56f5d]">Loan options</button>
           <button onClick={() => onNavigateToRegister?.('provider')} className="hover:text-[#e56f5d]">For providers</button>
         </nav>
       )}
