@@ -109,3 +109,54 @@
   transform: translateY(-4px);
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
 }
+
+/* Landing page display typography */
+.landing-page h2,
+.landing-page h3,
+.landing-page h4 {
+  font-family: 'Geist', 'Inter', sans-serif;
+}
+
+.landing-page section {
+  scroll-margin-top: 5rem;
+}
+
+@layer components {
+  .landing-primary-button,
+  .landing-outline-button,
+  .landing-light-button,
+  .landing-coral-outline-button,
+  .landing-text-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: all 180ms ease;
+  }
+
+  .landing-primary-button { background: #132d3a; color: white; padding: 1rem 1.25rem; }
+  .landing-primary-button:hover { background: #e56f5d; }
+  .landing-outline-button { border: 1px solid #132d3a; padding: 0.95rem 1.15rem; }
+  .landing-outline-button:hover { background: #132d3a; color: white; }
+  .landing-text-button { color: #53636a; }
+  .landing-text-button:hover { color: #e56f5d; }
+  .landing-light-button { background: white; color: #132d3a; padding: 1rem 1.25rem; }
+  .landing-light-button:hover { background: #132d3a; color: white; }
+  .landing-coral-outline-button { border: 1px solid rgba(255, 255, 255, 0.65); color: white; padding: 0.95rem 1.15rem; }
+  .landing-coral-outline-button:hover { background: white; color: #e56f5d; }
+  .landing-play { display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; border: 1px solid #9ba4a2; border-radius: 999px; }
+  .landing-kicker { color: #e56f5d; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.23em; text-transform: uppercase; }
+  .landing-section-title { margin-top: 1.25rem; max-width: 31rem; font-family: Georgia, serif; font-size: clamp(2.3rem, 4vw, 4rem); line-height: 1.02; letter-spacing: -0.035em; }
+  .landing-hero-image { position: relative; margin: auto; max-width: 32rem; }
+  .landing-hero-image img { display: block; width: 100%; aspect-ratio: 0.86; object-fit: cover; }
+  .landing-image-note { position: absolute; bottom: -1.3rem; left: -1.2rem; display: flex; align-items: center; gap: 0.65rem; background: #e56f5d; padding: 1rem 1.2rem; color: white; font-size: 0.72rem; font-weight: 700; line-height: 1.45; }
+  .landing-index { display: inline-flex; align-items: center; justify-content: center; width: 2.4rem; height: 2.4rem; font-size: 0.68rem; font-weight: 700; }
+  .landing-index.coral { background: #f3c1b7; color: #b64d3d; }
+  .landing-index.gold { background: #e6cf9e; color: #876822; }
+  .landing-index.blue { background: #c1d4da; color: #3e6674; }
+  .landing-product-card { min-height: 18rem; border-top: 2px solid #132d3a; background: #ebe5dc; padding: 1.5rem; transition: transform 180ms ease, background 180ms ease; }
+  .landing-product-card:hover { background: #e5d5c7; transform: translateY(-0.3rem); }
+}
