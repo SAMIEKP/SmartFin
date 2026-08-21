@@ -132,8 +132,9 @@
 }
 
 @layer components {
+  .sidebar-logo { color: #ed8774; font-family: 'Great Vibes', cursive; font-size: 2.1rem; font-weight: 400; letter-spacing: 0; line-height: 1.1; }
   .user-app-sidebar { background: #132d3a; border-color: rgba(255, 255, 255, .08); color: rgba(255, 255, 255, .72); }
-  .user-app-sidebar .sidebar-logo { color: #ed8774; font-family: 'Great Vibes', cursive; font-size: 2.1rem; font-weight: 400; letter-spacing: 0; line-height: 1.1; }
+  .user-app-sidebar .sidebar-logo { color: #ed8774; }
   .user-app-sidebar .sidebar-logo:hover { color: #fff; }
   .user-app-sidebar p, .user-app-sidebar span { color: inherit; }
   .user-app-sidebar nav button { border-radius: .85rem; color: rgba(255,255,255,.62); }

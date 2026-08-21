@@ -49,8 +49,19 @@ export const Navbar: React.FC<NavbarProps> = ({
     settings: 'Settings',
     support: 'Support',
   };
-  const headerTitle = role === 'user' && currentView !== 'landing'
-    ? userViewTitles[currentView] || 'SmartFin Connect'
+  const providerViewTitles: Partial<Record<ViewMode, string>> = {
+    'provider-dashboard': 'Provider Dashboard',
+    'product-management': 'Loan Products',
+    'application-management': 'Applications',
+    'provider-onboarding': 'Provider Onboarding',
+    settings: 'Settings',
+    support: 'Support',
+    'user-profile': 'Profile',
+  };
+  const headerTitle = currentView !== 'landing'
+    ? role === 'provider'
+      ? providerViewTitles[currentView] || 'Provider Dashboard'
+      : userViewTitles[currentView] || 'Dashboard'
     : 'SmartFin Connect';
 
   return (
@@ -61,9 +72,9 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="flex items-center gap-6">
         <button
           onClick={() => onNavigate('landing')}
-          className="flex items-center gap-2 text-left group"
+          className="flex items-center gap-2 text-left"
         >
-          <span className={`${role === 'user' && currentView !== 'landing' ? 'font-geist text-lg font-extrabold tracking-[-.04em]' : 'font-great-vibes text-4xl'} text-[#132d3a] group-hover:text-[#e56f5d] transition-colors`}>
+          <span className={`${currentView !== 'landing' ? 'font-geist text-lg font-extrabold tracking-[-.04em]' : 'font-great-vibes text-4xl'} text-[#132d3a]`}>
             {headerTitle}
           </span>
         </button>

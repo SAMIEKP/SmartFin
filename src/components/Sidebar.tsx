@@ -178,23 +178,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {userProfile.avatarUrl ? (
             <img
               src={userProfile.avatarUrl}
-              alt={userProfile.name}
+              alt={role === 'provider' ? userProfile.institutionName || 'FinAccess Institution' : userProfile.name}
               className="w-full h-full object-cover"
               loading="lazy"
               decoding="async"
             />
           ) : (
             <span className="font-bold text-[#00685f]">
-              {userProfile.name.charAt(0)}
+              {(role === 'provider' ? userProfile.institutionName || 'FinAccess Institution' : userProfile.name).charAt(0)}
             </span>
           )}
         </div>
         <div className="sidebar-label flex flex-col min-w-0">
           <span className="text-xs font-bold text-[#0b1c30] truncate">
-            {userProfile.name}
+            {role === 'provider' ? userProfile.institutionName || 'FinAccess Institution' : userProfile.name}
           </span>
           <span className="text-[10px] text-[#3d4947] truncate">
-            {userProfile.memberStatus}
+            {role === 'provider' ? userProfile.providerStatus || userProfile.memberStatus : userProfile.memberStatus}
           </span>
         </div>
       </div>
