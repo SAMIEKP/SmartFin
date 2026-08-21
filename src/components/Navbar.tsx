@@ -9,6 +9,7 @@ interface NavbarProps {
   onOpenApplyModal: () => void;
   onSwitchRole?: (role: Role) => void;
   onNavigateLogin?: (defaultRole: Role) => void;
+  onNavigateToRegister?: (role: 'user' | 'provider') => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -19,6 +20,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenApplyModal,
   onSwitchRole,
   onNavigateLogin,
+  onNavigateToRegister,
 }) => {
   return (
     <header className="sticky top-0 z-40 bg-[#eff4ff]/90 backdrop-blur-md border-b border-[#bcc9c6]/20 px-4 py-3 flex items-center justify-between gap-4">
@@ -54,12 +56,22 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Center Nav Links for Landing - Removed per requirements */}
 
       {/* Right Controls */}
-      {currentView !== 'login' && currentView !== 'register' && (
-        <div className="flex items-center gap-3">
-          {/* Role indicator - Display only */}
-          <div className="hidden sm:flex bg-[#e5eeff] px-3 py-1 rounded-full text-xs font-semibold text-[#00685f]">
-            {role === 'user' ? 'Member' : 'Provider'}
-          </div>
+      {currentView === 'landing' && (
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button
+            onClick={() => onNavigateToRegister?.('user')}
+            className="px-3 sm:px-5 py-2.5 bg-white hover:bg-[#00685f] hover:text-white text-[#00685f] border-2 border-[#00685f] font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+          >
+            <span className="material-symbols-outlined text-sm">person</span>
+            <span>Member</span>
+          </button>
+          <button
+            onClick={() => onNavigateToRegister?.('provider')}
+            className="px-3 sm:px-5 py-2.5 bg-white hover:bg-[#855300] hover:text-white text-[#855300] border-2 border-[#855300] font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+          >
+            <span className="material-symbols-outlined text-sm">account_balance</span>
+            <span>Provider</span>
+          </button>
         </div>
       )}
     </header>

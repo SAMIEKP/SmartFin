@@ -25,26 +25,6 @@ export const LandingView: React.FC<LandingViewProps> = ({
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f8f9ff]">
-      {/* Header with Member and Provider buttons */}
-      <header className="absolute top-0 left-0 right-0 z-20 px-4 md:px-8 py-4">
-        <div className="max-w-7xl mx-auto flex justify-end items-center gap-3">
-          <button
-            onClick={() => onNavigateToRegister?.('user')}
-            className="px-5 py-2.5 bg-white hover:bg-[#00685f] hover:text-white text-[#00685f] border-2 border-[#00685f] font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer active:scale-95"
-          >
-            <span className="material-symbols-outlined text-sm">person</span>
-            <span>Member</span>
-          </button>
-          <button
-            onClick={() => onNavigateToRegister?.('provider')}
-            className="px-5 py-2.5 bg-white hover:bg-[#855300] hover:text-white text-[#855300] border-2 border-[#855300] font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer active:scale-95"
-          >
-            <span className="material-symbols-outlined text-sm">account_balance</span>
-            <span>Provider</span>
-          </button>
-        </div>
-      </header>
-
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#eff4ff] via-[#e5eeff] to-[#f8f9ff] pt-16 pb-24 px-4 md:px-8 border-b border-[#bcc9c6]/20 overflow-hidden">
         {/* Decorative background elements */}

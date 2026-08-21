@@ -551,6 +551,10 @@ export function App() {
           role={role}
           userProfile={userProfile}
           onOpenApplyModal={() => setIsApplyModalOpen(true)}
+          onNavigateToRegister={(registerRole) => {
+            setLoginDefaultRole(registerRole);
+            setCurrentView('register');
+          }}
         />
 
         {/* View Content Renderer */}
