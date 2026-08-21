@@ -59,7 +59,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
               <div className="mt-10 flex items-center gap-3 text-xs text-[#69777a]"><ShieldCheck size={17} className="text-[#e56f5d]" /> Secure, transparent and built for real life.</div>
             </div>
             <div className="relative z-10 lg:pl-8">
-              <div className="landing-hero-image"><img src="https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1200&q=85" alt="People collaborating around a table" /><div className="landing-image-note"><Sparkles size={15} /><span>Make informed<br />financial decisions.</span></div></div>
+              <div className="landing-hero-image"><img src="/Home_page.jpg" alt="SmartFin Access Connect platform" /><div className="landing-image-note"><Sparkles size={15} /><span>Make informed<br />financial decisions.</span></div></div>
             </div>
           </div>
         </div>

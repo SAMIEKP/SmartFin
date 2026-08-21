@@ -31,6 +31,8 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
   const [incomeRange, setIncomeRange] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Provider fields
   const [institutionName, setInstitutionName] = useState('');
@@ -51,7 +53,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
   const [verificationId, setVerificationId] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [verificationMessage, setVerificationMessage] = useState('');
-  const [verificationChannel, setVerificationChannel] = useState('');
+  const [verificationChannel] = useState('email');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,8 +157,15 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
   };
 
   return (
-    <div className="min-h-screen bg-[#eff4ff] py-10 px-4 flex flex-col justify-center items-center">
-      <div className="w-full max-w-xl bg-white rounded-3xl border border-[#bcc9c6]/30 shadow-lg p-6 sm:p-8 space-y-6">
+    <div className="auth-page auth-page-register min-h-screen px-4 py-8 sm:px-6 lg:px-10">
+      <div className="auth-app-shell mx-auto grid w-full max-w-6xl overflow-hidden lg:grid-cols-[.82fr_1.18fr]">
+        <aside className="auth-visual-panel hidden flex-col justify-between p-10 lg:flex xl:p-14">
+          <div><button type="button" onClick={() => onNavigate('landing')} className="auth-brand auth-brand-button">{'Smart'}{'Fin'} Connect</button><p className="auth-eyebrow mt-20">A better start</p><h2 className="auth-display-title mt-5">Set up a smarter financial future.</h2><p className="mt-6 max-w-sm text-sm leading-7 text-white/65">Create one account to discover financial services or build a trusted lending presence.</p></div>
+          <div className="auth-visual-stat"><span className="material-symbols-outlined">route</span><span>Guided onboarding, clear terms and one calm dashboard.</span></div>
+        </aside>
+        <main className="auth-form-panel p-6 sm:p-10 lg:p-12">
+        <div className="mb-8 flex items-center justify-between lg:hidden"><span className="auth-brand auth-brand-dark">{'Smart'}{'Fin'} Connect</span><span className="auth-step-label">Create account</span></div>
+        <div className="auth-form-card space-y-6">
         {/* Top Header */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-extrabold text-[#00685f] tracking-tight">
@@ -169,7 +178,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
         </div>
 
         {/* Role Selector Tabs */}
-        <div className="space-y-2">
+        <div className="auth-role-switch space-y-2">
           <label className="text-xs font-bold text-[#0b1c30] block">Select Account Type</label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
@@ -178,7 +187,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                 setSelectedRole('user');
                 setErrorMessage('');
               }}
-              className={`p-4 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                className={`auth-role-option p-4 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
                 selectedRole === 'user'
                   ? 'border-[#00685f] bg-[#f4fffc] ring-2 ring-[#00685f]/30'
                   : 'border-[#bcc9c6]/40 hover:bg-[#eff4ff]'
@@ -199,7 +208,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                 setSelectedRole('provider');
                 setErrorMessage('');
               }}
-              className={`p-4 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                className={`auth-role-option p-4 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
                 selectedRole === 'provider'
                   ? 'border-[#855300] bg-[#fff8f0] ring-2 ring-[#855300]/30'
                   : 'border-[#bcc9c6]/40 hover:bg-[#eff4ff]'
@@ -224,6 +233,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
           </div>
         )}
 
+        <div key={`${selectedRole}-${verificationId ? 'verification' : 'details'}`} className={`auth-role-content ${selectedRole === 'provider' ? 'is-provider' : 'is-individual'}`}>
         {verificationId ? (
           <form onSubmit={handleVerify} className="space-y-4 text-xs">
             <div className="rounded-xl border border-[#008378]/30 bg-[#f4fffc] p-4 text-[#0b1c30]">
@@ -234,16 +244,6 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
             <button type="submit" disabled={isSubmitting} className="w-full px-4 py-3 bg-[#00685f] text-white rounded-xl font-bold disabled:opacity-50">{isSubmitting ? 'Verifying...' : 'Verify and create account'}</button>
           </form>
         ) : <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-          <div className="space-y-1">
-            <label className="font-bold text-[#0b1c30]">Verify account using</label>
-            <select required value={verificationChannel} onChange={(event) => setVerificationChannel(event.target.value)} className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30">
-              <option value="">Select a verification channel</option>
-              <option value="email">Email</option>
-              <option value="sms">SMS</option>
-              <option value="call">Phone call</option>
-              <option value="whatsapp">WhatsApp</option>
-            </select>
-          </div>
           {selectedRole === 'user' ? (
             /* Individual User Fields */
             <>
@@ -318,25 +318,21 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="font-bold text-[#0b1c30]">Password *</label>
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="At least 6 chars"
-                    className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
-                  />
+                  <div className="relative"><input type={showPassword ? 'text' : 'password'} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 chars" aria-invalid={Boolean(password && password.length < 6)} className={`w-full px-3 py-2.5 pr-10 bg-[#eff4ff] border rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30 ${password && password.length < 6 ? 'border-red-400 focus:ring-red-200' : 'border-[#bcc9c6]/40'}`} /><button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6d7a77]" aria-label={showPassword ? 'Hide password' : 'Show password'}><span className="material-symbols-outlined text-base">{showPassword ? 'visibility_off' : 'visibility'}</span></button></div>
+                  {password && password.length < 6 && <p className="flex items-center gap-1 text-[11px] text-red-600"><span className="material-symbols-outlined text-xs">error</span>Password must be at least 6 characters.</p>}
+                  {password && (
+                    <div className="space-y-1 pt-1">
+                      <div className="flex gap-1" aria-label="Password strength">
+                        {[1, 2, 3, 4, 5].map((level) => <span key={level} className={`h-1 flex-1 rounded-full ${level <= passwordStrength(password) ? (passwordStrength(password) <= 2 ? 'bg-red-400' : passwordStrength(password) <= 4 ? 'bg-amber-400' : 'bg-emerald-500') : 'bg-gray-200'}`} />)}
+                      </div>
+                      <p className="text-[11px] text-[#6d7a77]">Strength: {passwordStrength(password) <= 2 ? 'Weak' : passwordStrength(password) <= 4 ? 'Good' : 'Strong'}</p>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <label className="font-bold text-[#0b1c30]">Confirm Password *</label>
-                  <input
-                    type="password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Repeat password"
-                    className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
-                  />
+                  <div className="relative"><input type={showConfirmPassword ? 'text' : 'password'} required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat password" aria-invalid={Boolean(confirmPassword && password !== confirmPassword)} className={`w-full px-3 py-2.5 pr-10 bg-[#eff4ff] border rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30 ${confirmPassword && password !== confirmPassword ? 'border-red-400 focus:ring-red-200' : 'border-[#bcc9c6]/40'}`} /><button type="button" onClick={() => setShowConfirmPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6d7a77]" aria-label={showConfirmPassword ? 'Hide confirmation password' : 'Show confirmation password'}><span className="material-symbols-outlined text-base">{showConfirmPassword ? 'visibility_off' : 'visibility'}</span></button></div>
+                  {confirmPassword && password !== confirmPassword && <p className="flex items-center gap-1 text-[11px] text-red-600"><span className="material-symbols-outlined text-xs">error</span>Passwords do not match.</p>}
                 </div>
               </div>
             </>
@@ -497,9 +493,10 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
             )}
           </button>
         </form>}
+        </div>
 
         {/* Footer link to Login */}
-        <div className="text-center pt-2 border-t border-gray-100 text-xs text-[#3d4947]">
+        <div className="auth-form-footer text-center pt-2 border-t border-gray-100 text-xs text-[#3d4947]">
           <span>Already registered on FinAccess? </span>
           <button
             onClick={() => onNavigate('login')}
@@ -508,6 +505,8 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
             Sign In Here
           </button>
         </div>
+        </div>
+        </main>
       </div>
     </div>
   );

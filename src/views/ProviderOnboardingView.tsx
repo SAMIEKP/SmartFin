@@ -82,7 +82,14 @@ export const ProviderOnboardingView: React.FC<ProviderOnboardingViewProps> = ({
         <div className="space-y-2 border-b border-gray-100 pb-4">
           <div className="flex justify-between items-center text-xs font-bold text-[#855300]">
             <span>PROVIDER INSTITUTION SETUP</span>
-            <span>Step {step} of 3</span>
+            <div className="flex items-center gap-2">
+              {step === 1 && (
+                <button type="button" onClick={() => onNavigate('landing')} aria-label="Go to home" title="Home" className="flex h-8 w-8 items-center justify-center rounded-full border border-[#bcc9c6]/50 text-[#855300] transition-colors hover:bg-[#fff8f0]">
+                  <span className="material-symbols-outlined text-base">home</span>
+                </button>
+              )}
+              <span>Step {step} of 3</span>
+            </div>
           </div>
           <h1 className="text-xl font-extrabold text-[#0b1c30]">
             {step === 1 && "Confirm Institution Information"}
@@ -230,9 +237,11 @@ export const ProviderOnboardingView: React.FC<ProviderOnboardingViewProps> = ({
               <button
                 type="button"
                 onClick={() => setStep(1)}
+                aria-label="Back to institution information"
+                title="Back"
                 className="py-3 px-4 border border-[#bcc9c6]/50 rounded-xl text-xs font-bold text-[#0b1c30] hover:bg-[#eff4ff] cursor-pointer"
               >
-                Back
+                <span className="material-symbols-outlined text-sm">arrow_back</span>
               </button>
               <button
                 type="button"

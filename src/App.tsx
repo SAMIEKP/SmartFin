@@ -408,6 +408,11 @@ export function App() {
     currentView === 'user-onboarding' ||
     currentView === 'provider-onboarding';
 
+  const isRegistrationFlow =
+    currentView === 'register' ||
+    currentView === 'user-onboarding' ||
+    currentView === 'provider-onboarding';
+
   // Handle login success
   const handleLoginSuccess = (profile: UserProfile, newRole: Role, token?: string) => {
     setUserProfile(profile);
@@ -418,11 +423,7 @@ export function App() {
     localStorage.setItem("role", newRole);
     localStorage.setItem("userProfile", JSON.stringify(profile));
     localStorage.setItem("lastActivity", Date.now().toString());
-    setCurrentView(newRole === "provider"
-      ? "provider-dashboard"
-      : profile.profileStatus === "complete" && profile.segment && profile.district
-        ? "user-dashboard"
-        : "user-onboarding");
+    setCurrentView(newRole === "provider" ? "provider-dashboard" : "user-dashboard");
   };
 
   const handleRegistrationSuccess = (profile: UserProfile, newRole: Role, token?: string) => {
@@ -545,17 +546,19 @@ export function App() {
         className={`flex-1 flex flex-col ${!isFullScreenLayout ? "lg:pl-64" : ""}`}
       >
         {/* Top Navbar */}
-        <Navbar
-          currentView={currentView}
-          onNavigate={handleNavigate}
-          role={role}
-          userProfile={userProfile}
-          onOpenApplyModal={() => setIsApplyModalOpen(true)}
-          onNavigateToRegister={(registerRole) => {
-            setLoginDefaultRole(registerRole);
-            setCurrentView('register');
-          }}
-        />
+        {!isRegistrationFlow && currentView !== 'login' && (
+          <Navbar
+            currentView={currentView}
+            onNavigate={handleNavigate}
+            role={role}
+            userProfile={userProfile}
+            onOpenApplyModal={() => setIsApplyModalOpen(true)}
+            onNavigateToRegister={(registerRole) => {
+              setLoginDefaultRole(registerRole);
+              setCurrentView('register');
+            }}
+          />
+        )}
 
         {/* View Content Renderer */}
         <main
