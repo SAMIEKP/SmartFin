@@ -3,6 +3,7 @@
 @theme {
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-geist: 'Geist', 'Inter', sans-serif;
+  --font-dancing: 'Dancing Script', cursive;
 
   --color-primary: #00685f;
   --color-primary-container: #008378;
@@ -108,4 +109,3 @@
   transform: translateY(-4px);
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
 }
-

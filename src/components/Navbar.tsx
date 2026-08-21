@@ -30,27 +30,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={() => onNavigate('landing')}
           className="flex items-center gap-2 text-left group"
         >
-          <span className="font-bold text-xl text-[#00685f] tracking-tight group-hover:text-[#008378] transition-colors">
+          <span className="font-dancing font-bold text-3xl text-[#00685f] tracking-normal group-hover:text-[#008378] transition-colors">
             SmartFin Connect
           </span>
         </button>
 
-        {/* Global Search input */}
-        {currentView !== 'login' && currentView !== 'register' && (
-          <div className="hidden md:flex items-center gap-2 bg-white border border-[#bcc9c6]/40 rounded-full px-3 py-1.5 text-xs text-[#3d4947] w-64 focus-within:ring-2 focus-within:ring-[#00685f]/30">
-            <span className="material-symbols-outlined text-sm text-[#6d7a77]">search</span>
-            <input
-              type="text"
-              placeholder="Search loans, rates, providers..."
-              className="bg-transparent border-none outline-none w-full text-xs text-[#0b1c30]"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  onNavigate('loan-products');
-                }
-              }}
-            />
-          </div>
-        )}
       </div>
 
       {/* Center Nav Links for Landing - Removed per requirements */}
