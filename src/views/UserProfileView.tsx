@@ -33,25 +33,25 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-primary bg-surface-container">
-                {userProfile.name.charAt(0)}
+                {(role === 'provider' ? userProfile.institutionName || 'FinAccess Institution' : userProfile.name).charAt(0)}
               </div>
             )}
           </div>
 
           <div className="space-y-2 text-center sm:text-left">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-              <h1 className="text-2xl font-extrabold text-on-surface">{userProfile.name}</h1>
+              <h1 className="text-2xl font-extrabold text-on-surface">{role === 'provider' ? userProfile.institutionName || 'FinAccess Institution' : userProfile.name}</h1>
               <span className="bg-primary-fixed text-on-primary-fixed text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                 {userProfile.memberStatus}
               </span>
               <span className="bg-surface-container text-primary text-[10px] font-bold px-2.5 py-0.5 rounded-full capitalize">
-                {role === 'provider' ? 'Lender Representative' : 'Individual Borrower'}
+                {role === 'provider' ? 'Loan Provider Institution' : 'Individual Borrower'}
               </span>
             </div>
 
             <p className="text-xs text-on-surface-variant flex items-center justify-center sm:justify-start gap-1 font-medium">
               <span className="material-symbols-outlined text-sm text-primary">location_on</span>
-              <span>{userProfile.location}</span>
+              <span>{role === 'provider' ? `Registered office: ${userProfile.location || 'Not provided'}` : userProfile.location}</span>
             </p>
 
             {userProfile.bio && (
@@ -98,39 +98,29 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
           <div className="bg-white p-6 rounded-2xl border border-outline-variant/30 shadow-xs space-y-4 text-xs">
             <h2 className="font-extrabold text-base text-on-surface flex items-center gap-2 border-b border-gray-100 pb-2">
               <span className="material-symbols-outlined text-primary">badge</span>
-              <span>Contact & Identity Verification</span>
+              <span>{role === 'provider' ? 'Institution Contact & Verification' : 'Contact & Identity Verification'}</span>
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-3 bg-surface-container-low rounded-xl">
-                <span className="text-[10px] text-gray-500 block uppercase font-bold">Email Address</span>
-                <span className="font-bold text-on-surface text-sm truncate block mt-0.5">
-                  {userProfile.email}
-                </span>
-              </div>
-
-              <div className="p-3 bg-surface-container-low rounded-xl">
-                <span className="text-[10px] text-gray-500 block uppercase font-bold">Phone Number</span>
-                <span className="font-bold text-on-surface text-sm block mt-0.5">
-                  {userProfile.phone}
-                </span>
-              </div>
-
-              <div className="p-3 bg-surface-container-low rounded-xl">
-                <span className="text-[10px] text-gray-500 block uppercase font-bold">NRIS Identity Check</span>
-                <span className="font-bold text-emerald-600 text-xs flex items-center gap-1 mt-0.5">
-                  <span className="material-symbols-outlined text-sm">verified</span>
-                  <span>National ID Verified</span>
-                </span>
-              </div>
-
-              <div className="p-3 bg-surface-container-low rounded-xl">
-                <span className="text-[10px] text-gray-500 block uppercase font-bold">Credit Reference Score</span>
-                <span className="font-bold text-tertiary text-sm flex items-center gap-1 mt-0.5">
-                  <span className="material-symbols-outlined text-sm">speed</span>
-                  <span>{userProfile.creditScore} (Good)</span>
-                </span>
-              </div>
+              {role === 'provider' ? (
+                <>
+                  <div className="p-3 bg-surface-container-low rounded-xl"><span className="text-[10px] text-gray-500 block uppercase font-bold">Institution Email</span><span className="font-bold text-on-surface text-sm truncate block mt-0.5">{userProfile.email}</span></div>
+                  <div className="p-3 bg-surface-container-low rounded-xl"><span className="text-[10px] text-gray-500 block uppercase font-bold">Institution Phone</span><span className="font-bold text-on-surface text-sm block mt-0.5">{userProfile.phone || 'Not provided'}</span></div>
+                  <div className="p-3 bg-surface-container-low rounded-xl"><span className="text-[10px] text-gray-500 block uppercase font-bold">Institution Type</span><span className="font-bold text-on-surface text-sm block mt-0.5">{userProfile.institutionType || 'Not provided'}</span></div>
+                  <div className="p-3 bg-surface-container-low rounded-xl"><span className="text-[10px] text-gray-500 block uppercase font-bold">Registration Number</span><span className="font-mono font-bold text-primary text-sm block mt-0.5">{userProfile.registrationNumber || 'Not provided'}</span></div>
+                  <div className="p-3 bg-surface-container-low rounded-xl"><span className="text-[10px] text-gray-500 block uppercase font-bold">Verification Status</span><span className="font-bold text-emerald-600 text-xs flex items-center gap-1 mt-0.5"><span className="material-symbols-outlined text-sm">verified</span>{userProfile.providerStatus || userProfile.memberStatus || 'Pending verification'}</span></div>
+                  <div className="p-3 bg-surface-container-low rounded-xl"><span className="text-[10px] text-gray-500 block uppercase font-bold">Registered Office</span><span className="font-bold text-on-surface text-sm block mt-0.5">{userProfile.location || 'Not provided'}</span></div>
+                </>
+              ) : (
+                <>
+                  <div className="p-3 bg-surface-container-low rounded-xl"><span className="text-[10px] text-gray-500 block uppercase font-bold">Email Address</span><span className="font-bold text-on-surface text-sm truncate block mt-0.5">{userProfile.email}</span></div>
+                  <div className="p-3 bg-surface-container-low rounded-xl"><span className="text-[10px] text-gray-500 block uppercase font-bold">Phone Number</span><span className="font-bold text-on-surface text-sm block mt-0.5">{userProfile.phone}</span></div>
+                  <div className="p-3 bg-surface-container-low rounded-xl"><span className="text-[10px] text-gray-500 block uppercase font-bold">Registered Location</span><span className="font-bold text-on-surface text-sm block mt-0.5">{userProfile.location || 'Not provided'}</span></div>
+                  <div className="p-3 bg-surface-container-low rounded-xl"><span className="text-[10px] text-gray-500 block uppercase font-bold">Monthly Income Range</span><span className="font-bold text-on-surface text-sm block mt-0.5">{userProfile.incomeRange || 'Not provided'}</span></div>
+                  <div className="p-3 bg-surface-container-low rounded-xl"><span className="text-[10px] text-gray-500 block uppercase font-bold">NRIS Identity Check</span><span className="font-bold text-emerald-600 text-xs flex items-center gap-1 mt-0.5"><span className="material-symbols-outlined text-sm">verified</span><span>National ID Verified</span></span></div>
+                  <div className="p-3 bg-surface-container-low rounded-xl"><span className="text-[10px] text-gray-500 block uppercase font-bold">Credit Reference Score</span><span className="font-bold text-tertiary text-sm flex items-center gap-1 mt-0.5"><span className="material-symbols-outlined text-sm">speed</span><span>{userProfile.creditScore} (Good)</span></span></div>
+                </>
+              )}
             </div>
           </div>
 
@@ -138,7 +128,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
           <div className="bg-white p-6 rounded-2xl border border-outline-variant/30 shadow-xs space-y-4 text-xs">
             <h2 className="font-extrabold text-base text-on-surface flex items-center gap-2 border-b border-gray-100 pb-2">
               <span className="material-symbols-outlined text-primary">savings</span>
-              <span>Financial Profile & Preferences</span>
+              <span>{role === 'provider' ? 'Institution Profile & Compliance' : 'Financial Profile & Preferences'}</span>
             </h2>
 
             {role === 'user' ? (
@@ -206,13 +196,13 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
           {/* Quick Stats Grid */}
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-white p-5 rounded-2xl border border-outline-variant/30 shadow-xs space-y-1">
-              <span className="text-xs text-gray-500 font-semibold block">Approved Loans</span>
+              <span className="text-xs text-gray-500 font-semibold block">{role === 'provider' ? 'Approved Applications' : 'Approved Loans'}</span>
               <span className="text-2xl font-extrabold text-emerald-600 block">{approvedAppsCount}</span>
-              <span className="text-[10px] text-emerald-700 font-bold">100% On-Time Record</span>
+              <span className="text-[10px] text-emerald-700 font-bold">{role === 'provider' ? 'Institution decisions' : '100% On-Time Record'}</span>
             </div>
 
             <div className="bg-white p-5 rounded-2xl border border-outline-variant/30 shadow-xs space-y-1">
-              <span className="text-xs text-gray-500 font-semibold block">In Progress</span>
+              <span className="text-xs text-gray-500 font-semibold block">{role === 'provider' ? 'Applications In Review' : 'In Progress'}</span>
               <span className="text-2xl font-extrabold text-primary block">{pendingAppsCount}</span>
               <span className="text-[10px] text-gray-400">Awaiting Decision</span>
             </div>
@@ -221,12 +211,12 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
           {/* Activity Timeline Card */}
           <div className="bg-white p-6 rounded-2xl border border-outline-variant/30 shadow-xs space-y-4 text-xs">
             <div className="flex justify-between items-center pb-2 border-b border-gray-100">
-              <h3 className="font-extrabold text-sm text-on-surface">Recent Activity History</h3>
+              <h3 className="font-extrabold text-sm text-on-surface">{role === 'provider' ? 'Recent Application Activity' : 'Recent Activity History'}</h3>
               <button
-                onClick={() => onNavigate('my-applications')}
+                onClick={() => onNavigate(role === 'provider' ? 'application-management' : 'my-applications')}
                 className="text-[11px] font-bold text-primary hover:underline"
               >
-                View Applications
+                {role === 'provider' ? 'Manage Applications' : 'View Applications'}
               </button>
             </div>
 

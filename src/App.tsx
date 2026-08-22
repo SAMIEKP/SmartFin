@@ -6,6 +6,7 @@ import {
   ApplicationItem,
   UserProfile,
 } from "./types";
+import { UserNotification, ApprovedLoan } from "./types";
 import {
   applicationAPI,
   authAPI,
@@ -16,7 +17,7 @@ import {
   userAPI,
 } from "./services/api";
 import { Navbar } from './components/Navbar';
-import { Sidebar } from './components/Sidebar';
+import { MobileBottomNav, Sidebar } from './components/Sidebar';
 import { ApplicationModal } from './components/ApplicationModal';
 import { AddProductModal } from './components/AddProductModal';
 import { SupportModal } from './components/SupportModal';
@@ -39,7 +40,10 @@ import { UserOnboardingView } from './views/UserOnboardingView';
 import { ProviderOnboardingView } from './views/ProviderOnboardingView';
 
 export function App() {
-  const [currentView, setCurrentView] = useState<ViewMode>("landing");
+  const [currentView, setCurrentView] = useState<ViewMode>(() => {
+    const savedView = localStorage.getItem("currentView");
+    return (savedView as ViewMode) || "landing";
+  });
   const [viewHistory, setViewHistory] = useState<ViewMode[]>([]);
   const [role, setRole] = useState<Role>("user");
   const [userProfile, setUserProfile] =
@@ -56,10 +60,34 @@ export function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [dataError, setDataError] = useState("");
 
+  // Save current view to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("currentView", currentView);
+  }, [currentView]);
+
   // Restore the session from the backend on mount.
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
+
+    // Check for activity timeout before restoring session
+    const lastActivity = localStorage.getItem("lastActivity");
+    const fiveDaysInMs = 5 * 24 * 60 * 60 * 1000; // 5 days in milliseconds
+    
+    if (lastActivity) {
+      const timeSinceLastActivity = Date.now() - parseInt(lastActivity, 10);
+      if (timeSinceLastActivity > fiveDaysInMs) {
+        // Auto logout due to inactivity
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        localStorage.removeItem("userProfile");
+        localStorage.removeItem("lastActivity");
+        localStorage.removeItem("currentView");
+        setCurrentView("login");
+        setDataError("Your session has expired due to inactivity. Please sign in again.");
+        return;
+      }
+    }
 
     authAPI.getProfile()
       .then(({ user }) => {
@@ -69,12 +97,37 @@ export function App() {
         setUserProfile(profile);
         localStorage.setItem("role", user.role);
         localStorage.setItem("userProfile", JSON.stringify(profile));
-        setCurrentView(user.role === "provider" ? "provider-dashboard" : "user-dashboard");
+        // Update last activity on successful session restore
+        localStorage.setItem("lastActivity", Date.now().toString());
+        // Preserve the current view instead of defaulting to dashboard
+        const savedView = localStorage.getItem("currentView") as ViewMode;
+        if (savedView && savedView !== "landing" && savedView !== "login" && savedView !== "register") {
+          setCurrentView(savedView);
+        } else {
+          setCurrentView(user.role === "provider" ? "provider-dashboard" : "user-dashboard");
+        }
       })
       .catch(() => {
+        // Clear all session data on authentication failure
         localStorage.removeItem("token");
         localStorage.removeItem("role");
         localStorage.removeItem("userProfile");
+        localStorage.removeItem("lastActivity");
+        localStorage.removeItem("currentView");
+        setIsAuthenticated(false);
+        setRole("user");
+        setUserProfile({
+          id: '',
+          name: '',
+          email: '',
+          phone: '',
+          location: '',
+          role: 'user',
+          memberStatus: 'Pending verification',
+          creditScore: 0,
+        });
+        setCurrentView("login");
+        setDataError("Your session is no longer valid. Please sign in again.");
       });
   }, []);
 
@@ -94,6 +147,8 @@ export function App() {
       });
       setViewHistory([]);
       setCurrentView("login");
+      localStorage.removeItem("currentView");
+      localStorage.removeItem("lastActivity");
       setDataError("Your session is no longer valid. Please sign in again.");
     };
 
@@ -105,7 +160,10 @@ export function App() {
   const [products, setProducts] = useState<LoanProduct[]>([]);
   const [userApplications, setUserApplications] = useState<ApplicationItem[]>([]);
   const [providerApplications, setProviderApplications] = useState<ApplicationItem[]>([]);
+  const [notifications, setNotifications] = useState<UserNotification[]>([]);
+  const [approvedLoans, setApprovedLoans] = useState<ApprovedLoan[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<LoanProduct | null>(null);
+  const [productBeingEdited, setProductBeingEdited] = useState<LoanProduct | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -121,19 +179,30 @@ export function App() {
           setProducts(products.map(mapApiProduct));
           setProviderApplications(applications.map(mapApiApplication));
         } else {
-          const [{ products }, { applications }] = await Promise.all([
+          const [{ products }, { applications }, { notifications: accountNotifications }, { loans }] = await Promise.all([
             userAPI.getProducts(),
             userAPI.getApplications(),
+            userAPI.getNotifications(),
+            userAPI.getLoans(),
           ]);
           setProducts(products.map(mapApiProduct));
           setUserApplications(applications.map(mapApiApplication));
+          setNotifications(accountNotifications);
+          setApprovedLoans(loans);
         }
       } catch (error) {
+        console.error('Error loading account data:', error);
         if (error instanceof Error && "status" in error && (error as { status: number }).status === 403) {
           window.dispatchEvent(new Event("finaccess:unauthorized"));
           return;
         }
-        setDataError(error instanceof Error ? error.message : "Unable to load account data.");
+        // Provide more specific error message
+        const errorMessage = error instanceof Error ? error.message : "Unable to load account data.";
+        if (errorMessage.includes('connect to the backend API')) {
+          setDataError("Unable to connect to the backend server. Please ensure the backend is running on port 5000.");
+        } else {
+          setDataError(errorMessage);
+        }
       }
     };
 
@@ -144,6 +213,7 @@ export function App() {
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Login default role (pre-select Member or Provider tab)
   const [loginDefaultRole, setLoginDefaultRole] = useState<Role>("user");
@@ -181,8 +251,9 @@ export function App() {
           applicantName: newApp.applicantName,
           phone: newApp.applicantPhone,
           location: newApp.applicantLocation,
+          ...(newApp.answers || {}),
         },
-        documents: [],
+        documents: newApp.uploadedDocuments || [],
       });
       setUserApplications((prev) => [mapApiApplication(application), ...prev]);
     } catch (error) {
@@ -199,14 +270,52 @@ export function App() {
         minAmount: newProd.minAmount,
         maxAmount: newProd.maxAmount,
         interestRate: newProd.interestRateMin,
+        interestRateMax: newProd.interestRateMax,
         tenure: newProd.termDisplay,
+        processingDays: newProd.processingDays,
+        collateralRequired: newProd.collateralRequired,
+        collateralText: newProd.collateralText,
+        tags: newProd.tags,
+        rating: newProd.rating,
+        reviewsCount: newProd.reviewsCount,
         description: newProd.description,
         eligibilityCriteria: newProd.eligibility,
         requiredDocuments: newProd.documents,
+        applicationQuestions: newProd.applicationQuestions,
       });
       setProducts((prev) => [mapApiProduct(product), ...prev]);
     } catch (error) {
       setDataError(error instanceof Error ? error.message : "Unable to publish product.");
+    }
+  };
+
+  const handleUpdateProduct = async (updatedProduct: LoanProduct) => {
+    try {
+      const { product } = await productAPI.updateProduct(updatedProduct.id, {
+        name: updatedProduct.name,
+        category: updatedProduct.category,
+        minAmount: updatedProduct.minAmount,
+        maxAmount: updatedProduct.maxAmount,
+        interestRate: updatedProduct.interestRateMin,
+        interestRateMax: updatedProduct.interestRateMax,
+        tenure: updatedProduct.termDisplay,
+        processingDays: updatedProduct.processingDays,
+        collateralRequired: updatedProduct.collateralRequired,
+        collateralText: updatedProduct.collateralText,
+        tags: updatedProduct.tags,
+        rating: updatedProduct.rating,
+        reviewsCount: updatedProduct.reviewsCount,
+        description: updatedProduct.description,
+        eligibilityCriteria: updatedProduct.eligibility,
+        requiredDocuments: updatedProduct.documents,
+        applicationQuestions: updatedProduct.applicationQuestions,
+        isActive: updatedProduct.status === "active",
+      });
+      setProducts((prev) => prev.map((item) => item.id === updatedProduct.id ? mapApiProduct(product) : item));
+      setProductBeingEdited(null);
+      setIsAddProductModalOpen(false);
+    } catch (error) {
+      setDataError(error instanceof Error ? error.message : "Unable to update product.");
     }
   };
 
@@ -263,6 +372,7 @@ export function App() {
   // Profile update handler
   const handleUpdateProfile = async (updated: Partial<UserProfile>) => {
     try {
+      if (updated.language) localStorage.setItem('finaccess:language', updated.language);
       // Apply optimistic local update so avatar and profile changes show immediately
       setUserProfile((prev) => {
         const merged = { ...prev, ...updated } as UserProfile;
@@ -272,12 +382,32 @@ export function App() {
 
       // Send update to backend (include avatarUrl if present)
       const payload: Record<string, unknown> = {
+        email: updated.email,
         name: updated.name,
         phone: updated.phone,
         location: updated.location,
         income_range: updated.incomeRange,
+        institutionName: updated.institutionName,
+        institutionType: updated.institutionType,
+        registrationNumber: updated.registrationNumber,
+        segment: updated.segment,
+        district: updated.district,
+        cityVillage: updated.cityVillage,
+        needs: updated.needs,
+        language: updated.language,
+        lendingPolicy: updated.lendingPolicy,
+        interestPolicy: updated.interestPolicy,
+        latePaymentPolicy: updated.latePaymentPolicy,
+        dataPrivacyStatement: updated.dataPrivacyStatement,
+        notificationPreferences: updated.notificationPreferences,
+        twoFactorEnabled: updated.twoFactorEnabled,
+        bio: updated.bio,
+        financialGoal: updated.financialGoal,
+        theme: updated.theme,
+        fontSize: updated.fontSize,
+        contactPerson: updated.role === 'provider' ? updated.name : undefined,
       };
-      if (updated.avatarUrl) payload.avatar_url = updated.avatarUrl;
+      if (updated.avatarUrl !== undefined) payload.avatar_url = updated.avatarUrl;
 
       const { user } = await userAPI.updateProfile(payload);
       const profileFromServer = mapApiUser(user);
@@ -298,6 +428,11 @@ export function App() {
     currentView === 'user-onboarding' ||
     currentView === 'provider-onboarding';
 
+  const isRegistrationFlow =
+    currentView === 'register' ||
+    currentView === 'user-onboarding' ||
+    currentView === 'provider-onboarding';
+
   // Handle login success
   const handleLoginSuccess = (profile: UserProfile, newRole: Role, token?: string) => {
     setUserProfile(profile);
@@ -307,6 +442,7 @@ export function App() {
     if (token) localStorage.setItem("token", token);
     localStorage.setItem("role", newRole);
     localStorage.setItem("userProfile", JSON.stringify(profile));
+    localStorage.setItem("lastActivity", Date.now().toString());
     setCurrentView(newRole === "provider" ? "provider-dashboard" : "user-dashboard");
   };
 
@@ -317,13 +453,22 @@ export function App() {
     if (token) localStorage.setItem("token", token);
     localStorage.setItem("role", newRole);
     localStorage.setItem("userProfile", JSON.stringify(profile));
+    localStorage.setItem("lastActivity", Date.now().toString());
   };
 
   // Handle logout
-  const handleLogout = () => {
+  const handleLogout = (redirectTo: "landing" | "login" = "landing") => {
+    // Call logout API to invalidate server-side session (fire and forget)
+    authAPI.logout().catch(error => {
+      console.error('Logout API call failed:', error);
+    });
+    
+    // Clear all local storage and state
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("userProfile");
+    localStorage.removeItem("currentView");
+    localStorage.removeItem("lastActivity");
     setIsAuthenticated(false);
     setRole("user");
     setUserProfile({
@@ -337,8 +482,71 @@ export function App() {
       creditScore: 0,
     });
     setViewHistory([]);
-    setCurrentView("landing");
+    setCurrentView(redirectTo);
   };
+
+  // Track user activity for auto-logout after 5 days
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const updateLastActivity = () => {
+      localStorage.setItem("lastActivity", Date.now().toString());
+    };
+
+    // Update last activity timestamp on mount
+    updateLastActivity();
+
+    // Set up activity listeners
+    const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+    activityEvents.forEach(event => {
+      window.addEventListener(event, updateLastActivity);
+    });
+
+    // Set up interval to check for inactivity
+    const checkInactivity = setInterval(() => {
+      const lastActivity = localStorage.getItem("lastActivity");
+      const fiveDaysInMs = 5 * 24 * 60 * 60 * 1000; // 5 days in milliseconds
+      
+      if (lastActivity) {
+        const timeSinceLastActivity = Date.now() - parseInt(lastActivity, 10);
+        if (timeSinceLastActivity > fiveDaysInMs) {
+          // Auto logout due to inactivity
+          setDataError("Your session has expired due to inactivity. Please sign in again.");
+          // Perform direct logout to avoid dependency issues
+          authAPI.logout().catch(error => {
+            console.error('Logout API call failed:', error);
+          });
+          localStorage.removeItem("token");
+          localStorage.removeItem("role");
+          localStorage.removeItem("userProfile");
+          localStorage.removeItem("lastActivity");
+          localStorage.removeItem("currentView");
+          setIsAuthenticated(false);
+          setRole("user");
+          setUserProfile({
+            id: '',
+            name: '',
+            email: '',
+            phone: '',
+            location: '',
+            role: 'user',
+            memberStatus: 'Pending verification',
+            creditScore: 0,
+          });
+          setViewHistory([]);
+          setCurrentView("login");
+        }
+      }
+    }, 60000); // Check every minute
+
+    // Clean up event listeners and interval
+    return () => {
+      activityEvents.forEach(event => {
+        window.removeEventListener(event, updateLastActivity);
+      });
+      clearInterval(checkInactivity);
+    };
+  }, [isAuthenticated]);
 
   return (
     <div className="flex h-screen">
@@ -349,26 +557,34 @@ export function App() {
           role={role}
           userProfile={userProfile}
           onOpenSupport={() => setIsSupportModalOpen(true)}
-          onLogout={handleLogout}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed((value) => !value)}
         />
       )}
 
       {/* Main Page Area */}
       <div
-        className={`flex-1 flex flex-col ${!isFullScreenLayout ? "lg:pl-64" : ""}`}
+        className={`flex-1 flex flex-col ${!isFullScreenLayout ? (sidebarCollapsed ? "lg:pl-20" : "lg:pl-64") : ""}`}
       >
         {/* Top Navbar */}
-        <Navbar
-          currentView={currentView}
-          onNavigate={handleNavigate}
-          role={role}
-          userProfile={userProfile}
-          onOpenApplyModal={() => setIsApplyModalOpen(true)}
-        />
+        {!isRegistrationFlow && currentView !== 'login' && (
+          <Navbar
+            currentView={currentView}
+            onNavigate={handleNavigate}
+            role={role}
+            userProfile={userProfile}
+            onOpenApplyModal={() => setIsApplyModalOpen(true)}
+            notifications={notifications}
+            onNavigateToRegister={(registerRole) => {
+              setLoginDefaultRole(registerRole);
+              setCurrentView('register');
+            }}
+          />
+        )}
 
         {/* View Content Renderer */}
         <main
-          className={`flex-1 ${!isFullScreenLayout ? "p-4 md:p-8 max-w-7xl mx-auto w-full" : ""}`}
+          className={`flex-1 ${!isFullScreenLayout ? "p-4 pb-24 md:p-8 md:pb-8 max-w-7xl mx-auto w-full" : ""}`}
         >
           {dataError && (
             <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-700">
@@ -381,6 +597,12 @@ export function App() {
               products={products}
               onSelectProduct={setSelectedProduct}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
+              notifications={notifications}
+              loans={approvedLoans}
+              onNavigateToRegister={(role) => {
+                setLoginDefaultRole(role);
+                setCurrentView('register');
+              }}
             />
           )}
 
@@ -399,6 +621,7 @@ export function App() {
               onSelectUser={(u, newRole, token) => {
                 handleRegistrationSuccess(u, newRole, token);
               }}
+              defaultRole={loginDefaultRole}
             />
           )}
 
@@ -426,6 +649,7 @@ export function App() {
               onNavigate={handleNavigate}
               onSelectProduct={setSelectedProduct}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
+              onOpenSupport={() => setIsSupportModalOpen(true)}
             />
           )}
 
@@ -436,7 +660,7 @@ export function App() {
               criticalVerifications={[]}
               onNavigate={handleNavigate}
               onBack={handleGoBack}
-              onOpenAddProductModal={() => setIsAddProductModalOpen(true)}
+              onOpenAddProductModal={() => { setProductBeingEdited(null); setIsAddProductModalOpen(true); }}
               onUpdateAppStatus={handleUpdateAppStatus}
             />
           )}
@@ -455,7 +679,8 @@ export function App() {
               products={products}
               onNavigate={handleNavigate}
               onBack={handleGoBack}
-              onOpenAddProductModal={() => setIsAddProductModalOpen(true)}
+              onOpenAddProductModal={() => { setProductBeingEdited(null); setIsAddProductModalOpen(true); }}
+              onEditProduct={(product) => { setProductBeingEdited(product); setIsAddProductModalOpen(true); }}
               onToggleStatus={handleToggleProductStatus}
               onDeleteProduct={handleDeleteProduct}
               onSelectProduct={setSelectedProduct}
@@ -478,6 +703,7 @@ export function App() {
               onBack={handleGoBack}
               onOpenApplyModal={() => setIsApplyModalOpen(true)}
               onOpenSupport={() => setIsSupportModalOpen(true)}
+              canApply={role !== "provider"}
             />
           )}
 
@@ -524,6 +750,9 @@ export function App() {
             />
           )}
         </main>
+        {!isFullScreenLayout && role === 'user' && (
+          <MobileBottomNav currentView={currentView} onNavigate={handleNavigate} />
+        )}
       </div>
 
       {/* Modals */}
@@ -537,10 +766,12 @@ export function App() {
 
       <AddProductModal
         isOpen={isAddProductModalOpen}
-        onClose={() => setIsAddProductModalOpen(false)}
+        onClose={() => { setIsAddProductModalOpen(false); setProductBeingEdited(null); }}
         onAddProduct={handleAddProduct}
+        onUpdateProduct={handleUpdateProduct}
         userProfile={userProfile}
         existingProducts={products}
+        productToEdit={productBeingEdited}
       />
 
       <SupportModal

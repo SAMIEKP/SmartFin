@@ -4,8 +4,15 @@ import { ViewMode, UserProfile } from '../types';
 interface ProviderOnboardingViewProps {
   userProfile: UserProfile;
   onNavigate: (view: ViewMode) => void;
-  onUpdateProfile: (updated: Partial<UserProfile>) => void;
+  onUpdateProfile: (updated: Partial<UserProfile>) => Promise<void>;
 }
+
+const fileToDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => typeof reader.result === 'string' ? resolve(reader.result) : reject(new Error('Unable to read logo'));
+  reader.onerror = () => reject(reader.error || new Error('Unable to read logo'));
+  reader.readAsDataURL(file);
+});
 
 export const ProviderOnboardingView: React.FC<ProviderOnboardingViewProps> = ({
   userProfile,
@@ -13,35 +20,47 @@ export const ProviderOnboardingView: React.FC<ProviderOnboardingViewProps> = ({
   onUpdateProfile,
 }) => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [institutionName, setInstitutionName] = useState(userProfile.institutionName || 'Central Microfinance');
-  const [institutionType, setInstitutionType] = useState(userProfile.institutionType || 'Microfinance Institution (MFI)');
-  const [registrationNumber, setRegistrationNumber] = useState(userProfile.registrationNumber || 'RBM/MFI/2024/088');
-  
-  const [uploadedDocs, setUploadedDocs] = useState<string[]>([
-    'Reserve_Bank_Malawi_Licence.pdf'
-  ]);
-  const [docName, setDocName] = useState('');
+  const [institutionName, setInstitutionName] = useState(userProfile.institutionName || '');
+  const [institutionType, setInstitutionType] = useState(userProfile.institutionType || '');
+  const [registrationNumber, setRegistrationNumber] = useState(userProfile.registrationNumber || '');
+  const [institutionEmail, setInstitutionEmail] = useState(userProfile.email || '');
+  const phoneParts = (userProfile.phone || '').split(/,\s*/).filter(Boolean);
+  const [primaryPhone, setPrimaryPhone] = useState(phoneParts[0] || '');
+  const [secondaryPhone, setSecondaryPhone] = useState(phoneParts[1] || '');
+  const [showSecondaryPhone, setShowSecondaryPhone] = useState(Boolean(phoneParts[1]));
+  const [verificationFiles, setVerificationFiles] = useState<Record<string, File | null>>({});
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isComplete, setIsComplete] = useState(false);
+  const requiredDocuments = [
+    { key: 'rbm', label: 'Reserve Bank of Malawi (RBM) Operating License' },
+    { key: 'tpin', label: 'Tax Identification Certificate (TPIN)' },
+    { key: 'incorporation', label: 'Certificate of Incorporation / Registration' },
+  ];
 
-  const handleAddDoc = () => {
-    if (docName.trim()) {
-      setUploadedDocs(prev => [...prev, docName.trim()]);
-      setDocName('');
+  const handleFinish = async (target: 'dashboard' | 'add-product') => {
+    if (!requiredDocuments.every(({ key }) => verificationFiles[key]) || !logoFile) {
+      setErrorMessage('Upload all required verification files and the institution logo before continuing.');
+      return;
     }
-  };
-
-  const handleFinish = (target: 'dashboard' | 'add-product') => {
-    onUpdateProfile({
-      institutionName,
-      institutionType,
-      registrationNumber,
-      isPendingVerification: true,
-    });
-
-    if (target === 'add-product') {
-      onNavigate('product-management');
-    } else {
-      onNavigate('provider-dashboard');
+    try {
+      const logoUrl = await fileToDataUrl(logoFile);
+      await onUpdateProfile({
+        institutionName,
+        institutionType,
+        registrationNumber,
+        phone: [primaryPhone, secondaryPhone].filter(Boolean).join(', '),
+        avatarUrl: logoUrl,
+        isPendingVerification: true,
+      });
+    } catch {
+      setErrorMessage('Unable to read the institution logo. Please choose the file again.');
+      return;
     }
+
+    setIsComplete(true);
+
+    window.setTimeout(() => onNavigate(target === 'add-product' ? 'product-management' : 'provider-dashboard'), 300);
   };
 
   return (
@@ -63,7 +82,14 @@ export const ProviderOnboardingView: React.FC<ProviderOnboardingViewProps> = ({
         <div className="space-y-2 border-b border-gray-100 pb-4">
           <div className="flex justify-between items-center text-xs font-bold text-[#855300]">
             <span>PROVIDER INSTITUTION SETUP</span>
-            <span>Step {step} of 3</span>
+            <div className="flex items-center gap-2">
+              {step === 1 && (
+                <button type="button" onClick={() => onNavigate('landing')} aria-label="Go to home" title="Home" className="flex h-8 w-8 items-center justify-center rounded-full border border-[#bcc9c6]/50 text-[#855300] transition-colors hover:bg-[#fff8f0]">
+                  <span className="material-symbols-outlined text-base">home</span>
+                </button>
+              )}
+              <span>Step {step} of 3</span>
+            </div>
           </div>
           <h1 className="text-xl font-extrabold text-[#0b1c30]">
             {step === 1 && "Confirm Institution Information"}
@@ -71,10 +97,59 @@ export const ProviderOnboardingView: React.FC<ProviderOnboardingViewProps> = ({
             {step === 3 && "Add Your First Product"}
           </h1>
         </div>
+        {errorMessage && (
+          <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700" role="alert">
+            <span className="material-symbols-outlined text-base">error</span>
+            <span>{errorMessage}</span>
+          </div>
+        )}
 
         {/* STEP 1 */}
         {step === 1 && (
           <div className="space-y-4 text-xs">
+            <div className="space-y-1">
+              <label className="font-bold text-[#0b1c30]">Institution Email</label>
+              <input
+                type="email"
+                value={institutionEmail}
+                onChange={(e) => setInstitutionEmail(e.target.value)}
+                className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="font-bold text-[#0b1c30]">Primary Contact Phone *</label>
+                <input
+                  type="text"
+                  required
+                  value={primaryPhone}
+                  onChange={(e) => setPrimaryPhone(e.target.value)}
+                  placeholder="+265 888 123 456"
+                  className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none"
+                />
+              </div>
+              <div className="space-y-1">
+                {showSecondaryPhone ? (
+                  <>
+                    <label className="font-bold text-[#0b1c30]">Second Contact Phone <span className="font-normal text-[#6d7a77]">(Optional)</span></label>
+                    <input
+                      type="text"
+                      value={secondaryPhone}
+                      onChange={(e) => setSecondaryPhone(e.target.value)}
+                      placeholder="Optional second number"
+                      className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none"
+                    />
+                  </>
+                ) : (
+                  <button type="button" onClick={() => setShowSecondaryPhone(true)} className="mt-7 inline-flex items-center gap-1 text-[11px] font-bold text-[#855300]">
+                    <span className="material-symbols-outlined text-sm">add_circle</span>
+                    Add second phone (optional)
+                  </button>
+                )}
+              </div>
+            </div>
+
             <div className="space-y-1">
               <label className="font-bold text-[#0b1c30]">Institution Legal Name</label>
               <input
@@ -110,24 +185,20 @@ export const ProviderOnboardingView: React.FC<ProviderOnboardingViewProps> = ({
             </div>
 
             <button
-              onClick={() => setStep(2)}
+              onClick={() => {
+                if (!institutionName.trim() || !institutionEmail.trim() || !primaryPhone.trim()) {
+                  setErrorMessage('Institution name, email, and primary phone are required.');
+                  return;
+                }
+                setErrorMessage('');
+                setStep(2);
+              }}
               className="w-full py-3 bg-[#855300] hover:bg-[#653e00] text-white font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer mt-4"
             >
               <span>Next: Document Upload</span>
               <span className="material-symbols-outlined text-sm">arrow_forward</span>
             </button>
 
-            <div className="pt-2 text-center">
-              <button
-                onClick={() => {
-                  localStorage.setItem('openSettingsTab', 'organization');
-                  onNavigate('settings');
-                }}
-                className="mt-2 inline-block px-4 py-2 text-xs bg-[#00685f] text-white rounded-lg hover:bg-[#005a4f]"
-              >
-                Upload Institution Logo (Open Settings)
-              </button>
-            </div>
           </div>
         )}
 
@@ -143,56 +214,45 @@ export const ProviderOnboardingView: React.FC<ProviderOnboardingViewProps> = ({
               </ul>
             </div>
 
-            <div className="space-y-2">
-              <label className="font-bold text-[#0b1c30]">Upload Compliance Certificate</label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Document title or reference..."
-                  value={docName}
-                  onChange={(e) => setDocName(e.target.value)}
-                  className="flex-1 px-3 py-2 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={handleAddDoc}
-                  className="px-4 py-2 bg-[#855300] text-white rounded-xl font-bold hover:bg-[#653e00] cursor-pointer"
-                >
-                  Upload File
-                </button>
-              </div>
+            <div className="space-y-3">
+              {requiredDocuments.map(({ key, label }) => (
+                <label key={key} className="block rounded-xl border-2 border-dashed border-[#855300]/30 bg-[#fffaf4] p-3 cursor-pointer hover:border-[#855300]">
+                  <span className="flex items-center gap-2 font-bold text-[#0b1c30]">
+                    <span className="material-symbols-outlined text-[#855300]">upload_file</span>
+                    {label} *
+                  </span>
+                  <input
+                    type="file"
+                    required
+                    accept=".pdf,.png,.jpg,.jpeg"
+                    onChange={(e) => setVerificationFiles((current) => ({ ...current, [key]: e.target.files?.[0] || null }))}
+                    className="mt-2 block w-full text-[11px] text-[#3d4947]"
+                  />
+                  {verificationFiles[key] && <span className="mt-1 block text-[11px] font-bold text-emerald-700">Uploaded: {verificationFiles[key]?.name}</span>}
+                </label>
+              ))}
             </div>
-
-            {uploadedDocs.length > 0 && (
-              <div className="space-y-2">
-                <span className="font-bold text-[#0b1c30] block">Uploaded Verification Files</span>
-                <div className="space-y-1">
-                  {uploadedDocs.map((doc, idx) => (
-                    <div key={idx} className="flex justify-between items-center p-2.5 bg-gray-50 rounded-xl border border-gray-200">
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[#855300] text-sm">description</span>
-                        <span className="font-medium text-[#0b1c30] text-[11px]">{doc}</span>
-                      </div>
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-                        Received
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
             <div className="flex gap-3 pt-4">
               <button
                 type="button"
                 onClick={() => setStep(1)}
+                aria-label="Back to institution information"
+                title="Back"
                 className="py-3 px-4 border border-[#bcc9c6]/50 rounded-xl text-xs font-bold text-[#0b1c30] hover:bg-[#eff4ff] cursor-pointer"
               >
-                Back
+                <span className="material-symbols-outlined text-sm">arrow_back</span>
               </button>
               <button
                 type="button"
-                onClick={() => setStep(3)}
+                onClick={() => {
+                  if (!requiredDocuments.every(({ key }) => verificationFiles[key])) {
+                    setErrorMessage('Upload all three required verification files before continuing.');
+                    return;
+                  }
+                  setErrorMessage('');
+                  setStep(3);
+                }}
                 className="flex-1 py-3 bg-[#855300] hover:bg-[#653e00] text-white font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>Next: Add First Product</span>
@@ -214,6 +274,32 @@ export const ProviderOnboardingView: React.FC<ProviderOnboardingViewProps> = ({
               <p className="text-xs text-[#3d4947] max-w-md mx-auto">
                 List loans, savings accounts, or insurance packages on FinAccess discovery marketplace to reach thousands of Malawian users.
               </p>
+            </div>
+
+            <div className="text-left space-y-2">
+              <label className="font-bold text-[#0b1c30]">Institution Logo *</label>
+              <label className="flex cursor-pointer items-center gap-3 rounded-xl border-2 border-dashed border-[#855300]/40 bg-[#fffaf4] p-4 hover:border-[#855300]">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#855300] text-white">
+                  <span className="material-symbols-outlined">add_photo_alternate</span>
+                </span>
+                <span className="flex-1">
+                  <span className="block font-bold text-[#855300]">{logoFile ? logoFile.name : 'Upload institution logo'}</span>
+                  <span className="block mt-1 text-[11px] text-[#6d7a77]">PNG, JPG, or JPEG · Required</span>
+                </span>
+                <input
+                  type="file"
+                  required
+                  accept="image/png,image/jpeg"
+                  onChange={(e) => { setLogoFile(e.target.files?.[0] || null); setErrorMessage(''); }}
+                  className="sr-only"
+                />
+              </label>
+              {logoFile && (
+                <p className="flex items-center gap-1 text-[11px] font-bold text-emerald-700">
+                  <span className="material-symbols-outlined text-sm">check_circle</span>
+                  Institution logo uploaded successfully.
+                </p>
+              )}
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 pt-2">

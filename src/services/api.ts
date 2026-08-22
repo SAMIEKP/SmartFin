@@ -1,4 +1,4 @@
-import { ApplicationItem, ApplicationStatus, LoanProduct, Role, UserProfile } from '../types';
+import { ApplicationItem, ApplicationStatus, LoanProduct, Role, UserProfile, UserNotification, ApprovedLoan } from '../types';
 
 // In development, use Vite's same-origin proxy so localhost/127.0.0.1 mismatches
 // do not cause browser fetch failures. Set VITE_API_BASE_URL for production.
@@ -20,6 +20,24 @@ export interface ApiUser {
   contact_person?: string;
   institution_type?: string;
   registration_number?: string;
+  avatar_url?: string;
+  segment?: string;
+  district?: string;
+  city_village?: string;
+  language?: string;
+  needs?: string[];
+  profile_status?: string;
+  provider_status?: string;
+  lending_policy?: string;
+  interest_policy?: string;
+  late_payment_policy?: string;
+  data_privacy_statement?: string;
+  notification_preferences?: { sms?: boolean; email?: boolean; in_app?: boolean };
+  bio?: string;
+  financial_goal?: string;
+  theme?: 'light' | 'dark';
+  font_size?: 'small' | 'default' | 'large';
+  two_factor_enabled?: boolean;
   is_verified?: boolean;
   created_at?: string;
 }
@@ -33,10 +51,22 @@ export interface ApiLoanProduct {
   min_amount?: number | string;
   max_amount?: number | string;
   interest_rate?: number | string;
+  interest_rate_max?: number | string;
   tenure?: string;
+  processing_days?: number | string;
+  collateral_required?: boolean;
+  collateral_text?: string;
+  tags?: string[] | string;
+  rating?: number | string;
+  reviews_count?: number | string;
   description?: string;
   eligibility_criteria?: string[] | string;
   required_documents?: string[] | string;
+  media?: { id: string; name: string; mimeType: string; sizeBytes: number; url: string }[];
+  application_questions?: string[] | string;
+  interest_type?: 'fixed' | 'variable';
+  repayment_schedule?: 'monthly' | 'weekly';
+  fees?: string[] | string;
   is_active: boolean;
   created_at?: string;
 }
@@ -59,6 +89,8 @@ export interface ApiApplication {
   product_category?: string;
   institution_name?: string;
   provider_name?: string;
+  required_documents?: string[] | string;
+  media?: { id: string; name: string; mimeType: string; sizeBytes: number; url: string }[];
 }
 
 export class ApiError extends Error {
@@ -125,7 +157,9 @@ const listValue = (value: string[] | string | undefined, fallback: string[] = []
   return fallback;
 };
 
-export const mapApiUser = (user: ApiUser): UserProfile => ({
+export const mapApiUser = (user: ApiUser): UserProfile => {
+  if (user.language) localStorage.setItem('finaccess:language', user.language);
+  return ({
   id: user.id,
   name: user.name || user.contact_person || user.institution_name || 'FinAccess member',
   role: user.role,
@@ -135,16 +169,37 @@ export const mapApiUser = (user: ApiUser): UserProfile => ({
   incomeRange: user.income_range || '',
   institutionName: user.institution_name,
   institutionType: user.institution_type,
-  registrationNumber: user.registration_number,
+    registrationNumber: user.registration_number,
+    avatarUrl: user.avatar_url,
+    language: user.language || localStorage.getItem('finaccess:language') || 'en',
+    segment: user.segment,
+    district: user.district,
+    cityVillage: user.city_village,
+    needs: user.needs || [],
+    profileStatus: user.profile_status,
+    providerStatus: user.provider_status,
+    lendingPolicy: user.lending_policy,
+    interestPolicy: user.interest_policy,
+    latePaymentPolicy: user.late_payment_policy,
+  dataPrivacyStatement: user.data_privacy_statement,
+  notificationPreferences: user.notification_preferences,
+  bio: user.bio,
+  financialGoal: user.financial_goal,
+  theme: user.theme,
+  fontSize: user.font_size,
+  twoFactorEnabled: user.two_factor_enabled,
   memberStatus: user.is_verified ? 'Verified member' : 'Pending verification',
   isPendingVerification: user.is_verified === false,
   creditScore: 0,
-});
+  });
+};
 
 export const mapApiProduct = (product: ApiLoanProduct): LoanProduct => {
   const minRate = numberValue(product.interest_rate);
+  const maxRate = numberValue(product.interest_rate_max, minRate);
   const eligibility = listValue(product.eligibility_criteria);
   const documents = listValue(product.required_documents);
+  const applicationQuestions = listValue(product.application_questions);
   const term = product.tenure || 'Flexible';
   return {
     id: product.id,
@@ -154,21 +209,27 @@ export const mapApiProduct = (product: ApiLoanProduct): LoanProduct => {
     category: product.category,
     categoryLabel: product.category.toUpperCase(),
     interestRateMin: minRate,
-    interestRateMax: minRate,
-    rateDisplay: minRate ? `${minRate}% p.a.` : 'Contact provider',
+    interestRateMax: maxRate,
+    rateDisplay: minRate ? `${minRate}${maxRate !== minRate ? `-${maxRate}` : ''}% p.a.` : 'Contact provider',
     termMaxMonths: numberValue(term.replace(/\D/g, ''), 12),
     termDisplay: term,
     minAmount: numberValue(product.min_amount),
     maxAmount: numberValue(product.max_amount),
-    processingDays: 0,
-    collateralRequired: false,
-    collateralText: 'Contact provider',
+    processingDays: numberValue(product.processing_days),
+    collateralRequired: product.collateral_required ?? false,
+    collateralText: product.collateral_text || 'Contact provider',
     status: product.is_active ? 'active' : 'inactive',
     applicationsCount: 0,
-    tags: [product.category.toUpperCase()],
+    tags: listValue(product.tags, [product.category.toUpperCase()]),
     description: product.description || '',
     eligibility,
     documents,
+    applicationQuestions,
+    interestType: product.interest_type,
+    repaymentSchedule: product.repayment_schedule,
+    fees: listValue(product.fees),
+    rating: product.rating == null ? undefined : numberValue(product.rating),
+    reviewsCount: product.reviews_count == null ? undefined : numberValue(product.reviews_count),
   };
 };
 
@@ -195,13 +256,73 @@ export const mapApiApplication = (application: ApiApplication): ApplicationItem 
     status: statusMap[application.status],
     date: application.created_at ? new Date(application.created_at).toLocaleDateString() : 'Recently',
     notes: application.notes ? [application.notes] : undefined,
+    uploadedDocuments: application.media?.map((media) => ({ id: media.id, name: media.name, url: media.url, mimeType: media.mimeType, sizeBytes: media.sizeBytes, date: application.created_at || new Date().toISOString() })) || (Array.isArray(application.documents) ? application.documents as { name: string; url: string; date: string }[] : undefined),
+    requestedDocuments: listValue(application.required_documents),
+    answers: application.answers,
   };
 };
 
 export const authAPI = {
-  register: (userData: Record<string, unknown>) => apiRequest<{ token: string; user: ApiUser }>('/auth/register', { method: 'POST', body: JSON.stringify(userData) }, false),
+  register: async (userData: Record<string, unknown>, files?: { registrationCertificate?: File; businessLicense?: File; taxClearance?: File; otherDocuments?: File }) => {
+    if (files && (files.registrationCertificate || files.businessLicense || files.taxClearance || files.otherDocuments)) {
+      // Use FormData for file uploads
+      const formData = new FormData();
+      Object.entries(userData).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          formData.append(key, String(value));
+        }
+      });
+      
+      if (files.registrationCertificate) formData.append('registrationCertificate', files.registrationCertificate);
+      if (files.businessLicense) formData.append('businessLicense', files.businessLicense);
+      if (files.taxClearance) formData.append('taxClearance', files.taxClearance);
+      if (files.otherDocuments) formData.append('otherDocuments', files.otherDocuments);
+
+      const token = localStorage.getItem('token');
+      const headers: HeadersInit = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      console.log(`API Request (FormData): ${API_BASE_URL}/auth/register-with-documents`);
+      
+      let response: Response;
+      try {
+        response = await fetch(`${API_BASE_URL}/auth/register-with-documents`, {
+          method: 'POST',
+          headers,
+          body: formData,
+        });
+        console.log(`API Response status: ${response.status}`);
+      } catch (error) {
+        console.error('API Request failed:', error);
+        throw new Error('Unable to connect to the backend API. Start it with "cd backend && npm run dev", then try again.');
+      }
+
+      const raw = await response.text();
+      console.log('API Response raw:', raw);
+      let data: { message?: string; error?: string; verificationId?: string };
+      try {
+        data = raw ? JSON.parse(raw) : ({} as { message?: string; error?: string; verificationId?: string });
+      } catch {
+        data = {} as { message?: string; error?: string; verificationId?: string };
+      }
+
+      if (!response.ok) {
+        console.error('API Error:', data);
+        throw new ApiError(data.message || data.error || `Request failed (${response.status})`, response.status);
+      }
+      return data as { verificationId: string; message: string };
+    } else {
+      // Use JSON for regular registration
+      return apiRequest<{ verificationId: string; message: string }>('/auth/register', { method: 'POST', body: JSON.stringify(userData) }, false);
+    }
+  },
+  verifyRegistration: (verificationId: string, code: string) => apiRequest<{ token: string; user: ApiUser; message: string }>('/auth/verify-registration', { method: 'POST', body: JSON.stringify({ verificationId, code }) }, false),
   login: (credentials: { email: string; password: string }) => apiRequest<{ token: string; user: ApiUser }>('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }, false),
+  logout: () => apiRequest<{ message: string }>('/auth/logout', { method: 'POST' }),
   getProfile: () => apiRequest<{ user: ApiUser }>('/auth/profile'),
+  requestPasswordReset: (email: string) => apiRequest<{ message: string; resetId?: string }>('/auth/password-reset/request', { method: 'POST', body: JSON.stringify({ email }) }, false),
+  resetPassword: (resetId: string, code: string, password: string) => apiRequest<{ message: string }>('/auth/password-reset/confirm', { method: 'POST', body: JSON.stringify({ resetId, code, password }) }, false),
+  changePassword: (currentPassword: string, newPassword: string) => apiRequest<{ message: string }>('/auth/password/change', { method: 'POST', body: JSON.stringify({ currentPassword, newPassword }) }),
 };
 
 export const userAPI = {
@@ -212,6 +333,9 @@ export const userAPI = {
     Object.entries(params || {}).forEach(([key, value]) => value !== undefined && search.set(key, String(value)));
     return apiRequest<{ products: ApiLoanProduct[] }>(`/users/products${search.toString() ? `?${search}` : ''}`);
   },
+  getNotifications: () => apiRequest<{ notifications: UserNotification[] }>('/applications/user/notifications'),
+  markNotificationRead: (id: string) => apiRequest<{ message: string }>(`/applications/user/notifications/${id}/read`, { method: 'PUT' }),
+  getLoans: () => apiRequest<{ loans: ApprovedLoan[] }>('/applications/user/loans'),
 };
 
 export const productAPI = {
@@ -226,6 +350,14 @@ export const applicationAPI = {
   getApplicationDetails: (applicationId: string) => apiRequest<{ application: ApiApplication }>(`/applications/${applicationId}`),
   getProviderApplications: (status?: string) => apiRequest<{ applications: ApiApplication[] }>(`/applications/provider/all${status ? `?status=${encodeURIComponent(status)}` : ''}`),
   updateApplicationStatus: (applicationId: string, statusData: Record<string, unknown>) => apiRequest<{ application: ApiApplication }>(`/applications/${applicationId}/status`, { method: 'PUT', body: JSON.stringify(statusData) }),
+  getMedia: async (mediaId: string, download = false): Promise<Blob> => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/applications/media/${encodeURIComponent(mediaId)}${download ? '?download=true' : ''}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+    if (!response.ok) throw new ApiError('Unable to retrieve the submitted document.', response.status);
+    return response.blob();
+  },
 };
 
 export const healthCheck = () => fetch(`${API_BASE_URL.replace(/\/api$/, '')}/health`).then((response) => response.json());

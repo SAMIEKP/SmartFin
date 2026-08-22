@@ -1,24 +1,28 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { LoanProduct, UserProfile } from "../types";
 
 interface AddProductModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddProduct: (product: LoanProduct) => void;
+  onUpdateProduct?: (product: LoanProduct) => void;
   userProfile?: UserProfile;
   existingProducts?: LoanProduct[];
+  productToEdit?: LoanProduct | null;
 }
 
 export const AddProductModal: React.FC<AddProductModalProps> = ({
   isOpen,
   onClose,
   onAddProduct,
+  onUpdateProduct,
   userProfile,
   existingProducts = [],
+  productToEdit,
 }) => {
   const [name, setName] = useState("");
   const [category, setCategory] = useState<
-    "loan" | "savings" | "mortgage" | "business" | "insurance" | "agriculture"
+    "loan" | "student" | "savings" | "mortgage" | "business" | "insurance" | "agriculture"
   >("loan");
   const provider = userProfile?.institutionName || "FinAccess Partner Institution";
   const [minAmount, setMinAmount] = useState<number>(500000);
@@ -40,20 +44,95 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
     "ID Photo",
   ];
   const [requiredDocuments, setRequiredDocuments] = useState<string[]>([]);
+  const [applicationQuestions, setApplicationQuestions] = useState<string[]>([]);
+  const [questionFileName, setQuestionFileName] = useState("");
+  const [isDraggingQuestionFile, setIsDraggingQuestionFile] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  useEffect(() => {
+    if (!isOpen) return;
+    if (productToEdit) {
+      setName(productToEdit.name);
+      setCategory(productToEdit.category);
+      setMinAmount(productToEdit.minAmount);
+      setMaxAmount(productToEdit.maxAmount);
+      setInterestRateMin(productToEdit.interestRateMin);
+      setInterestRateMax(productToEdit.interestRateMax);
+      setTermMaxMonths(productToEdit.termMaxMonths);
+      setCollateralRequired(productToEdit.collateralRequired);
+      setCollateralText(productToEdit.collateralText);
+      setDescription(productToEdit.description);
+      setEligibilityText(productToEdit.eligibility.join("; "));
+      setRequiredDocuments(productToEdit.documents);
+      setApplicationQuestions(productToEdit.applicationQuestions || []);
+      setQuestionFileName(productToEdit.applicationQuestions?.length ? "Existing questionnaire" : "");
+    } else {
+      setName("");
+      setCategory("loan");
+      setMinAmount(500000);
+      setMaxAmount(10000000);
+      setInterestRateMin(12);
+      setInterestRateMax(16);
+      setTermMaxMonths(36);
+      setCollateralRequired(false);
+      setCollateralText("None");
+      setDescription("");
+      setEligibilityText("Malawian Citizen; Age 21-65; Verifiable Cashflow");
+      setRequiredDocuments([]);
+      setApplicationQuestions([]);
+      setQuestionFileName("");
+    }
+    setFormError("");
+  }, [isOpen, productToEdit]);
+
+  const handleQuestionFile = (file?: File) => {
+    if (!file) return;
+    const isSupported = /\.(md|txt)$/i.test(file.name);
+    if (!isSupported) {
+      window.alert("Please upload a Markdown (.md) or text (.txt) file.");
+      return;
+    }
+    if (file.size > 1024 * 1024) {
+      window.alert("Please upload a questionnaire smaller than 1 MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const questions = String(reader.result || "")
+        .split(/\r?\n/)
+        .map((line) => line.replace(/^\s*(?:[-*+]\s+|\d+[.)]\s+|#+\s*)/, "").trim())
+        .filter(Boolean);
+      setApplicationQuestions(questions);
+      setQuestionFileName(file.name);
+    };
+    reader.readAsText(file);
+  };
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const normalizedName = name.trim().toLowerCase();
-    if (!normalizedName) return;
-    if (existingProducts.some((product) => product.name.trim().toLowerCase() === normalizedName)) {
-      window.alert("A service with this name already exists. Please choose a unique service name.");
+    if (!normalizedName || !description.trim()) {
+      setFormError("Service name and requirements description are required.");
       return;
     }
+    if (requiredDocuments.length === 0) {
+      setFormError("Select at least one required document.");
+      return;
+    }
+    if (applicationQuestions.length === 0) {
+      setFormError("Upload a questionnaire with at least one question.");
+      return;
+    }
+    if (existingProducts.some((product) => product.id !== productToEdit?.id && product.name.trim().toLowerCase() === normalizedName)) {
+      setFormError("A service with this name already exists. Please choose a unique service name.");
+      return;
+    }
+    setFormError("");
     const newProd: LoanProduct = {
-      id: `prod-${Date.now().toString().slice(-4)}`,
-      code: `MKW-LN-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+      id: productToEdit?.id || `prod-${Date.now().toString().slice(-4)}`,
+      code: productToEdit?.code || `MKW-LN-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
       name: name || "New Credit Facility",
       provider: provider,
       category: category,
@@ -80,9 +159,11 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
         description || "New financial product offered by institution.",
       eligibility: eligibilityText.split(";").map((s) => s.trim()),
       documents: requiredDocuments,
+      applicationQuestions,
     };
 
-    onAddProduct(newProd);
+    if (productToEdit && onUpdateProduct) onUpdateProduct(newProd);
+    else onAddProduct(newProd);
     onClose();
   };
 
@@ -96,7 +177,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
               Provider Dashboard
             </span>
             <h2 className="text-xl font-bold mt-1">
-              Publish New Financial Product
+              {productToEdit ? "Edit Financial Service" : "Publish New Financial Product"}
             </h2>
           </div>
           <button
@@ -137,6 +218,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 className="w-full p-2.5 bg-[#eff4ff] border border-[#bcc9c6]/50 rounded-xl text-xs text-[#0b1c30] font-medium"
               >
                 <option value="loan">Personal Loan</option>
+                <option value="student">Student Loan</option>
                 <option value="business">SME / Business Loan</option>
                 <option value="agriculture">Agriculture Loan</option>
                 <option value="mortgage">Mortgage / Property</option>
@@ -239,7 +321,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
                 }}
                 className="accent-[#00685f] w-4 h-4 rounded"
               />
-              <span>Collateral Security Required?</span>
+              <span>Collateral Security Required? <span className="font-normal text-[#6d7a77]">(Optional)</span></span>
             </label>
             {collateralRequired && (
               <input
@@ -254,8 +336,9 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
 
           <div>
             <label className="block text-xs font-bold text-[#0b1c30] uppercase mb-2">
-              Required Documents
+              Required Documents <span className="text-red-600">*</span>
             </label>
+            <p className="mb-2 text-[11px] text-[#6d7a77]">Select at least one document the applicant must provide.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-xl border border-[#bcc9c6]/50 bg-[#f8fbfa] p-3">
               {documentOptions.map((document) => (
                 <label key={document} className="flex items-center gap-2 cursor-pointer text-xs font-medium text-[#0b1c30]">
@@ -279,12 +362,85 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
             </label>
             <textarea
               rows={3}
+              required
               placeholder="Describe product terms, target demographics, and key advantages..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full p-2.5 bg-[#eff4ff] border border-[#bcc9c6]/50 rounded-xl text-xs text-[#0b1c30] font-medium"
             />
           </div>
+
+          <div>
+            <div className="flex items-start justify-between gap-3 mb-2">
+              <div>
+                <label className="block text-xs font-bold text-[#0b1c30] uppercase">
+                  Application Questions
+                </label>
+                <p className="mt-1 text-[11px] text-[#6d7a77]">
+                  Upload a Markdown or text file with one required question per line.
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full bg-[#e5eeff] px-2 py-1 text-[10px] font-bold text-[#31527d]">
+                .md / .txt
+              </span>
+            </div>
+
+            <label
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "copy";
+                setIsDraggingQuestionFile(true);
+              }}
+              onDragLeave={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                  setIsDraggingQuestionFile(false);
+                }
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDraggingQuestionFile(false);
+                handleQuestionFile(e.dataTransfer.files?.[0]);
+              }}
+              className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 border-dashed p-4 transition-colors ${
+                isDraggingQuestionFile
+                  ? "border-[#00685f] bg-[#d9f8f2]"
+                  : "border-[#008378]/40 bg-[#f4fffc] hover:border-[#00685f] hover:bg-[#e9faf7]"
+              }`}
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#00685f] text-white">
+                <span className="material-symbols-outlined">upload_file</span>
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-xs font-bold text-[#00685f]">
+                  {isDraggingQuestionFile ? "Drop questionnaire here" : questionFileName || "Choose questionnaire file"}
+                </span>
+                <span className="mt-1 block text-[11px] text-[#3d4947]">
+                  {questionFileName
+                    ? `${applicationQuestions.length} question${applicationQuestions.length === 1 ? "" : "s"} loaded`
+                    : "Click to browse · Maximum size 1 MB"}
+                </span>
+              </span>
+              <span className="shrink-0 rounded-lg bg-white px-3 py-2 text-[10px] font-bold text-[#00685f] shadow-xs">
+                Browse
+              </span>
+              <input
+                type="file"
+                accept=".md,.txt,text/markdown,text/plain"
+                onChange={(e) => handleQuestionFile(e.target.files?.[0])}
+                className="sr-only"
+              />
+            </label>
+            <p className="mt-2 text-[11px] text-[#6d7a77]">
+              These questions will appear as required fields when an individual applies for this service.
+            </p>
+          </div>
+
+          {formError && (
+            <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700" role="alert">
+              <span className="material-symbols-outlined text-base">error</span>
+              <span>{formError}</span>
+            </div>
+          )}
 
           <div className="pt-3 flex justify-end gap-3">
             <button
@@ -298,7 +454,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
               type="submit"
               className="px-6 py-2 bg-[#00685f] hover:bg-[#008378] text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer"
             >
-              Publish Product
+              {productToEdit ? "Save Changes" : "Publish Product"}
             </button>
           </div>
         </form>

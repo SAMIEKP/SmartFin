@@ -9,6 +9,7 @@ interface ProductManagementViewProps {
   onToggleStatus: (productId: string) => void;
   onDeleteProduct: (productId: string) => void;
   onSelectProduct: (product: LoanProduct) => void;
+  onEditProduct: (product: LoanProduct) => void;
 }
 
 export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
@@ -19,6 +20,7 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
   onToggleStatus,
   onDeleteProduct,
   onSelectProduct,
+  onEditProduct,
 }) => {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -100,6 +102,7 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
             <option value="agriculture">Agriculture</option>
             <option value="business">SME / Business</option>
             <option value="loan">Personal Loan</option>
+            <option value="student">Student Loan</option>
             <option value="mortgage">Mortgage</option>
             <option value="savings">Savings</option>
           </select>
@@ -237,6 +240,14 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({
                         <span className="material-symbols-outlined text-base">
                           visibility
                         </span>
+                      </button>
+
+                      <button
+                        onClick={() => onEditProduct(p)}
+                        className="p-1.5 text-[#855300] hover:bg-[#fff4e5] rounded-lg transition-colors"
+                        title="Edit Service"
+                      >
+                        <span className="material-symbols-outlined text-base">edit</span>
                       </button>
 
                       <button

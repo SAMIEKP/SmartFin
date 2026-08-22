@@ -8,6 +8,23 @@ interface LoanProductsViewProps {
   onOpenApplyModal: () => void;
 }
 
+const branchLocations: Record<string, Array<{ name: string; area: string; hours: string }>> = {
+  Lilongwe: [
+    { name: 'Capital City Partner Branch', area: 'City Centre', hours: 'Mon-Fri, 08:00-16:30' },
+    { name: 'Area 25 Service Point', area: 'Area 25', hours: 'Mon-Sat, 08:00-15:00' },
+  ],
+  Blantyre: [
+    { name: 'Blantyre Main Branch', area: 'Victoria Avenue', hours: 'Mon-Fri, 08:00-16:30' },
+    { name: 'Limbe Service Point', area: 'Limbe Market', hours: 'Mon-Sat, 08:00-15:00' },
+  ],
+  Mzuzu: [
+    { name: 'Mzuzu Partner Branch', area: 'Mzuzu City Centre', hours: 'Mon-Fri, 08:00-16:30' },
+  ],
+  Zomba: [
+    { name: 'Zomba Service Point', area: 'Zomba City Centre', hours: 'Mon-Fri, 08:00-16:00' },
+  ],
+};
+
 export const LoanProductsView: React.FC<LoanProductsViewProps> = ({
   products,
   onNavigate,
@@ -19,7 +36,14 @@ export const LoanProductsView: React.FC<LoanProductsViewProps> = ({
   const [maxAmountFilter, setMaxAmountFilter] = useState<number>(30000000);
   const [maxInterestFilter, setMaxInterestFilter] = useState<number>(20);
   const [collateralOnly, setCollateralOnly] = useState(false);
-  const [selectedCity, setSelectedCity] = useState('');
+  const [selectedCity, setSelectedCity] = useState('Lilongwe');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const selectedBranches = branchLocations[selectedCity] || [];
+
+  const openBranchesInMaps = () => {
+    const query = encodeURIComponent(`financial service branches in ${selectedCity}, Malawi`);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank', 'noopener,noreferrer');
+  };
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
@@ -39,6 +63,18 @@ export const LoanProductsView: React.FC<LoanProductsViewProps> = ({
     });
   }, [products, searchQuery, selectedCategory, maxAmountFilter, maxInterestFilter, collateralOnly]);
 
+  const searchSuggestions = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    const suggestions = products.filter((product) => {
+      if (!query) return true;
+      return product.name.toLowerCase().includes(query) ||
+        product.provider.toLowerCase().includes(query) ||
+        product.categoryLabel.toLowerCase().includes(query) ||
+        product.tags.some((tag) => tag.toLowerCase().includes(query));
+    });
+    return suggestions.slice(0, 5);
+  }, [products, searchQuery]);
+
   return (
     <div className="space-y-6 pb-12">
       {/* Search Header */}
@@ -53,19 +89,46 @@ export const LoanProductsView: React.FC<LoanProductsViewProps> = ({
             </p>
           </div>
 
-          <div className="flex items-center gap-2 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl px-3 py-2 w-full md:w-80">
+          <div className="relative w-full md:w-80">
+            <div className="flex items-center gap-2 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl px-3 py-2">
             <span className="material-symbols-outlined text-sm text-[#6d7a77]">search</span>
             <input
               type="text"
-              placeholder="Search by service name, provider, or tag..."
+              placeholder="Search services or providers..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => window.setTimeout(() => setIsSearchFocused(false), 150)}
               className="bg-transparent border-none outline-none w-full text-xs text-[#0b1c30]"
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="text-xs text-gray-400">
+              <button type="button" onClick={() => setSearchQuery('')} className="text-xs text-gray-400" aria-label="Clear search">
                 ×
               </button>
+            )}
+            </div>
+            {isSearchFocused && (
+              <div className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-30 overflow-hidden rounded-xl border border-[#bcc9c6]/40 bg-white shadow-lg" role="listbox" aria-label="Search suggestions">
+                <div className="border-b border-gray-100 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-[#6d7a77]">
+                  {searchQuery ? 'Matching services' : 'Popular services'}
+                </div>
+                {searchSuggestions.length > 0 ? searchSuggestions.map((suggestion) => (
+                  <button
+                    key={suggestion.id}
+                    type="button"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => {
+                      setSearchQuery(suggestion.name);
+                      setIsSearchFocused(false);
+                    }}
+                    className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-[#eff4ff]"
+                    role="option"
+                  >
+                    <span className="material-symbols-outlined text-base text-[#00685f]">search</span>
+                    <span className="min-w-0"><span className="block truncate text-xs font-bold text-[#0b1c30]">{suggestion.name}</span><span className="block truncate text-[10px] text-[#6d7a77]">{suggestion.provider} · {suggestion.categoryLabel}</span></span>
+                  </button>
+                )) : <p className="px-3 py-4 text-xs text-[#6d7a77]">No matching services found.</p>}
+              </div>
             )}
           </div>
         </div>
@@ -180,7 +243,7 @@ export const LoanProductsView: React.FC<LoanProductsViewProps> = ({
             </div>
           </div>
 
-          {/* Map Location Bento Card */}
+          {/* Branch Location Finder */}
           <div className="relative rounded-2xl overflow-hidden shadow-xs border border-[#bcc9c6]/30 bg-white p-5 space-y-3">
             <img
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKplEO2YoAgroSm7eHh_UphL2keEPO-QGl_cyKtSPtROyLyjzFLEWkrYsPsvbPWoFzGMpJavVsufzm4aPBUsAePYfwqncHEvb7Et2FHNTWMRS2vSxcuRM1VFwEbPaMvWGK2ZvmBgRoVszrlexnz_kXTKZXYMYXOrcSXhTLm7sjUOFaip8vEt3v1cYo6_s232AJR2tC_Ljv-aMk4BSTnI10f6eo39G9P2GOXt2n3A7jdf-M-1n4Y8DBGxfLmG4RcV7Z1ZkQyGKIl0c"
@@ -192,10 +255,21 @@ export const LoanProductsView: React.FC<LoanProductsViewProps> = ({
                 <span className="material-symbols-outlined text-[#00685f] text-base">location_on</span>
                 <span>Branch Location Finder</span>
               </span>
-              <p className="text-[11px] text-[#3d4947]">
-                12 Partner branches active in {selectedCity}. Walk in for biometric verification or paper document submission.
-              </p>
+              <p className="text-[11px] text-[#3d4947]">{selectedBranches.length} partner {selectedBranches.length === 1 ? 'branch' : 'branches'} active in {selectedCity}. Walk in for biometric verification or paper document submission.</p>
             </div>
+            <div className="space-y-2 border-t border-gray-100 pt-3">
+              {selectedBranches.map((branch) => (
+                <div key={branch.name} className="rounded-xl bg-[#eff4ff] p-3 text-[11px] text-[#3d4947]">
+                  <p className="font-bold text-[#0b1c30]">{branch.name}</p>
+                  <p className="mt-1 flex items-center gap-1"><span className="material-symbols-outlined text-xs text-[#00685f]">location_on</span>{branch.area}</p>
+                  <p className="mt-1 flex items-center gap-1"><span className="material-symbols-outlined text-xs text-[#00685f]">schedule</span>{branch.hours}</p>
+                </div>
+              ))}
+            </div>
+            <button type="button" onClick={openBranchesInMaps} className="w-full rounded-xl bg-[#00685f] px-3 py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#008378]">
+              <span className="mr-1 align-middle material-symbols-outlined text-sm">map</span>
+              Open {selectedCity} branches in Maps
+            </button>
           </div>
         </div>
 

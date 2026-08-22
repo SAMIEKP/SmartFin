@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { ApplicationItem, ApplicationStatus, ViewMode } from "../types";
+import { applicationAPI } from "../services/api";
 
 interface ApplicationManagementViewProps {
   applications: ApplicationItem[];
@@ -43,6 +44,8 @@ export const ApplicationManagementView: React.FC<
   const [selectedApplicationId, setSelectedApplicationId] = useState<
     string | null
   >(null);
+  const [documentPreview, setDocumentPreview] = useState<{ url: string; name: string; mimeType?: string } | null>(null);
+  const [documentError, setDocumentError] = useState("");
 
   const serviceOptions = useMemo(() => {
     const services = Array.from(new Set(applications.map(getServiceLabel)));
@@ -85,6 +88,30 @@ export const ApplicationManagementView: React.FC<
   const selectedApplication = applications.find(
     (app) => app.id === selectedApplicationId,
   );
+
+  const openDocument = async (document: NonNullable<ApplicationItem["uploadedDocuments"]>[number], download = false) => {
+    if (!document.id) {
+      setDocumentError("This document is not available from the server yet.");
+      return;
+    }
+    try {
+      setDocumentError("");
+      const blob = await applicationAPI.getMedia(document.id, download);
+      const url = URL.createObjectURL(blob);
+      if (download) {
+        const link = window.document.createElement("a");
+        link.href = url;
+        link.download = document.name;
+        link.click();
+        URL.revokeObjectURL(url);
+      } else {
+        if (documentPreview) URL.revokeObjectURL(documentPreview.url);
+        setDocumentPreview({ url, name: document.name, mimeType: document.mimeType || blob.type });
+      }
+    } catch (error) {
+      setDocumentError(error instanceof Error ? error.message : "Unable to open this document.");
+    }
+  };
 
   return (
     <div className="space-y-6 pb-12">
@@ -340,6 +367,12 @@ export const ApplicationManagementView: React.FC<
                       {selectedApplication.applicantPhone || "Not provided"}
                     </p>
                   </div>
+                  {selectedApplication.answers && Object.entries(selectedApplication.answers).filter(([key]) => !['amount', 'applicantName', 'phone', 'location'].includes(key)).map(([key, value]) => (
+                    <div key={key}>
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-[#3d4947]">{key.replace(/_/g, ' ')}</p>
+                      <p className="text-sm text-[#0b1c30] mt-1 break-words">{String(value || 'Not provided')}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -350,34 +383,36 @@ export const ApplicationManagementView: React.FC<
                   Uploaded Documents
                 </h3>
                 <div className="rounded-2xl bg-[#f8f9ff] border border-[#bcc9c6]/30 p-4 space-y-3">
-                  {(selectedApplication.requestedDocuments?.length || 0) > 0 ? (
-                    selectedApplication.requestedDocuments?.map(
-                      (document, index) => (
-                        <div
-                          key={`${document}-${index}`}
-                          className="flex items-center justify-between rounded-xl bg-white p-3 border border-[#bcc9c6]/20"
-                        >
-                          <div>
-                            <p className="text-sm font-semibold text-[#0b1c30]">
-                              {document}
-                            </p>
-                            <p className="text-xs text-[#3d4947] mt-1">
-                              Required document
-                            </p>
-                          </div>
-                          <span className="material-symbols-outlined text-[#00685f]">
-                            description
-                          </span>
-                        </div>
-                      ),
-                    )
-                  ) : (
-                    <p className="text-sm text-[#3d4947]">
-                      No documents have been uploaded yet.
-                    </p>
-                  )}
+                  {(selectedApplication.uploadedDocuments?.length || 0) > 0 ? selectedApplication.uploadedDocuments?.map((document) => (
+                    <div key={document.id || document.name} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-3 border border-[#bcc9c6]/20">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-[#0b1c30] truncate">{document.name}</p>
+                        <p className="text-xs text-[#3d4947] mt-1">Submitted document{document.mimeType ? ` · ${document.mimeType}` : ""}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button type="button" onClick={() => openDocument(document)} className="px-3 py-2 rounded-lg bg-[#eff4ff] text-[#00685f] text-xs font-bold hover:bg-[#dce9ff]">View</button>
+                        <button type="button" onClick={() => openDocument(document, true)} className="px-3 py-2 rounded-lg bg-[#00685f] text-white text-xs font-bold hover:bg-[#008378]">Download</button>
+                      </div>
+                    </div>
+                  )) : <p className="text-sm text-[#3d4947]">No uploaded documents have been received.</p>}
+                  {(selectedApplication.requestedDocuments?.length || 0) > 0 && <p className="pt-2 text-[11px] text-[#6d7a77]">Required by provider: {selectedApplication.requestedDocuments?.join(", ")}</p>}
+                  {documentError && <p className="text-xs text-red-600">{documentError}</p>}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {documentPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" role="dialog" aria-label={`Preview ${documentPreview.name}`}>
+          <div className="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between gap-3 border-b border-[#ded7cd] px-5 py-4">
+              <h2 className="truncate text-sm font-bold text-[#132d3a]">{documentPreview.name}</h2>
+              <button type="button" onClick={() => { URL.revokeObjectURL(documentPreview.url); setDocumentPreview(null); }} className="rounded-lg px-3 py-2 text-xs font-bold text-[#53636a] hover:bg-[#f1ebe2]">Close</button>
+            </div>
+            <div className="min-h-96 overflow-auto bg-[#f4f0e9] p-4">
+              {documentPreview.mimeType?.startsWith("image/") ? <img src={documentPreview.url} alt={documentPreview.name} className="mx-auto max-h-[72vh] max-w-full object-contain" /> : documentPreview.mimeType === "application/pdf" || documentPreview.name.toLowerCase().endsWith(".pdf") ? <iframe src={documentPreview.url} title={documentPreview.name} className="h-[72vh] w-full rounded-lg bg-white" /> : <div className="flex h-72 items-center justify-center text-sm text-[#53636a]">Preview is not available for this file type. Use Download to save it.</div>}
             </div>
           </div>
         </div>

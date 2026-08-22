@@ -2,13 +2,26 @@ import React, { useState } from 'react';
 import { ViewMode, Role, UserProfile } from '../types';
 import { authAPI, mapApiUser } from '../services/api';
 
+const passwordStrength = (value: string) => [
+  value.length >= 8,
+  /[A-Z]/.test(value),
+  /[a-z]/.test(value),
+  /\d/.test(value),
+  /[^A-Za-z0-9]/.test(value),
+].filter(Boolean).length;
+
+const validEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+const validPhoneList = (value: string) => value.split(/[,;\n]+/).map((phone) => phone.trim()).filter(Boolean)
+  .every((phone) => /^\+?[0-9][0-9\s()-]{6,}$/.test(phone));
+
 interface RegisterViewProps {
   onNavigate: (view: ViewMode) => void;
   onSelectUser: (user: UserProfile, role: Role, token?: string) => void;
+  defaultRole?: Role;
 }
 
-export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelectUser }) => {
-  const [selectedRole, setSelectedRole] = useState<Role>('user');
+export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelectUser, defaultRole = 'user' }) => {
+  const [selectedRole, setSelectedRole] = useState<Role>(defaultRole);
   
   // Individual fields
   const [name, setName] = useState('');
@@ -16,22 +29,33 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
   const [phone, setPhone] = useState('');
   const [location, setLocation] = useState('');
   const [incomeRange, setIncomeRange] = useState('');
+  const [segment, setSegment] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Provider fields
   const [institutionName, setInstitutionName] = useState('');
-  const [contactPerson, setContactPerson] = useState('');
+  const [branchLocation, setBranchLocation] = useState('');
   const [providerEmail, setProviderEmail] = useState('');
   const [providerPhone, setProviderPhone] = useState('');
+  const [providerSecondPhone, setProviderSecondPhone] = useState('');
+  const [showSecondPhone, setShowSecondPhone] = useState(false);
   const [institutionType, setInstitutionType] = useState('MFI');
   const [registrationNumber, setRegistrationNumber] = useState('');
   const [providerPassword, setProviderPassword] = useState('');
   const [providerConfirmPassword, setProviderConfirmPassword] = useState('');
+  const [showProviderPassword, setShowProviderPassword] = useState(false);
+  const [showProviderConfirmPassword, setShowProviderConfirmPassword] = useState(false);
 
   // Validation
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [verificationId, setVerificationId] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationMessage, setVerificationMessage] = useState('');
+  const [verificationChannel] = useState('email');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,19 +81,17 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
           email,
           password,
           role: 'user',
+          verificationChannel,
           name,
           phone,
           location,
           incomeRange,
+          segment,
         };
         console.log('Sending registration data:', registerData);
         const response = await authAPI.register(registerData);
-        console.log('Registration response:', response);
-
-        const newUser = mapApiUser(response.user);
-
-        onSelectUser(newUser, 'user', response.token);
-        onNavigate('user-onboarding');
+        setVerificationId(response.verificationId);
+        setVerificationMessage(response.message);
       } catch (error: any) {
         setErrorMessage(error.message || 'Registration failed. Please try again.');
       } finally {
@@ -77,8 +99,16 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
       }
 
     } else {
-      if (!institutionName || !contactPerson || !providerEmail || !providerPassword) {
-        setErrorMessage('Please fill in all required institution fields.');
+      if (!institutionName || !providerEmail || !branchLocation.trim() || !providerPassword) {
+        setErrorMessage('Please fill in the institution name, email, physical branch location, and password.');
+        return;
+      }
+      if (!validEmail(providerEmail)) {
+        setErrorMessage('Please enter a valid institution email address.');
+        return;
+      }
+      if (!providerPhone.trim() || !validPhoneList(providerPhone) || (providerSecondPhone.trim() && !validPhoneList(providerSecondPhone))) {
+        setErrorMessage('Enter a valid primary phone number. The second phone number is optional.');
         return;
       }
       if (providerPassword !== providerConfirmPassword) {
@@ -96,19 +126,17 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
           email: providerEmail,
           password: providerPassword,
           role: 'provider',
+          verificationChannel,
           institutionName,
-          contactPerson,
+          branchLocation: branchLocation.trim(),
+          phone: [providerPhone.trim(), providerSecondPhone.trim()].filter(Boolean).join(', '),
           institutionType,
           registrationNumber,
         };
         console.log('Sending provider registration data:', registerData);
         const response = await authAPI.register(registerData);
-        console.log('Provider registration response:', response);
-
-        const newProvider = mapApiUser(response.user);
-
-        onSelectUser(newProvider, 'provider', response.token);
-        onNavigate('provider-onboarding');
+        setVerificationId(response.verificationId);
+        setVerificationMessage(response.message);
       } catch (error: any) {
         setErrorMessage(error.message || 'Registration failed. Please try again.');
       } finally {
@@ -117,9 +145,31 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
     }
   };
 
+  const handleVerify = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const response = await authAPI.verifyRegistration(verificationId, verificationCode);
+      const verifiedUser = mapApiUser(response.user);
+      onSelectUser(verifiedUser, response.user.role as Role, response.token);
+      onNavigate(response.user.role === 'provider' ? 'provider-onboarding' : 'user-onboarding');
+    } catch (error: any) {
+      setErrorMessage(error.message || 'Verification failed. Please check the code and try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#eff4ff] py-10 px-4 flex flex-col justify-center items-center">
-      <div className="w-full max-w-xl bg-white rounded-3xl border border-[#bcc9c6]/30 shadow-lg p-6 sm:p-8 space-y-6">
+    <div className="auth-page auth-page-register min-h-screen px-4 py-8 sm:px-6 lg:px-10">
+      <div className="auth-app-shell mx-auto grid w-full max-w-6xl overflow-hidden lg:grid-cols-[.82fr_1.18fr]">
+        <aside className="auth-visual-panel hidden flex-col justify-between p-10 lg:flex xl:p-14">
+          <div><button type="button" onClick={() => onNavigate('landing')} className="auth-brand auth-brand-button">{'Smart'}{'Fin'} Connect</button><p className="auth-eyebrow mt-20">A better start</p><h2 className="auth-display-title mt-5">Set up a smarter financial future.</h2><p className="mt-6 max-w-sm text-sm leading-7 text-white/65">Create one account to discover financial services or build a trusted lending presence.</p></div>
+          <div className="auth-visual-stat"><span className="material-symbols-outlined">route</span><span>Guided onboarding, clear terms and one calm dashboard.</span></div>
+        </aside>
+        <main className="auth-form-panel p-6 sm:p-10 lg:p-12">
+        <div className="mb-8 flex items-center justify-between lg:hidden"><span className="auth-brand auth-brand-dark">{'Smart'}{'Fin'} Connect</span><span className="auth-step-label">Create account</span></div>
+        <div className="auth-form-card space-y-6">
         {/* Top Header */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-extrabold text-[#00685f] tracking-tight">
@@ -132,7 +182,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
         </div>
 
         {/* Role Selector Tabs */}
-        <div className="space-y-2">
+        <div className="auth-role-switch space-y-2">
           <label className="text-xs font-bold text-[#0b1c30] block">Select Account Type</label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
@@ -141,7 +191,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                 setSelectedRole('user');
                 setErrorMessage('');
               }}
-              className={`p-4 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                className={`auth-role-option p-4 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
                 selectedRole === 'user'
                   ? 'border-[#00685f] bg-[#f4fffc] ring-2 ring-[#00685f]/30'
                   : 'border-[#bcc9c6]/40 hover:bg-[#eff4ff]'
@@ -162,7 +212,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                 setSelectedRole('provider');
                 setErrorMessage('');
               }}
-              className={`p-4 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                className={`auth-role-option p-4 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
                 selectedRole === 'provider'
                   ? 'border-[#855300] bg-[#fff8f0] ring-2 ring-[#855300]/30'
                   : 'border-[#bcc9c6]/40 hover:bg-[#eff4ff]'
@@ -187,8 +237,17 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
           </div>
         )}
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        <div key={`${selectedRole}-${verificationId ? 'verification' : 'details'}`} className={`auth-role-content ${selectedRole === 'provider' ? 'is-provider' : 'is-individual'}`}>
+        {verificationId ? (
+          <form onSubmit={handleVerify} className="space-y-4 text-xs">
+            <div className="rounded-xl border border-[#008378]/30 bg-[#f4fffc] p-4 text-[#0b1c30]">
+              <h3 className="font-bold text-[#00685f]">Verify your account</h3>
+              <p className="mt-1">{verificationMessage}</p>
+            </div>
+            <input required value={verificationCode} onChange={(event) => setVerificationCode(event.target.value)} placeholder="Enter verification code" className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30" />
+            <button type="submit" disabled={isSubmitting} className="w-full px-4 py-3 bg-[#00685f] text-white rounded-xl font-bold disabled:opacity-50">{isSubmitting ? 'Verifying...' : 'Verify and create account'}</button>
+          </form>
+        ) : <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           {selectedRole === 'user' ? (
             /* Individual User Fields */
             <>
@@ -260,28 +319,41 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                 </select>
               </div>
 
+              <div className="space-y-1">
+                <label className="font-bold text-[#0b1c30]">I am a *</label>
+                <select
+                  required
+                  value={segment}
+                  onChange={(e) => setSegment(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
+                >
+                  <option value="">Select your category</option>
+                  <option value="student">Student</option>
+                  <option value="farmer">Farmer</option>
+                  <option value="microbusiness">Microbusiness</option>
+                  <option value="small_business">Small business</option>
+                  <option value="household">Household</option>
+                </select>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="font-bold text-[#0b1c30]">Password *</label>
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="At least 6 chars"
-                    className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
-                  />
+                  <div className="relative"><input type={showPassword ? 'text' : 'password'} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 chars" aria-invalid={Boolean(password && password.length < 6)} className={`w-full px-3 py-2.5 pr-10 bg-[#eff4ff] border rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30 ${password && password.length < 6 ? 'border-red-400 focus:ring-red-200' : 'border-[#bcc9c6]/40'}`} /><button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6d7a77]" aria-label={showPassword ? 'Hide password' : 'Show password'}><span className="material-symbols-outlined text-base">{showPassword ? 'visibility_off' : 'visibility'}</span></button></div>
+                  {password && password.length < 6 && <p className="flex items-center gap-1 text-[11px] text-red-600"><span className="material-symbols-outlined text-xs">error</span>Password must be at least 6 characters.</p>}
+                  {password && (
+                    <div className="space-y-1 pt-1">
+                      <div className="flex gap-1" aria-label="Password strength">
+                        {[1, 2, 3, 4, 5].map((level) => <span key={level} className={`h-1 flex-1 rounded-full ${level <= passwordStrength(password) ? (passwordStrength(password) <= 2 ? 'bg-red-400' : passwordStrength(password) <= 4 ? 'bg-amber-400' : 'bg-emerald-500') : 'bg-gray-200'}`} />)}
+                      </div>
+                      <p className="text-[11px] text-[#6d7a77]">Strength: {passwordStrength(password) <= 2 ? 'Weak' : passwordStrength(password) <= 4 ? 'Good' : 'Strong'}</p>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <label className="font-bold text-[#0b1c30]">Confirm Password *</label>
-                  <input
-                    type="password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Repeat password"
-                    className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
-                  />
+                  <div className="relative"><input type={showConfirmPassword ? 'text' : 'password'} required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat password" aria-invalid={Boolean(confirmPassword && password !== confirmPassword)} className={`w-full px-3 py-2.5 pr-10 bg-[#eff4ff] border rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30 ${confirmPassword && password !== confirmPassword ? 'border-red-400 focus:ring-red-200' : 'border-[#bcc9c6]/40'}`} /><button type="button" onClick={() => setShowConfirmPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6d7a77]" aria-label={showConfirmPassword ? 'Hide confirmation password' : 'Show confirmation password'}><span className="material-symbols-outlined text-base">{showConfirmPassword ? 'visibility_off' : 'visibility'}</span></button></div>
+                  {confirmPassword && password !== confirmPassword && <p className="flex items-center gap-1 text-[11px] text-red-600"><span className="material-symbols-outlined text-xs">error</span>Passwords do not match.</p>}
                 </div>
               </div>
             </>
@@ -302,17 +374,6 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-[#0b1c30]">Contact Person Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={contactPerson}
-                    onChange={(e) => setContactPerson(e.target.value)}
-                    placeholder="Enter contact person name"
-                    className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
-                  />
-                </div>
-                <div className="space-y-1">
                   <label className="font-bold text-[#0b1c30]">Work Email Address *</label>
                   <input
                     type="email"
@@ -322,7 +383,23 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                     placeholder="m.phiri@institution.mw"
                     className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
                   />
+                  {providerEmail && !validEmail(providerEmail) && (
+                    <p className="text-[11px] text-red-600">Enter a valid email address.</p>
+                  )}
                 </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-bold text-[#0b1c30]">Physical Branch Location *</label>
+                <input
+                  type="text"
+                  required
+                  value={branchLocation}
+                  onChange={(e) => setBranchLocation(e.target.value)}
+                  placeholder="e.g. Area 3, Lilongwe"
+                  className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
+                />
+                <p className="text-[11px] text-[#6d7a77]">Enter the physical address or district of the branch customers can visit.</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -353,38 +430,81 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-[#0b1c30]">Institution Contact Phone</label>
+                <label className="font-bold text-[#0b1c30]">Institution Contact Phone *</label>
                 <input
-                  type="tel"
+                  type="text"
                   value={providerPhone}
                   onChange={(e) => setProviderPhone(e.target.value)}
-                    placeholder="Enter institution phone"
+                  placeholder="+265 888 123 456"
+                  inputMode="tel"
                   className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
                 />
+                <p className="text-[11px] text-[#6d7a77]">Primary number is required.</p>
+                {providerPhone.trim() && !validPhoneList(providerPhone) && (
+                  <p className="text-[11px] text-red-600">Check the phone number format.</p>
+                )}
+                {!showSecondPhone ? (
+                  <button type="button" onClick={() => setShowSecondPhone(true)} className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-[#855300] hover:text-[#653e00]">
+                    <span className="material-symbols-outlined text-sm">add_circle</span>
+                    Add second phone number (optional)
+                  </button>
+                ) : (
+                  <>
+                    <div className="mt-2 flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={providerSecondPhone}
+                        onChange={(e) => setProviderSecondPhone(e.target.value)}
+                        placeholder="Second phone number (optional)"
+                        inputMode="tel"
+                        className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
+                      />
+                    </div>
+                    {providerSecondPhone.trim() && !validPhoneList(providerSecondPhone) && (
+                      <p className="text-[11px] text-red-600">Check the second phone number format.</p>
+                    )}
+                  </>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="font-bold text-[#0b1c30]">Password *</label>
+                  <div className="relative">
                   <input
-                    type="password"
+                    type={showProviderPassword ? 'text' : 'password'}
                     required
                     value={providerPassword}
                     onChange={(e) => setProviderPassword(e.target.value)}
                     placeholder="At least 6 chars"
                     className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
                   />
+                  <button type="button" onClick={() => setShowProviderPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6d7a77]" aria-label={showProviderPassword ? 'Hide password' : 'Show password'}>
+                    <span className="material-symbols-outlined text-base">{showProviderPassword ? 'visibility_off' : 'visibility'}</span>
+                  </button>
+                  </div>
+                  {providerPassword && (
+                    <div className="space-y-1 pt-1">
+                      <div className="flex gap-1">{[1, 2, 3, 4, 5].map((level) => <span key={level} className={`h-1 flex-1 rounded-full ${level <= passwordStrength(providerPassword) ? (passwordStrength(providerPassword) <= 2 ? 'bg-red-400' : passwordStrength(providerPassword) <= 4 ? 'bg-amber-400' : 'bg-emerald-500') : 'bg-gray-200'}`} />)}</div>
+                      <p className="text-[11px] text-[#6d7a77]">Strength: {passwordStrength(providerPassword) <= 2 ? 'Weak' : passwordStrength(providerPassword) <= 4 ? 'Good' : 'Strong'}</p>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <label className="font-bold text-[#0b1c30]">Confirm Password *</label>
+                  <div className="relative">
                   <input
-                    type="password"
+                    type={showProviderConfirmPassword ? 'text' : 'password'}
                     required
                     value={providerConfirmPassword}
                     onChange={(e) => setProviderConfirmPassword(e.target.value)}
                     placeholder="Repeat password"
                     className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
                   />
+                  <button type="button" onClick={() => setShowProviderConfirmPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6d7a77]" aria-label={showProviderConfirmPassword ? 'Hide password' : 'Show password'}>
+                    <span className="material-symbols-outlined text-base">{showProviderConfirmPassword ? 'visibility_off' : 'visibility'}</span>
+                  </button>
+                  </div>
                 </div>
               </div>
             </>
@@ -406,10 +526,11 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
               </>
             )}
           </button>
-        </form>
+        </form>}
+        </div>
 
         {/* Footer link to Login */}
-        <div className="text-center pt-2 border-t border-gray-100 text-xs text-[#3d4947]">
+        <div className="auth-form-footer text-center pt-2 border-t border-gray-100 text-xs text-[#3d4947]">
           <span>Already registered on FinAccess? </span>
           <button
             onClick={() => onNavigate('login')}
@@ -418,6 +539,8 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
             Sign In Here
           </button>
         </div>
+        </div>
+        </main>
       </div>
     </div>
   );

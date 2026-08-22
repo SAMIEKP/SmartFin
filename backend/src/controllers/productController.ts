@@ -1,6 +1,8 @@
 import { Response } from 'express';
 import { query } from '../config/database';
 
+const jsonValue = (value: unknown) => value == null ? null : JSON.stringify(value);
+
 export const createProduct = async (req: any, res: Response) => {
   try {
     const providerId = req.user.id;
@@ -10,10 +12,21 @@ export const createProduct = async (req: any, res: Response) => {
       minAmount,
       maxAmount,
       interestRate,
+      interestRateMax,
       tenure,
+      processingDays,
+      collateralRequired,
+      collateralText,
+      tags,
+      rating,
+      reviewsCount,
       description,
       eligibilityCriteria,
-      requiredDocuments
+      requiredDocuments,
+      applicationQuestions,
+      interestType,
+      repaymentSchedule,
+      fees
     } = req.body;
 
     if (!name || !category) {
@@ -37,8 +50,8 @@ export const createProduct = async (req: any, res: Response) => {
     const result = await query(
       `WITH inserted AS (
        INSERT INTO loan_products 
-       (provider_id, name, category, min_amount, max_amount, interest_rate, tenure, description, eligibility_criteria, required_documents)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       (provider_id, name, category, min_amount, max_amount, interest_rate, interest_rate_max, tenure, processing_days, collateral_required, collateral_text, tags, rating, reviews_count, description, eligibility_criteria, required_documents, application_questions, interest_type, repayment_schedule, fees)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, COALESCE($9, 0), COALESCE($10, false), $11, COALESCE($12, '[]'), $13, COALESCE($14, 0), $15, $16, $17, $18, COALESCE($19, 'fixed'), COALESCE($20, 'monthly'), COALESCE($21, '[]'))
        RETURNING *
        )
        SELECT inserted.*, u.institution_name AS provider_name
@@ -51,10 +64,21 @@ export const createProduct = async (req: any, res: Response) => {
         minAmount,
         maxAmount,
         interestRate,
+        interestRateMax,
         tenure,
+        processingDays,
+        collateralRequired,
+        collateralText,
+        jsonValue(tags),
+        rating,
+        reviewsCount,
         description,
-        eligibilityCriteria,
-        requiredDocuments
+        jsonValue(eligibilityCriteria),
+        jsonValue(requiredDocuments),
+        jsonValue(applicationQuestions),
+        interestType,
+        repaymentSchedule,
+        jsonValue(fees)
       ]
     );
 
@@ -112,11 +136,22 @@ export const updateProduct = async (req: any, res: Response) => {
       minAmount,
       maxAmount,
       interestRate,
+      interestRateMax,
       tenure,
+      processingDays,
+      collateralRequired,
+      collateralText,
+      tags,
+      rating,
+      reviewsCount,
       description,
       eligibilityCriteria,
       requiredDocuments,
-      isActive
+      applicationQuestions,
+      isActive,
+      interestType,
+      repaymentSchedule,
+      fees
     } = req.body;
 
     const result = await query(
@@ -126,13 +161,24 @@ export const updateProduct = async (req: any, res: Response) => {
            min_amount = COALESCE($3, min_amount),
            max_amount = COALESCE($4, max_amount),
            interest_rate = COALESCE($5, interest_rate),
-           tenure = COALESCE($6, tenure),
-           description = COALESCE($7, description),
-           eligibility_criteria = COALESCE($8, eligibility_criteria),
-           required_documents = COALESCE($9, required_documents),
-           is_active = COALESCE($10, is_active),
+           interest_rate_max = COALESCE($6, interest_rate_max),
+           tenure = COALESCE($7, tenure),
+           processing_days = COALESCE($8, processing_days),
+           collateral_required = COALESCE($9, collateral_required),
+           collateral_text = COALESCE($10, collateral_text),
+           tags = COALESCE($11, tags),
+           rating = COALESCE($12, rating),
+           reviews_count = COALESCE($13, reviews_count),
+           description = COALESCE($14, description),
+           eligibility_criteria = COALESCE($15, eligibility_criteria),
+           required_documents = COALESCE($16, required_documents),
+           application_questions = COALESCE($17, application_questions),
+           is_active = COALESCE($18, is_active),
+           interest_type = COALESCE($19, interest_type),
+           repayment_schedule = COALESCE($20, repayment_schedule),
+           fees = COALESCE($21, fees),
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $11 AND provider_id = $12
+       WHERE id = $22 AND provider_id = $23
        RETURNING *`,
       [
         name,
@@ -140,11 +186,22 @@ export const updateProduct = async (req: any, res: Response) => {
         minAmount,
         maxAmount,
         interestRate,
+        interestRateMax,
         tenure,
+        processingDays,
+        collateralRequired,
+        collateralText,
+        jsonValue(tags),
+        rating,
+        reviewsCount,
         description,
-        eligibilityCriteria,
-        requiredDocuments,
+        jsonValue(eligibilityCriteria),
+        jsonValue(requiredDocuments),
+        jsonValue(applicationQuestions),
         isActive,
+        interestType,
+        repaymentSchedule,
+        jsonValue(fees),
         productId,
         providerId
       ]
