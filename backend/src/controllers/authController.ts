@@ -2,8 +2,9 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { query } from '../config/database';
+import { sendPasswordResetEmail, sendVerificationEmail } from '../services/emailService';
 
-const verificationChannels = ['email', 'sms', 'call', 'whatsapp'];
+const verificationChannels = ['email'];
 
 const issueToken = (user: any) => jwt.sign(
   { id: user.id, email: user.email, role: user.role },
@@ -22,6 +23,7 @@ export const register = async (req: Request, res: Response) => {
       location, 
       incomeRange,
       institutionName,
+      branchLocation,
       contactPerson,
       institutionType,
       registrationNumber,
@@ -48,7 +50,11 @@ export const register = async (req: Request, res: Response) => {
 
     const verificationChannel = req.body.verificationChannel;
     if (!verificationChannels.includes(verificationChannel)) {
-      return res.status(400).json({ error: 'Bad Request', message: 'Choose email, SMS, call, or WhatsApp verification' });
+      return res.status(400).json({ error: 'Bad Request', message: 'Email verification is required' });
+    }
+
+    if (role === 'provider' && !String(branchLocation || '').trim()) {
+      return res.status(400).json({ error: 'Bad Request', message: 'Physical branch location is required for providers' });
     }
 
     // Do not create a login-capable account until the verification challenge succeeds.
@@ -77,13 +83,22 @@ export const register = async (req: Request, res: Response) => {
          profile_data = EXCLUDED.profile_data, verification_channel = EXCLUDED.verification_channel,
          verification_code_hash = EXCLUDED.verification_code_hash, verification_expires_at = EXCLUDED.verification_expires_at
        RETURNING id, email, role`,
-      [email.toLowerCase(), hashedPassword, role, JSON.stringify({ name, phone, location, incomeRange, institutionName, contactPerson, institutionType, registrationNumber, segment, district, cityVillage, language }), verificationChannel, verificationCode]
+      [email.toLowerCase(), hashedPassword, role, JSON.stringify({ name, phone, location, incomeRange, institutionName, branchLocation, contactPerson, institutionType, registrationNumber, segment, district, cityVillage, language }), verificationChannel, verificationCode]
     );
 
+    try {
+      await sendVerificationEmail(email.toLowerCase(), verificationCode);
+    } catch (emailError) {
+      console.error('Verification email delivery error:', emailError);
+      return res.status(503).json({
+        error: 'Email Delivery Unavailable',
+        message: 'We could not send the verification email. Please try again later or contact support.',
+      });
+    }
+
     res.status(202).json({
-      message: `Verification code sent by ${verificationChannel}. Complete verification to activate your account.`,
+      message: `A verification code was sent to ${email.toLowerCase()}. Check your email to continue.`,
       verificationId: pending.rows[0].id,
-      ...(process.env.NODE_ENV === 'development' ? { verificationCode } : {}),
     });
 
   } catch (error) {
@@ -112,13 +127,13 @@ export const verifyRegistration = async (req: Request, res: Response) => {
       `INSERT INTO users (email, password, role, name, phone, location, income_range, institution_name, contact_person, institution_type, registration_number, segment, district, city_village, language, is_verified, provider_status)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, COALESCE($15, 'en'), true, $16)
        RETURNING *`,
-      [pending.email, pending.password, pending.role, profile.name, profile.phone, profile.location, profile.incomeRange, profile.institutionName, profile.contactPerson, profile.institutionType, profile.registrationNumber, profile.segment, profile.district, profile.cityVillage, profile.language, providerPending ? 'pending_review' : 'active']
+      [pending.email, pending.password, pending.role, profile.name, profile.phone, profile.location || profile.branchLocation, profile.incomeRange, profile.institutionName, profile.contactPerson, profile.institutionType, profile.registrationNumber, profile.segment, profile.district, profile.cityVillage, profile.language, providerPending ? 'pending_review' : 'active']
     );
     const user = userResult.rows[0];
     if (pending.role === 'user') {
       await query(`INSERT INTO individual_profiles (user_id, full_name, location, income_range, segment, district, city_village) VALUES ($1, $2, $3, $4, $5, $6, $7)`, [user.id, profile.name, profile.location, profile.incomeRange, profile.segment, profile.district, profile.cityVillage]);
     } else {
-      await query(`INSERT INTO provider_profiles (user_id, institution_name, contact_person, institution_type, registration_number, status, available_at) VALUES ($1, $2, $3, $4, $5, 'pending_review', CURRENT_TIMESTAMP + INTERVAL '12 hours')`, [user.id, profile.institutionName, profile.contactPerson, profile.institutionType, profile.registrationNumber]);
+      await query(`INSERT INTO provider_profiles (user_id, institution_name, contact_person, institution_type, registration_number, branch_location, status, available_at) VALUES ($1, $2, $3, $4, $5, $6, 'pending_review', CURRENT_TIMESTAMP + INTERVAL '12 hours')`, [user.id, profile.institutionName, profile.contactPerson, profile.institutionType, profile.registrationNumber, profile.branchLocation]);
     }
     await query('INSERT INTO verification_events (pending_registration_id, channel, verified_at) VALUES ($1, $2, CURRENT_TIMESTAMP)', [pending.id, pending.verification_channel]);
     await query('DELETE FROM pending_registrations WHERE id = $1', [pending.id]);
@@ -222,10 +237,15 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
          RETURNING id`,
         [email, code],
       );
+      try {
+        await sendPasswordResetEmail(email, code);
+      } catch (emailError) {
+        console.error('Password reset email delivery error:', emailError);
+        return res.status(503).json({ error: 'Email Delivery Unavailable', message: 'We could not send the password reset email. Please try again later.' });
+      }
       return res.status(202).json({
         message: 'If an account exists for that email, a password reset code has been sent.',
         resetId: reset.rows[0].id,
-        ...(process.env.NODE_ENV === 'development' ? { resetCode: code } : {}),
       });
     }
 

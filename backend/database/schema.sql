@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS provider_profiles (
   contact_person VARCHAR(255),
   institution_type VARCHAR(100),
   registration_number VARCHAR(100),
+  branch_location VARCHAR(255),
   status VARCHAR(30) NOT NULL DEFAULT 'pending_review',
   available_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,

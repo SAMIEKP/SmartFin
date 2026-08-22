@@ -18,6 +18,7 @@ services:
       - ./backend/database/005-password-reset.sql:/docker-entrypoint-initdb.d/005-password-reset.sql:ro
       - ./backend/database/006-profile-preferences.sql:/docker-entrypoint-initdb.d/006-profile-preferences.sql:ro
       - ./backend/database/007-frontend-data-model.sql:/docker-entrypoint-initdb.d/007-frontend-data-model.sql:ro
+      - ./backend/database/008-provider-branch-location.sql:/docker-entrypoint-initdb.d/008-provider-branch-location.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d smartfin_db"]
       interval: 5s

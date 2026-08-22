@@ -29,6 +29,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
   const [phone, setPhone] = useState('');
   const [location, setLocation] = useState('');
   const [incomeRange, setIncomeRange] = useState('');
+  const [segment, setSegment] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -36,6 +37,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
 
   // Provider fields
   const [institutionName, setInstitutionName] = useState('');
+  const [branchLocation, setBranchLocation] = useState('');
   const [providerEmail, setProviderEmail] = useState('');
   const [providerPhone, setProviderPhone] = useState('');
   const [providerSecondPhone, setProviderSecondPhone] = useState('');
@@ -84,11 +86,12 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
           phone,
           location,
           incomeRange,
+          segment,
         };
         console.log('Sending registration data:', registerData);
         const response = await authAPI.register(registerData);
         setVerificationId(response.verificationId);
-        setVerificationMessage(`${response.message}${response.verificationCode ? ` Development code: ${response.verificationCode}` : ''}`);
+        setVerificationMessage(response.message);
       } catch (error: any) {
         setErrorMessage(error.message || 'Registration failed. Please try again.');
       } finally {
@@ -96,8 +99,8 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
       }
 
     } else {
-      if (!institutionName || !providerEmail || !providerPassword) {
-        setErrorMessage('Please fill in all required institution fields.');
+      if (!institutionName || !providerEmail || !branchLocation.trim() || !providerPassword) {
+        setErrorMessage('Please fill in the institution name, email, physical branch location, and password.');
         return;
       }
       if (!validEmail(providerEmail)) {
@@ -125,6 +128,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
           role: 'provider',
           verificationChannel,
           institutionName,
+          branchLocation: branchLocation.trim(),
           phone: [providerPhone.trim(), providerSecondPhone.trim()].filter(Boolean).join(', '),
           institutionType,
           registrationNumber,
@@ -132,7 +136,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
         console.log('Sending provider registration data:', registerData);
         const response = await authAPI.register(registerData);
         setVerificationId(response.verificationId);
-        setVerificationMessage(`${response.message}${response.verificationCode ? ` Development code: ${response.verificationCode}` : ''}`);
+        setVerificationMessage(response.message);
       } catch (error: any) {
         setErrorMessage(error.message || 'Registration failed. Please try again.');
       } finally {
@@ -315,6 +319,23 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                 </select>
               </div>
 
+              <div className="space-y-1">
+                <label className="font-bold text-[#0b1c30]">I am a *</label>
+                <select
+                  required
+                  value={segment}
+                  onChange={(e) => setSegment(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#00685f]/30"
+                >
+                  <option value="">Select your category</option>
+                  <option value="student">Student</option>
+                  <option value="farmer">Farmer</option>
+                  <option value="microbusiness">Microbusiness</option>
+                  <option value="small_business">Small business</option>
+                  <option value="household">Household</option>
+                </select>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="font-bold text-[#0b1c30]">Password *</label>
@@ -366,6 +387,19 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onNavigate, onSelect
                     <p className="text-[11px] text-red-600">Enter a valid email address.</p>
                   )}
                 </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-bold text-[#0b1c30]">Physical Branch Location *</label>
+                <input
+                  type="text"
+                  required
+                  value={branchLocation}
+                  onChange={(e) => setBranchLocation(e.target.value)}
+                  placeholder="e.g. Area 3, Lilongwe"
+                  className="w-full px-3 py-2.5 bg-[#eff4ff] border border-[#bcc9c6]/40 rounded-xl font-medium text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#855300]/30"
+                />
+                <p className="text-[11px] text-[#6d7a77]">Enter the physical address or district of the branch customers can visit.</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

@@ -71,7 +71,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
     try {
       const response = await authAPI.requestPasswordReset(resetEmail);
       setResetId(response.resetId || '');
-      setResetMessage(`${response.message}${response.resetCode ? ` Development code: ${response.resetCode}` : ''}`);
+      setResetMessage(response.message);
     } catch (error: any) {
       setErrorMessage(error.message || 'Unable to start password reset.');
     } finally {

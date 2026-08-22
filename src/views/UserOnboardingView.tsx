@@ -30,11 +30,30 @@ export const UserOnboardingView: React.FC<UserOnboardingViewProps> = ({
   const [employmentType, setEmploymentType] = useState('Self-Employed Farmer / Business');
   const [channelPreference, setChannelPreference] = useState<'mobile_money' | 'bank' | 'sacco' | 'any'>('any');
   const [isFinishing, setIsFinishing] = useState(false);
+  const [stepError, setStepError] = useState('');
 
   const toggleGoal = (goalKey: string) => {
     setSelectedGoals((prev) =>
       prev.includes(goalKey) ? prev.filter((g) => g !== goalKey) : [...prev, goalKey]
     );
+  };
+
+  const handleStepOneNext = () => {
+    if (!name.trim() || !location.trim() || !phone.trim() || !segment) {
+      setStepError('Complete your name, location, phone number, and user category before continuing.');
+      return;
+    }
+    setStepError('');
+    setStep(2);
+  };
+
+  const handleStepTwoNext = () => {
+    if (selectedGoals.length === 0) {
+      setStepError('Select at least one financial goal before continuing.');
+      return;
+    }
+    setStepError('');
+    setStep(3);
   };
 
   const handleFinish = async () => {
@@ -115,6 +134,7 @@ export const UserOnboardingView: React.FC<UserOnboardingViewProps> = ({
             {step === 2 && "We will filter and rank loans, savings, and SACCO accounts tailored to your exact needs."}
             {step === 3 && "Tell us your comfort with digital mobile money, commercial banks, or SACCOs."}
           </p>
+          {stepError && <p className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-700">{stepError}</p>}
         </div>
 
         {/* STEP 1 */}
@@ -161,7 +181,8 @@ export const UserOnboardingView: React.FC<UserOnboardingViewProps> = ({
             </div>
 
             <button
-              onClick={() => setStep(2)}
+              type="button"
+              onClick={handleStepOneNext}
               className="w-full py-3 bg-[#00685f] hover:bg-[#008378] text-white font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer mt-4"
             >
               <span>Next: Financial Goals</span>
@@ -217,7 +238,7 @@ export const UserOnboardingView: React.FC<UserOnboardingViewProps> = ({
               </button>
               <button
                 type="button"
-                onClick={() => setStep(3)}
+                onClick={handleStepTwoNext}
                 className="flex-1 py-3 bg-[#00685f] hover:bg-[#008378] text-white font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>Next: Risk & Channel</span>
