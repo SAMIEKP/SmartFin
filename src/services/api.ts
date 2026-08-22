@@ -263,7 +263,59 @@ export const mapApiApplication = (application: ApiApplication): ApplicationItem 
 };
 
 export const authAPI = {
-  register: (userData: Record<string, unknown>) => apiRequest<{ verificationId: string; message: string }>('/auth/register', { method: 'POST', body: JSON.stringify(userData) }, false),
+  register: async (userData: Record<string, unknown>, files?: { registrationCertificate?: File; businessLicense?: File; taxClearance?: File; otherDocuments?: File }) => {
+    if (files && (files.registrationCertificate || files.businessLicense || files.taxClearance || files.otherDocuments)) {
+      // Use FormData for file uploads
+      const formData = new FormData();
+      Object.entries(userData).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          formData.append(key, String(value));
+        }
+      });
+      
+      if (files.registrationCertificate) formData.append('registrationCertificate', files.registrationCertificate);
+      if (files.businessLicense) formData.append('businessLicense', files.businessLicense);
+      if (files.taxClearance) formData.append('taxClearance', files.taxClearance);
+      if (files.otherDocuments) formData.append('otherDocuments', files.otherDocuments);
+
+      const token = localStorage.getItem('token');
+      const headers: HeadersInit = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      console.log(`API Request (FormData): ${API_BASE_URL}/auth/register-with-documents`);
+      
+      let response: Response;
+      try {
+        response = await fetch(`${API_BASE_URL}/auth/register-with-documents`, {
+          method: 'POST',
+          headers,
+          body: formData,
+        });
+        console.log(`API Response status: ${response.status}`);
+      } catch (error) {
+        console.error('API Request failed:', error);
+        throw new Error('Unable to connect to the backend API. Start it with "cd backend && npm run dev", then try again.');
+      }
+
+      const raw = await response.text();
+      console.log('API Response raw:', raw);
+      let data: { message?: string; error?: string; verificationId?: string };
+      try {
+        data = raw ? JSON.parse(raw) : ({} as { message?: string; error?: string; verificationId?: string });
+      } catch {
+        data = {} as { message?: string; error?: string; verificationId?: string };
+      }
+
+      if (!response.ok) {
+        console.error('API Error:', data);
+        throw new ApiError(data.message || data.error || `Request failed (${response.status})`, response.status);
+      }
+      return data as { verificationId: string; message: string };
+    } else {
+      // Use JSON for regular registration
+      return apiRequest<{ verificationId: string; message: string }>('/auth/register', { method: 'POST', body: JSON.stringify(userData) }, false);
+    }
+  },
   verifyRegistration: (verificationId: string, code: string) => apiRequest<{ token: string; user: ApiUser; message: string }>('/auth/verify-registration', { method: 'POST', body: JSON.stringify({ verificationId, code }) }, false),
   login: (credentials: { email: string; password: string }) => apiRequest<{ token: string; user: ApiUser }>('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }, false),
   logout: () => apiRequest<{ message: string }>('/auth/logout', { method: 'POST' }),

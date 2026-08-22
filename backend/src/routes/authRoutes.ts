@@ -3,6 +3,7 @@ import { body } from 'express-validator';
 import { register, verifyRegistration, login, getProfile, requestPasswordReset, resetPassword, changePassword } from '../controllers/authController';
 import { authenticateToken } from '../middleware/auth';
 import { emailKey, rateLimit, requestKey, verificationKey } from '../middleware/authRateLimit';
+import { uploadProviderDocuments } from '../middleware/upload';
 
 const router = Router();
 
@@ -32,6 +33,7 @@ const changePasswordValidation = [
 
 // Routes
 router.post('/register', rateLimit('register-ip', 5, 60 * 60 * 1000, requestKey), registerValidation, register);
+router.post('/register-with-documents', rateLimit('register-ip', 5, 60 * 60 * 1000, requestKey), uploadProviderDocuments, registerValidation, register);
 router.post('/verify-registration', rateLimit('verify-code', 5, 15 * 60 * 1000, verificationKey), verifyRegistration);
 router.post('/login', rateLimit('login-account', 10, 15 * 60 * 1000, emailKey), loginValidation, login);
 router.post('/password-reset/request', rateLimit('password-reset-request', 5, 60 * 60 * 1000, requestKey), passwordResetRequestValidation, requestPasswordReset);

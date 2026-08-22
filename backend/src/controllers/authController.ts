@@ -33,6 +33,29 @@ export const register = async (req: Request, res: Response) => {
       language
     } = req.body;
 
+    // Handle uploaded files for providers
+    let registrationCertificatePath: string | null = null;
+    let businessLicensePath: string | null = null;
+    let taxClearancePath: string | null = null;
+    let otherDocumentsPath: string | null = null;
+
+    if (role === 'provider' && req.files) {
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      
+      if (files.registrationCertificate && files.registrationCertificate[0]) {
+        registrationCertificatePath = files.registrationCertificate[0].path;
+      }
+      if (files.businessLicense && files.businessLicense[0]) {
+        businessLicensePath = files.businessLicense[0].path;
+      }
+      if (files.taxClearance && files.taxClearance[0]) {
+        taxClearancePath = files.taxClearance[0].path;
+      }
+      if (files.otherDocuments && files.otherDocuments[0]) {
+        otherDocumentsPath = files.otherDocuments[0].path;
+      }
+    }
+
     // Validate required fields
     if (!email || !password || !role) {
       return res.status(400).json({ 
@@ -55,6 +78,23 @@ export const register = async (req: Request, res: Response) => {
 
     if (role === 'provider' && !String(branchLocation || '').trim()) {
       return res.status(400).json({ error: 'Bad Request', message: 'Physical branch location is required for providers' });
+    }
+
+    // For providers, ensure contactPerson is set (use institution name if not provided)
+    if (role === 'provider' && !contactPerson) {
+      contactPerson = institutionName;
+    }
+
+    // For providers, validate required documents (only if files were uploaded)
+    // This allows existing UI to work without documents while supporting new UI with documents
+    if (role === 'provider' && (registrationCertificatePath || businessLicensePath || taxClearancePath || otherDocumentsPath)) {
+      // If any documents are uploaded, require at least the mandatory ones
+      if (!registrationCertificatePath) {
+        return res.status(400).json({ error: 'Bad Request', message: 'Registration certificate is required when uploading documents' });
+      }
+      if (!businessLicensePath) {
+        return res.status(400).json({ error: 'Bad Request', message: 'Business license is required when uploading documents' });
+      }
     }
 
     // Do not create a login-capable account until the verification challenge succeeds.
@@ -83,7 +123,25 @@ export const register = async (req: Request, res: Response) => {
          profile_data = EXCLUDED.profile_data, verification_channel = EXCLUDED.verification_channel,
          verification_code_hash = EXCLUDED.verification_code_hash, verification_expires_at = EXCLUDED.verification_expires_at
        RETURNING id, email, role`,
-      [email.toLowerCase(), hashedPassword, role, JSON.stringify({ name, phone, location, incomeRange, institutionName, branchLocation, contactPerson, institutionType, registrationNumber, segment, district, cityVillage, language }), verificationChannel, verificationCode]
+      [email.toLowerCase(), hashedPassword, role, JSON.stringify({ 
+        name, 
+        phone, 
+        location, 
+        incomeRange, 
+        institutionName, 
+        branchLocation, 
+        contactPerson, 
+        institutionType, 
+        registrationNumber, 
+        segment, 
+        district, 
+        cityVillage, 
+        language,
+        registrationCertificatePath,
+        businessLicensePath,
+        taxClearancePath,
+        otherDocumentsPath
+      }), verificationChannel, verificationCode]
     );
 
     try {
@@ -133,7 +191,8 @@ export const verifyRegistration = async (req: Request, res: Response) => {
     if (pending.role === 'user') {
       await query(`INSERT INTO individual_profiles (user_id, full_name, location, income_range, segment, district, city_village) VALUES ($1, $2, $3, $4, $5, $6, $7)`, [user.id, profile.name, profile.location, profile.incomeRange, profile.segment, profile.district, profile.cityVillage]);
     } else {
-      await query(`INSERT INTO provider_profiles (user_id, institution_name, contact_person, institution_type, registration_number, branch_location, status, available_at) VALUES ($1, $2, $3, $4, $5, $6, 'pending_review', CURRENT_TIMESTAMP + INTERVAL '12 hours')`, [user.id, profile.institutionName, profile.contactPerson, profile.institutionType, profile.registrationNumber, profile.branchLocation]);
+      await query(`INSERT INTO provider_profiles (user_id, institution_name, contact_person, institution_type, registration_number, branch_location, status, available_at, registration_certificate_path, business_license_path, tax_clearance_path, other_documents_path) VALUES ($1, $2, $3, $4, $5, $6, 'pending_review', CURRENT_TIMESTAMP + INTERVAL '12 hours', $7, $8, $9, $10)`, 
+        [user.id, profile.institutionName, profile.contactPerson, profile.institutionType, profile.registrationNumber, profile.branchLocation, profile.registrationCertificatePath, profile.businessLicensePath, profile.taxClearancePath, profile.otherDocumentsPath]);
     }
     await query('INSERT INTO verification_events (pending_registration_id, channel, verified_at) VALUES ($1, $2, CURRENT_TIMESTAMP)', [pending.id, pending.verification_channel]);
     await query('DELETE FROM pending_registrations WHERE id = $1', [pending.id]);

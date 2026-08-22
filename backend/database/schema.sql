@@ -85,6 +85,10 @@ CREATE TABLE IF NOT EXISTS provider_profiles (
   branch_location VARCHAR(255),
   status VARCHAR(30) NOT NULL DEFAULT 'pending_review',
   available_at TIMESTAMPTZ,
+  registration_certificate_path TEXT,
+  business_license_path TEXT,
+  tax_clearance_path TEXT,
+  other_documents_path TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
