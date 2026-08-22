@@ -112,6 +112,13 @@ CREATE TABLE IF NOT EXISTS loan_products (
   interest_type VARCHAR(20) NOT NULL DEFAULT 'fixed',
   repayment_schedule VARCHAR(20) NOT NULL DEFAULT 'monthly',
   fees JSONB NOT NULL DEFAULT '[]'::jsonb,
+  interest_rate_max NUMERIC(7, 3),
+  processing_days INTEGER NOT NULL DEFAULT 0,
+  collateral_required BOOLEAN NOT NULL DEFAULT false,
+  collateral_text TEXT,
+  tags JSONB NOT NULL DEFAULT '[]'::jsonb,
+  rating NUMERIC(3, 2),
+  reviews_count INTEGER NOT NULL DEFAULT 0,
   is_active BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -140,6 +147,38 @@ CREATE TABLE IF NOT EXISTS application_media (
   mime_type VARCHAR(150) NOT NULL,
   size_bytes INTEGER NOT NULL DEFAULT 0,
   content_base64 TEXT NOT NULL,
+  media_type VARCHAR(30) NOT NULL DEFAULT 'document',
+  storage_key TEXT,
+  checksum_sha256 VARCHAR(64),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS user_media (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  media_type VARCHAR(30) NOT NULL CHECK (media_type IN ('avatar', 'institution_logo', 'identity_document', 'other')),
+  name VARCHAR(255) NOT NULL,
+  mime_type VARCHAR(150) NOT NULL,
+  size_bytes INTEGER NOT NULL DEFAULT 0 CHECK (size_bytes >= 0),
+  content_base64 TEXT,
+  storage_key TEXT,
+  checksum_sha256 VARCHAR(64),
+  is_primary BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS product_media (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id UUID NOT NULL REFERENCES loan_products(id) ON DELETE CASCADE,
+  uploaded_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  media_type VARCHAR(30) NOT NULL CHECK (media_type IN ('image', 'document', 'brochure', 'other')),
+  name VARCHAR(255) NOT NULL,
+  mime_type VARCHAR(150) NOT NULL,
+  size_bytes INTEGER NOT NULL DEFAULT 0 CHECK (size_bytes >= 0),
+  content_base64 TEXT,
+  storage_key TEXT,
+  checksum_sha256 VARCHAR(64),
+  sort_order INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -151,6 +190,9 @@ CREATE INDEX IF NOT EXISTS applications_user_id_idx ON applications(user_id);
 CREATE INDEX IF NOT EXISTS applications_product_id_idx ON applications(product_id);
 CREATE INDEX IF NOT EXISTS applications_status_idx ON applications(status);
 CREATE INDEX IF NOT EXISTS application_media_application_id_idx ON application_media(application_id);
+CREATE INDEX IF NOT EXISTS user_media_user_id_idx ON user_media(user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS user_media_primary_type_idx ON user_media(user_id, media_type) WHERE is_primary = true;
+CREATE INDEX IF NOT EXISTS product_media_product_id_idx ON product_media(product_id, sort_order);
 
 INSERT INTO individual_profiles (user_id, full_name, location, income_range, segment, district, city_village, needs)
 SELECT id, COALESCE(name, email), location, income_range, segment, district, city_village, needs

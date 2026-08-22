@@ -94,7 +94,7 @@ export interface ApplicationItem {
   notes?: string[];
   timeline?: ApplicationTimelineEvent[];
   requestedDocuments?: string[];
-  uploadedDocuments?: { name: string; url: string; date: string }[];
+  uploadedDocuments?: { id?: string; name: string; url: string; date: string; mimeType?: string; sizeBytes?: number }[];
   answers?: Record<string, unknown>;
 }
 

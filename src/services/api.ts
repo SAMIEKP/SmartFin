@@ -51,7 +51,14 @@ export interface ApiLoanProduct {
   min_amount?: number | string;
   max_amount?: number | string;
   interest_rate?: number | string;
+  interest_rate_max?: number | string;
   tenure?: string;
+  processing_days?: number | string;
+  collateral_required?: boolean;
+  collateral_text?: string;
+  tags?: string[] | string;
+  rating?: number | string;
+  reviews_count?: number | string;
   description?: string;
   eligibility_criteria?: string[] | string;
   required_documents?: string[] | string;
@@ -189,6 +196,7 @@ export const mapApiUser = (user: ApiUser): UserProfile => {
 
 export const mapApiProduct = (product: ApiLoanProduct): LoanProduct => {
   const minRate = numberValue(product.interest_rate);
+  const maxRate = numberValue(product.interest_rate_max, minRate);
   const eligibility = listValue(product.eligibility_criteria);
   const documents = listValue(product.required_documents);
   const applicationQuestions = listValue(product.application_questions);
@@ -201,18 +209,18 @@ export const mapApiProduct = (product: ApiLoanProduct): LoanProduct => {
     category: product.category,
     categoryLabel: product.category.toUpperCase(),
     interestRateMin: minRate,
-    interestRateMax: minRate,
-    rateDisplay: minRate ? `${minRate}% p.a.` : 'Contact provider',
+    interestRateMax: maxRate,
+    rateDisplay: minRate ? `${minRate}${maxRate !== minRate ? `-${maxRate}` : ''}% p.a.` : 'Contact provider',
     termMaxMonths: numberValue(term.replace(/\D/g, ''), 12),
     termDisplay: term,
     minAmount: numberValue(product.min_amount),
     maxAmount: numberValue(product.max_amount),
-    processingDays: 0,
-    collateralRequired: false,
-    collateralText: 'Contact provider',
+    processingDays: numberValue(product.processing_days),
+    collateralRequired: product.collateral_required ?? false,
+    collateralText: product.collateral_text || 'Contact provider',
     status: product.is_active ? 'active' : 'inactive',
     applicationsCount: 0,
-    tags: [product.category.toUpperCase()],
+    tags: listValue(product.tags, [product.category.toUpperCase()]),
     description: product.description || '',
     eligibility,
     documents,
@@ -220,6 +228,8 @@ export const mapApiProduct = (product: ApiLoanProduct): LoanProduct => {
     interestType: product.interest_type,
     repaymentSchedule: product.repayment_schedule,
     fees: listValue(product.fees),
+    rating: product.rating == null ? undefined : numberValue(product.rating),
+    reviewsCount: product.reviews_count == null ? undefined : numberValue(product.reviews_count),
   };
 };
 
@@ -246,7 +256,7 @@ export const mapApiApplication = (application: ApiApplication): ApplicationItem 
     status: statusMap[application.status],
     date: application.created_at ? new Date(application.created_at).toLocaleDateString() : 'Recently',
     notes: application.notes ? [application.notes] : undefined,
-    uploadedDocuments: application.media?.map((media) => ({ name: media.name, url: media.url, date: application.created_at || new Date().toISOString() })) || (Array.isArray(application.documents) ? application.documents as { name: string; url: string; date: string }[] : undefined),
+    uploadedDocuments: application.media?.map((media) => ({ id: media.id, name: media.name, url: media.url, mimeType: media.mimeType, sizeBytes: media.sizeBytes, date: application.created_at || new Date().toISOString() })) || (Array.isArray(application.documents) ? application.documents as { name: string; url: string; date: string }[] : undefined),
     requestedDocuments: listValue(application.required_documents),
     answers: application.answers,
   };
@@ -288,6 +298,14 @@ export const applicationAPI = {
   getApplicationDetails: (applicationId: string) => apiRequest<{ application: ApiApplication }>(`/applications/${applicationId}`),
   getProviderApplications: (status?: string) => apiRequest<{ applications: ApiApplication[] }>(`/applications/provider/all${status ? `?status=${encodeURIComponent(status)}` : ''}`),
   updateApplicationStatus: (applicationId: string, statusData: Record<string, unknown>) => apiRequest<{ application: ApiApplication }>(`/applications/${applicationId}/status`, { method: 'PUT', body: JSON.stringify(statusData) }),
+  getMedia: async (mediaId: string, download = false): Promise<Blob> => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/applications/media/${encodeURIComponent(mediaId)}${download ? '?download=true' : ''}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+    if (!response.ok) throw new ApiError('Unable to retrieve the submitted document.', response.status);
+    return response.blob();
+  },
 };
 
 export const healthCheck = () => fetch(`${API_BASE_URL.replace(/\/api$/, '')}/health`).then((response) => response.json());
