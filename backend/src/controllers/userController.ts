@@ -9,7 +9,7 @@ export const updateProfile = async (req: any, res: Response) => {
       segment, district, cityVillage, city_village, needs,
       language, institutionName, institutionType, registrationNumber, avatarUrl, avatar_url,
       lendingPolicy, interestPolicy, latePaymentPolicy, dataPrivacyStatement,
-      notificationPreferences, twoFactorEnabled
+      notificationPreferences, twoFactorEnabled, bio, financialGoal, theme, fontSize, contactPerson
     } = req.body;
 
     const result = await query(
@@ -33,15 +33,21 @@ export const updateProfile = async (req: any, res: Response) => {
            late_payment_policy = COALESCE($17, late_payment_policy),
            data_privacy_statement = COALESCE($18, data_privacy_statement),
            notification_preferences = COALESCE($19, notification_preferences),
+           bio = COALESCE($21, bio),
+           financial_goal = COALESCE($22, financial_goal),
+           theme = COALESCE($23, theme),
+           font_size = COALESCE($24, font_size),
+           two_factor_enabled = COALESCE($25, two_factor_enabled),
+           contact_person = COALESCE($26, contact_person),
            profile_status = CASE WHEN $6 IS NOT NULL OR $7 IS NOT NULL OR $8 IS NOT NULL OR $9 IS NOT NULL THEN 'needs_verification' ELSE profile_status END,
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $11
-      RETURNING id, email, role, name, phone, location, income_range, segment, district, city_village, language, needs, profile_status, provider_status, institution_name, institution_type, registration_number, avatar_url, is_verified, updated_at`,
+      RETURNING id, email, role, name, phone, location, income_range, segment, district, city_village, language, needs, profile_status, provider_status, institution_name, contact_person, institution_type, registration_number, avatar_url, is_verified, bio, financial_goal, theme, font_size, two_factor_enabled, lending_policy, interest_policy, late_payment_policy, data_privacy_statement, notification_preferences, updated_at`,
       [email, name, phone, location, incomeRange ?? income_range, segment, district, cityVillage ?? city_village,
         needs == null ? null : JSON.stringify(needs), language, userId, institutionName, institutionType, registrationNumber,
         lendingPolicy, interestPolicy, latePaymentPolicy, dataPrivacyStatement,
         notificationPreferences == null ? null : JSON.stringify({ ...notificationPreferences, two_factor: twoFactorEnabled }),
-        avatarUrl ?? avatar_url]
+        avatarUrl ?? avatar_url, bio, financialGoal, theme, fontSize, twoFactorEnabled, contactPerson]
     );
 
     if (result.rows.length === 0) {
@@ -49,6 +55,19 @@ export const updateProfile = async (req: any, res: Response) => {
         error: 'Not Found',
         message: 'User not found' 
       });
+    }
+
+    if (req.user.role === 'provider') {
+      await query(
+        `INSERT INTO provider_profiles (user_id, institution_name, contact_person, institution_type, registration_number, status, updated_at)
+         VALUES ($1, COALESCE($2, (SELECT institution_name FROM users WHERE id = $1), 'FinAccess Institution'), $3, $4, $5, COALESCE($6, 'pending_review'), CURRENT_TIMESTAMP)
+         ON CONFLICT (user_id) DO UPDATE SET institution_name = COALESCE(EXCLUDED.institution_name, provider_profiles.institution_name),
+           contact_person = COALESCE(EXCLUDED.contact_person, provider_profiles.contact_person),
+           institution_type = COALESCE(EXCLUDED.institution_type, provider_profiles.institution_type),
+           registration_number = COALESCE(EXCLUDED.registration_number, provider_profiles.registration_number),
+           updated_at = CURRENT_TIMESTAMP`,
+        [userId, institutionName, contactPerson, institutionType, registrationNumber, result.rows[0].provider_status],
+      );
     }
 
     res.status(200).json({

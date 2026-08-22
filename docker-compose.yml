@@ -15,6 +15,7 @@ services:
       - ./backend/database/003-registration.sql:/docker-entrypoint-initdb.d/003-registration.sql:ro
       - ./backend/database/004-profile-avatar.sql:/docker-entrypoint-initdb.d/004-profile-avatar.sql:ro
       - ./backend/database/005-password-reset.sql:/docker-entrypoint-initdb.d/005-password-reset.sql:ro
+      - ./backend/database/006-profile-preferences.sql:/docker-entrypoint-initdb.d/006-profile-preferences.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d smartfin_db"]
       interval: 5s

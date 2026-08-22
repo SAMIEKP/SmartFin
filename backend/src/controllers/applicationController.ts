@@ -71,7 +71,7 @@ export const getProviderApplications = async (req: any, res: Response) => {
     const { status } = req.query;
 
     let queryText = `
-      SELECT a.*, u.name as user_name, u.email as user_email, u.phone as user_phone,
+      SELECT a.*, u.name as user_name, u.email as user_email, u.phone as user_phone, u.location,
               p.name as product_name, p.category as product_category, p.required_documents,
               COALESCE((SELECT json_agg(json_build_object('id', m.id, 'name', m.name, 'mimeType', m.mime_type, 'sizeBytes', m.size_bytes, 'url', '/api/applications/media/' || m.id)) FROM application_media m WHERE m.application_id = a.id), '[]'::json) AS media
       FROM applications a
@@ -220,6 +220,7 @@ export const getApplicationDetails = async (req: any, res: Response) => {
       SELECT a.*, u.name as user_name, u.email as user_email, u.phone as user_phone, u.location,
              p.name as product_name, p.category, p.min_amount, p.max_amount, p.interest_rate, p.tenure,
              p.description, p.eligibility_criteria, p.required_documents,
+             COALESCE((SELECT json_agg(json_build_object('id', m.id, 'name', m.name, 'mimeType', m.mime_type, 'sizeBytes', m.size_bytes, 'url', '/api/applications/media/' || m.id)) FROM application_media m WHERE m.application_id = a.id), '[]'::json) AS media,
              prov.institution_name, prov.contact_person
       FROM applications a
       JOIN users u ON a.user_id = u.id

@@ -278,7 +278,7 @@ export const getProfile = async (req: any, res: Response) => {
     const userId = req.user.id;
 
     const result = await query(
-      'SELECT id, email, role, name, phone, location, income_range, segment, district, city_village, language, needs, profile_status, provider_status, institution_name, contact_person, institution_type, registration_number, avatar_url, is_verified, lending_policy, interest_policy, late_payment_policy, data_privacy_statement, notification_preferences, created_at FROM users WHERE id = $1',
+      'SELECT id, email, role, name, phone, location, income_range, segment, district, city_village, language, needs, profile_status, provider_status, institution_name, contact_person, institution_type, registration_number, avatar_url, is_verified, bio, financial_goal, theme, font_size, two_factor_enabled, lending_policy, interest_policy, late_payment_policy, data_privacy_statement, notification_preferences, created_at FROM users WHERE id = $1',
       [userId]
     );
 

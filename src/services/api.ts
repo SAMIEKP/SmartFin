@@ -33,6 +33,11 @@ export interface ApiUser {
   late_payment_policy?: string;
   data_privacy_statement?: string;
   notification_preferences?: { sms?: boolean; email?: boolean; in_app?: boolean };
+  bio?: string;
+  financial_goal?: string;
+  theme?: 'light' | 'dark';
+  font_size?: 'small' | 'default' | 'large';
+  two_factor_enabled?: boolean;
   is_verified?: boolean;
   created_at?: string;
 }
@@ -78,6 +83,7 @@ export interface ApiApplication {
   institution_name?: string;
   provider_name?: string;
   required_documents?: string[] | string;
+  media?: { id: string; name: string; mimeType: string; sizeBytes: number; url: string }[];
 }
 
 export class ApiError extends Error {
@@ -168,8 +174,13 @@ export const mapApiUser = (user: ApiUser): UserProfile => {
     lendingPolicy: user.lending_policy,
     interestPolicy: user.interest_policy,
     latePaymentPolicy: user.late_payment_policy,
-    dataPrivacyStatement: user.data_privacy_statement,
-    notificationPreferences: user.notification_preferences,
+  dataPrivacyStatement: user.data_privacy_statement,
+  notificationPreferences: user.notification_preferences,
+  bio: user.bio,
+  financialGoal: user.financial_goal,
+  theme: user.theme,
+  fontSize: user.font_size,
+  twoFactorEnabled: user.two_factor_enabled,
   memberStatus: user.is_verified ? 'Verified member' : 'Pending verification',
   isPendingVerification: user.is_verified === false,
   creditScore: 0,
